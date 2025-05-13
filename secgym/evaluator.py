@@ -408,46 +408,4 @@ class LLMEvaluator(Evaluator):
             if self.verbose:
                 print(f"-----> Answer Evaluation Reflection: {reflect_response}")
         return return_dict
-        
-        
-# def criteria_creator(question: dict):
-#     if "answer" not in question:
-#         print("Warning: No answer in the question. Skipping...")
-#         return None
-#     if "key_terms" in question:
-#         print(f"Warning, Key terms found in question. Skipping...")
-#         return None
-    
-#     client = OpenAIWrapper(config_list=config_list_4o,
-#                         response_format= { "type": "json_object" })
-
-#     print(f"Question: {question.get('context', '')} {question['question']}")
-
-#     messages=[
-#         msging(CREATOR_PROMPT, role="system"), 
-#         msging(f"Question: {question.get('context', '')} {question['question']}\nGolden Answer: {question['answer']}\nYour response:", role="user")
-#     ]
-#     response = client.create(messages=messages)
-#     response = response.choices[0].message.content
-#     response = json.loads(response)
-#     return response
-
-
-
-# if __name__ == '__main__':
-#     print('***** Run Evaluator *****')
-#     curr_path = os.path.dirname(__file__)
-#     qa_path = os.path.join(curr_path, "../env/questions/aad_comprise_qa.json")
-#     with open(qa_path, "r") as f:
-#         qas = json.load(f)
-#     for q in qas:
-#         if q['type'] == "single response":
-#             continue
-#         criteria = criteria_creator(q)
-#         if criteria:
-#             print(criteria)
-#             q.update(criteria)
-#         print("=="*50)
-
-#     with open(qa_path, "w") as f:
-#         json.dump(qas, f, indent=4)
+ 

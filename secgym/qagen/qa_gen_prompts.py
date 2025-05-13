@@ -1,4 +1,3 @@
-#TODO: Add incident info, how much to use?
 TWEAKED_QAGEN_PROMPT_ORIGIN = """
 
 Your goal is to ask a security question to test a junior security analyst's ability to understand a security incident and their reasoning capabilities.
