@@ -1,7 +1,7 @@
 import networkx as nx
 import matplotlib.pyplot as plt
 import pandas as pd
-from secgym.utils import process_entity_identifiers
+from secgym.utils.utils import process_entity_identifiers
 from typing import List, Union
 import json
 import random
