@@ -133,7 +133,7 @@ ply==3.11
 portalocker==2.10.1
 propcache==0.3.0
 proto-plus==1.26.1
-protobuf==4.25.7
+protobuf==4.25.8
 pyarrow==19.0.1
 pyasn1==0.6.1
 pyasn1_modules==0.4.2
