@@ -175,7 +175,7 @@ termcolor==2.4.0
 threadpoolctl==3.5.0
 tiktoken==0.7.0
 tokenizers==0.21.0
-torch==2.2.2
+torch==2.7.1
 tqdm==4.66.5
 transformers==4.49.0
 types-pytz==2025.2.0.20250326
