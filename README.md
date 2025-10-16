@@ -1,13 +1,19 @@
 # ExCyTIn-Bench: Evaluating LLM agents on Cyber Threat Investigation
 
 [![Paper](https://img.shields.io/badge/paper-A42C25?style=for-the-badge&logo=arxiv&logoColor=white)](https://arxiv.org/abs/2507.14201) 
+[![Hugging Face](https://img.shields.io/badge/Dataset-orange?style=for-the-badge&logo=huggingface&logoColor=white)](https://huggingface.co/datasets/anandmudgerikar/excytin-bench)
 
+## 🎉 News
+- **[2025/10/14]**: Checkout our latest [blog post](https://www.microsoft.com/en-us/security/blog/2025/10/14/microsoft-raises-the-bar-a-smarter-way-to-measure-ai-for-cybersecurity/)!
+- **[2025/10/05]**: We updated the evaluation chart with Qwen-235B (GPT-5 family is also updated)!
+
+-----
 
 We present the first benchmark to test LLM-based agents on threat hunting in the form of security question-answering pairs.
 
 The environment consists 2 main components:
 1. A MYSQL database where an agent can interact to retrieve information.
-2. A set of generated questions and answers for testing in `secgym/questions/tests` folder.
+2. A set of generated questions and answers for testing in `secgym/questions/tests` folder, or from [hugginface]().
 
 
 <!-- display pdf as image -->
@@ -17,7 +23,7 @@ The environment consists 2 main components:
 ## 🛠️ Environment Setup
 
 1. Download database from Hugging Face
-    Please download the data from the proivided link: https://huggingface.co/datasets/anandmudgerikar/excytin-bench.
+    Please download the data `data_anonymized.tar.gz` from this [link](https://huggingface.co/datasets/anandmudgerikar/excytin-bench).
     Put the folder `data_anonymized` under `secgym/database/`.
 
 2. We are using MYSQL docker container for the database. Please first install Docker Desktop and docker-compose and then pull the mysql image:
