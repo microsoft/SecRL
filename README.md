@@ -5,7 +5,7 @@
 
 ## 🎉 News
 - **[2025/10/14]**: Checkout our latest [blog post](https://www.microsoft.com/en-us/security/blog/2025/10/14/microsoft-raises-the-bar-a-smarter-way-to-measure-ai-for-cybersecurity/)!
-- **[2025/10/05]**: We updated the evaluation chart with Qwen-235B (GPT-5 family is also updated)!
+- **[2025/10/05]**: We updated the evaluation chart with Qwen-235B and Grok-4 (GPT-5 family is also updated)!
 
 -----
 
@@ -22,7 +22,7 @@ The environment consists 2 main components:
 
 ## 🛠️ Environment Setup
 
-1. Download database from Hugging Face
+1. Download database from Hugging Face.
     Please download the data `data_anonymized.tar.gz` from this [link](https://huggingface.co/datasets/anandmudgerikar/excytin-bench).
     Put the folder `data_anonymized` under `secgym/database/`.
 
