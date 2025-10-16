@@ -74,7 +74,7 @@ The generation process is as follows:
     ```bash
     python experiments/run_qa_gen.py --model gpt-4.1 --solution_model gpt-4.1 --relevant_type low_split --qa_path secgym/qagen/graph_files
     ```
-    Note here we use `gpt-4.1` as the model question and solution generation. 
+    Note in this script we use `gpt-4.1` for question and solution generation.
 
 
 After all the questions are generated, you should expect new files in `secgym/questions` folder like `incident_<i>_qa.json` where `i` is the incident number.
