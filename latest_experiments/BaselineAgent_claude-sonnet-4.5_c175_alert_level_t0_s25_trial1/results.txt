@@ -1,0 +1,16 @@
+Model: claude-sonnet-4.5, Attack: incident_5, Agent: BaselineAgent, Cache Seed: 175, Temperature: 0, Layer: alert, Max Steps: 25, Eval Model: gpt-4o, Num Trials: 1
+Success: 47/98=0.480, Avg Reward: 0.485
+Model: claude-sonnet-4.5, Attack: incident_38, Agent: BaselineAgent, Cache Seed: 175, Temperature: 0, Layer: alert, Max Steps: 25, Eval Model: gpt-4o, Num Trials: 1
+Success: 7/11=0.636, Avg Reward: 0.673
+Model: claude-sonnet-4.5, Attack: incident_34, Agent: BaselineAgent, Cache Seed: 175, Temperature: 0, Layer: alert, Max Steps: 25, Eval Model: gpt-4o, Num Trials: 1
+Success: 42/82=0.512, Avg Reward: 0.522
+Model: claude-sonnet-4.5, Attack: incident_39, Agent: BaselineAgent, Cache Seed: 175, Temperature: 0, Layer: alert, Max Steps: 25, Eval Model: gpt-4o, Num Trials: 1
+Success: 45/98=0.459, Avg Reward: 0.481
+Model: claude-sonnet-4.5, Attack: incident_55, Agent: BaselineAgent, Cache Seed: 175, Temperature: 0, Layer: alert, Max Steps: 25, Eval Model: gpt-4o, Num Trials: 1
+Success: 40/153=0.261, Avg Reward: 0.273
+Model: claude-sonnet-4.5, Attack: incident_134, Agent: BaselineAgent, Cache Seed: 175, Temperature: 0, Layer: alert, Max Steps: 25, Eval Model: gpt-4o, Num Trials: 1
+Success: 36/87=0.414, Avg Reward: 0.414
+Model: claude-sonnet-4.5, Attack: incident_166, Agent: BaselineAgent, Cache Seed: 175, Temperature: 0, Layer: alert, Max Steps: 25, Eval Model: gpt-4o, Num Trials: 1
+Success: 28/87=0.322, Avg Reward: 0.322
+Model: claude-sonnet-4.5, Attack: incident_322, Agent: BaselineAgent, Cache Seed: 175, Temperature: 0, Layer: alert, Max Steps: 25, Eval Model: gpt-4o, Num Trials: 1
+Success: 36/56=0.643, Avg Reward: 0.643
