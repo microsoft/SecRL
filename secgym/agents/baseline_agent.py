@@ -1,10 +1,15 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
+import anthropic
+from anthropic import APIStatusError as AnthropicAPIStatusError, BadRequestError as AnthropicBadRequestError
 from autogen import OpenAIWrapper
+from numpy import block
 from secgym.agents.agent_utils import sql_parser, msging, call_llm, call_llm_foundry, update_model_usage
 from azure.ai.inference import ChatCompletionsClient
 from azure.core.credentials import AzureKeyCredential
+import requests
+import time
 
 # from tenacity import retry, wait_fixed
 
@@ -71,7 +76,7 @@ class BaselineAgent:
         self.config_list = config_list
         self.temperature = temperature
 
-        if "o4" in config_list[0]['model']:
+        if "o4" in config_list[0]['model'] or "gpt-5" in config_list[0]['model']:
             self.temperature = 1
         for i in range(len(config_list)):
             if  config_list[i].get('api_type') is None:
@@ -96,6 +101,9 @@ class BaselineAgent:
         if "r1" in config_list[0]['model'] or "R1" in self.config_list[0]['model'] or "qwen3" in self.config_list[0]['model']:
             self.messages = [{"role": "system", "content": R1_PROMPT}]  # no system prompt for deepseek
             print("Deepseek model, no system prompt")
+        
+        if "claude" in config_list[0]['model']:
+            self.messages = [{"role": "user", "content":  O1_PROMPT}]  # no system role for claude
 
         self.max_steps = max_steps
         self.submit_summary = submit_summary
@@ -121,6 +129,69 @@ class BaselineAgent:
                 stop=['</answer>'],
             )
             update_model_usage(self.totoal_usage, model_name=response.model, usage_dict=response.usage.as_dict())
+        elif "aml" in self.config_list[0]['api_type']:
+            headers = {
+            "Content-Type": "application/json",
+            "api-key": self.config_list[0]['api_key'],
+            }
+
+            data = {
+            "model": "grok-4",
+            "messages": messages
+            }
+            response = requests.post(self.config_list[0]['base_url'], headers=headers, json=data)
+            print(response.json())
+            if 'choices' not in response.json():
+                return None
+            else:
+                return response.json()['choices'][0]['message']['content']
+
+        elif "anthropic" in self.config_list[0]['api_type']:
+
+            client = anthropic.Anthropic(
+                # defaults to os.environ.get("ANTHROPIC_API_KEY")
+                api_key= self.config_list[0]['api_key'],
+            )
+
+            max_tokens = 20000
+            budget_tokens = 16000
+            for _ in range(self.retry_num):
+                try:
+                    message = client.messages.create(
+                        model=self.config_list[0]['model'],
+                        max_tokens=max_tokens,
+                        thinking={"type": "enabled","budget_tokens": budget_tokens},
+                        messages=messages,
+                    )
+                    break
+                except AnthropicBadRequestError as e:
+                    # Check if it's specifically a "prompt is too long" error
+                    if "prompt is too long" in str(e):
+                        print(f"\nPrompt too long error: {e}. Retrying with lower max_tokens and budget_tokens...")
+                        max_tokens = max(10000, int(max_tokens * 0.5))  # Reduce by 50%, minimum 16000
+                        budget_tokens = max(16000, int(budget_tokens * 0.5))  # Reduce by 50%, minimum 10000
+                        if _ < self.retry_num - 1:
+                            time.sleep(self.retry_wait_time)
+                            continue
+                        else:
+                            raise  # Re-raise on the last attempt
+                    else:
+                        # For other BadRequestErrors, raise immediately
+                        raise
+                except AnthropicAPIStatusError as e:
+                    if _ < self.retry_num - 1:  # Don't sleep on the last retry
+                        time.sleep(self.retry_wait_time)
+                        continue
+                    else:
+                        raise  # Re-raise on the last attempt
+            
+            for block in message.content:
+                if block.type == "thinking":
+                    print(f"\nThinking summary: {block.thinking}")
+                elif block.type == "text":
+                    print(f"\nResponse: {block.text}")
+                    response = block.text
+                    return response
         else:
                     # if "azure" in self.config_list[0]['api_type']:
             response = call_llm(
@@ -129,7 +200,7 @@ class BaselineAgent:
                 messages=messages,
                 retry_num=self.retry_num,
                 retry_wait_time=self.retry_wait_time,
-                temperature=self.temperature
+                temperature=self.temperature,
             )
             update_model_usage(self.totoal_usage, model_name=response.model, usage_dict=response.usage.model_dump())
         print(response)
@@ -208,6 +279,9 @@ class BaselineAgent:
         elif "r1" in self.config_list[0]['model'] or "R1" in self.config_list[0]['model'] or "qwen3" in self.config_list[0]['model']:
             sys_prompt = R1_PROMPT
         self.messages = [{"role": "system", "content": sys_prompt}]
+        
+        if "claude" in self.config_list[0]['model']:
+            self.messages = [{"role": "user", "content": O1_PROMPT}]  # no system role for claude
         # if "r1" in self.config_list[0]['model']:
         #     self.messages = []  # no system prompt for deepseek
         #     print("Deepseek model, no system prompt")

@@ -8,6 +8,8 @@ from typing import List
 from openai.types.chat import ChatCompletion
 from azure.ai.inference import ChatCompletionsClient
 from azure.ai.inference.models import ChatCompletions
+from anthropic import APIStatusError as AnthropicAPIStatusError
+
 
 def msging(msg: str, role: str="user"):
     return {"role": role, "content": msg}
@@ -106,6 +108,18 @@ def call_llm(
                 response = client.create(messages=messages, model=model)
             elif "o3" in model:
                 response = client.create(messages=messages, model=model)
+            elif "gpt-5" in model:
+                #by default running at reasoning level high
+                response = client.create(messages=messages, model=model, temperature=temperature, stop=stop, reasoning_effort="minimal")
+            elif "claude" in model:
+                try:
+                    response = client.create(messages=messages, model=model, temperature=temperature, stop=stop, thinking={"type": "enabled","budget_tokens": 10000})
+                except AnthropicAPIStatusError as e:
+                    if _ < retry_num - 1:  # Don't sleep on the last retry
+                        time.sleep(retry_wait_time)
+                        continue
+                    else:
+                        raise  # Re-raise on the last attempt
             else:
                 response = client.create(messages=messages, model=model, temperature=temperature, stop=stop)
             break
