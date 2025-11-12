@@ -1,0 +1,18 @@
+Model: o3, Attack: incident_5, Agent: BaselineAgent, Cache Seed: 106, Temperature: 0, Layer: alert, Max Steps: 25, Eval Model: gpt-4o, Num Trials: 1
+Success: 41/98=0.418, Avg Reward: 0.433
+Model: o3, Attack: incident_38, Agent: BaselineAgent, Cache Seed: 106, Temperature: 0, Layer: alert, Max Steps: 25, Eval Model: gpt-4o, Num Trials: 1
+Success: 8/11=0.727, Avg Reward: 0.727
+Model: o3, Attack: incident_34, Agent: BaselineAgent, Cache Seed: 106, Temperature: 0, Layer: alert, Max Steps: 25, Eval Model: gpt-4o, Num Trials: 1
+Success: 29/82=0.354, Avg Reward: 0.359
+Model: o3, Attack: incident_39, Agent: BaselineAgent, Cache Seed: 106, Temperature: 0, Layer: alert, Max Steps: 25, Eval Model: gpt-4o, Num Trials: 1
+Success: 43/98=0.439, Avg Reward: 0.443
+Model: o3, Attack: incident_55, Agent: BaselineAgent, Cache Seed: 106, Temperature: 0, Layer: alert, Max Steps: 25, Eval Model: gpt-4o, Num Trials: 1
+Success: 43/100=0.430, Avg Reward: 0.459
+Model: o3, Attack: incident_134, Agent: BaselineAgent, Cache Seed: 106, Temperature: 0, Layer: alert, Max Steps: 25, Eval Model: gpt-4o, Num Trials: 1
+Success: 36/57=0.632, Avg Reward: 0.632
+Model: o3, Attack: incident_166, Agent: BaselineAgent, Cache Seed: 106, Temperature: 0, Layer: alert, Max Steps: 25, Eval Model: gpt-4o, Num Trials: 1
+Success: 33/87=0.379, Avg Reward: 0.379
+Model: o3, Attack: incident_322, Agent: BaselineAgent, Cache Seed: 106, Temperature: 0, Layer: alert, Max Steps: 25, Eval Model: gpt-4o, Num Trials: 1
+Success: 30/56=0.536, Avg Reward: 0.543
+Model: o3, Attack: incident_38, Agent: BaselineAgent, Cache Seed: 106, Temperature: 0, Layer: alert, Max Steps: 25, Eval Model: gpt-4o, Num Trials: 1
+Success: 8/11=0.727, Avg Reward: 0.727

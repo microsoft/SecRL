@@ -3,6 +3,7 @@
 
 import json
 from datetime import datetime
+import time
 from typing import Union
 import os
 from secgym.excytin_env import ExcytinEnv, ATTACKS
@@ -85,11 +86,19 @@ def run_experiment(
                 try:
                     action, submit = agent.act(observation)
                 except Exception as e:
-                    raise e # comment this to continue on error
-                    print(f"Error: {e}")
-                    info = {}
-                    reward = 0
-                    break
+                     # Check if it's an Anthropic rate limit error
+                    if "anthropic.RateLimitError" in str(type(e).__module__ + "." + type(e).__name__) or \
+                       (hasattr(e, 'status_code') and e.status_code == 429) or \
+                       "rate_limit_error" in str(e).lower():
+                        print(f"Rate limit error encountered. Waiting 120 seconds before retry...")
+                        time.sleep(120)
+                        action, submit = agent.act(observation)
+                    else:
+                        raise e # comment this to continue on error
+                        print(f"Error: {e}")
+                        info = {}
+                        reward = 0
+                        break
                 observation, reward, _, info = thug_env.step(action=action, submit=submit)
 
                 if submit:
