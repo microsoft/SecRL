@@ -5,6 +5,7 @@
 [![Blog](https://img.shields.io/badge/Blog-5C2D91?style=for-the-badge&logo=rss&logoColor=white)](https://www.microsoft.com/en-us/security/blog/2025/10/14/microsoft-raises-the-bar-a-smarter-way-to-measure-ai-for-cybersecurity/)
 
 ## 🎉 News
+- **[2025/11/25]**: We updated the evaluation chart with Claude Opus-4.5 and GPT 5.1!
 - **[2025/11/04]**: We updated the evaluation chart with Claude Sonnet-4.5 and Haiku-4.5. These are base model results with default parameters; we will share results with [extended thinking](https://docs.claude.com/en/docs/build-with-claude/extended-thinking) and [larger context windows](https://docs.claude.com/en/docs/build-with-claude/context-windows#1m-token-context-window) soon!
 - **[2025/10/28]**: Checkout [open-source research](https://www.arc.computer/blog/inference-time-continual-learning) applying in-context continual learning methods to the ExCyTIn framework, achieving significant cost reductions and enabling cross-incident knowledge transfer.
 - **[2025/10/14]**: Checkout our latest [blog post](https://www.microsoft.com/en-us/security/blog/2025/10/14/microsoft-raises-the-bar-a-smarter-way-to-measure-ai-for-cybersecurity/)!
@@ -89,7 +90,7 @@ Note: All results from the paper use the questions in `secgym/questions/tests` f
 
 Below is the evaluation results of the LLM agents on the test questions. We set temperature = 0 and max_step = 25. GPT-4o is used for evaluation. The full evaluation logs with the latest models can be found under the `latest_experiments` folder. The full evaluation logs for older models can be downloaded from [this link](https://pennstateoffice365-my.sharepoint.com/:u:/g/personal/ykw5399_psu_edu/EXOMtXyFSRNGvKsLZGPIAfwBZhkKMr11oROccOydbWyioA?e=XzpQLa). If can also be found under this [branch](https://github.com/microsoft/SecRL/tree/before_cleanup_all_history) under `final_results` folder (along with the original code). 
 
-![ExCyTIn-Bench](./secgym/assets/updated_eval_results_11_25.png)
+![ExCyTIn-Bench](./secgym/assets/updated_eval_results_12_25.png)
 
 ## 📝 Citation
 
