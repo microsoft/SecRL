@@ -17,7 +17,7 @@ We present the first benchmark to test LLM-based agents on threat hunting in the
 
 The environment consists 2 main components:
 1. A MYSQL database where an agent can interact to retrieve information.
-2. A set of generated questions and answers for testing in `secgym/questions/tests` folder, or from [hugginface]().
+2. A set of generated questions and answers for testing in `secgym/questions/tests` folder, or from [huggingface](https://huggingface.co/datasets/anandmudgerikar/excytin-bench).
 
 
 <!-- display pdf as image -->
@@ -72,7 +72,7 @@ The environment consists 2 main components:
 All the questions are generated based on constructed graphs from the database.
 The generation process is as follows:
 1. The `SecurityIncident` and `SecurityAlert` logs are used to construct a graph for each incident, check out this [notebook](notebooks/extract_construct_graph.ipynb) for more details.
-2. We run train-test split on the constructed graph. Run the [question_split.ipynb](notebooks/question_split.ipynb) notebook to get the split (saved to `experiements/split_files`). The train and test are split based on a proposed path relavance score.
+2. We run train-test split on the constructed graph. Run the [question_split.ipynb](notebooks/question_split.ipynb) notebook to get the split (saved to `experiments/split_files`). The train and test are split based on a proposed path relevance score.
 2. We use LLM to generate questions based on the constructed graph. Currently, we already have the questions generated for the 8 different incidents in the `secgym/questions/tests` folder using OpenAI O1. If you want to rerun the question generation process, please use the following command:
 
     ```bash
