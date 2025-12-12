@@ -6,6 +6,7 @@ from autogen import OpenAIWrapper
 import time
 from typing import List
 from openai.types.chat import ChatCompletion
+from openai import RateLimitError as OpenAIRateLimitError
 from azure.ai.inference import ChatCompletionsClient
 from azure.ai.inference.models import ChatCompletions
 from anthropic import APIStatusError as AnthropicAPIStatusError
@@ -101,7 +102,7 @@ def call_llm(
         stop=None
     ) -> ChatCompletion:
 
-    for _ in range(retry_num):
+    for attempt in range(retry_num):
         try: 
             if "o1" in model:
                 messages[0]['role'] = 'user'
@@ -110,19 +111,31 @@ def call_llm(
                 response = client.create(messages=messages, model=model)
             elif "gpt-5" in model:
                 #by default running at reasoning level high
-                response = client.create(messages=messages, model=model, temperature=temperature, stop=stop, reasoning_effort="minimal")
+                response = client.create(messages=messages, model=model, temperature=temperature, stop=stop, reasoning_effort="medium")
             elif "claude" in model:
                 try:
                     response = client.create(messages=messages, model=model, temperature=temperature, stop=stop, thinking={"type": "enabled","budget_tokens": 10000})
                 except AnthropicAPIStatusError as e:
-                    if _ < retry_num - 1:  # Don't sleep on the last retry
-                        time.sleep(retry_wait_time)
+                    if attempt < retry_num - 1:  # Don't sleep on the last retry
+                        wait_time = retry_wait_time * (2 ** attempt)  # Exponential backoff
+                        time.sleep(wait_time)
                         continue
                     else:
                         raise  # Re-raise on the last attempt
             else:
                 response = client.create(messages=messages, model=model, temperature=temperature, stop=stop)
             break
+        except OpenAIRateLimitError as e:
+            if attempt < retry_num - 1:  # Don't sleep on the last retry
+                wait_time = retry_wait_time * (2 ** attempt)  # Exponential backoff
+                print(f"Rate limit error encountered. Retrying in {wait_time} seconds... (Attempt {attempt + 1}/{retry_num})")
+                time.sleep(wait_time)
+                continue
+            else:
+                raise  # Re-raise on the last attempt
         except TimeoutError as e:
-            time.sleep(retry_wait_time)
+            if attempt < retry_num - 1:
+                time.sleep(retry_wait_time)
+            else:
+                raise
     return response
