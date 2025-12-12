@@ -1,0 +1,2142 @@
+[
+    {
+        "context": "On 22 July 2024 an alert titled \"Suspicious SAP authentication\" was raised after a risky sign-in from IP address 107.253.5.27 to the SAP cloud application (AppId 100). The following day, on 23 July 2024, a new alert \"Possible BEC financial fraud\" was generated, indicating that the same user account was now involved in activity characteristic of business email compromise (BEC) aimed at financial fraud.",
+        "question": "From the \"Possible BEC financial fraud\" alert raised on 23 July 2024, what is the Microsoft Entra user identifier (AadUserId) of the account implicated in the suspected BEC activity?",
+        "answer": "89e933b9-5b2e-4bd6-bcdf-033db707ef82",
+        "solution": [
+            "A risky sign-in in Entra ID was followed by a suspicious SAP authentication from the account with Sid `S-1-5-21-1740051960-3534030288-108486866-1602`.",
+            "The account with AadUserId `89e933b9-5b2e-4bd6-bcdf-033db707ef82` was later involved in activity flagged as Possible BEC financial fraud."
+        ],
+        "start_alert": 23,
+        "end_alert": 29,
+        "start_entities": [
+            24,
+            25
+        ],
+        "end_entities": [
+            1
+        ],
+        "shortest_alert_path": [
+            23,
+            8,
+            29
+        ]
+    },
+    {
+        "context": "On July 22 2024, Microsoft Entra ID Protection generated an \u201cAnonymous IP address\u201d alert after a sign-in attempt originating from the IP address 192.238.237.190. This suggests the same user may have been trying to hide their location by using anonymizing services such as Tor or a VPN shortly after another suspicious sign-in earlier that morning.",
+        "question": "What IP address was associated with the earlier \u201cAnonymous IP address\u201d sign-in alert that occurred at 08:45:32 UTC on July 22 2024?",
+        "answer": "95.202.65.202",
+        "notes": "By highlighting only the later alert in the context (the 09:11:31 sign-in from 192.238.237.190) and hinting at an earlier related alert, the question naturally leads the analyst to investigate the incident timeline and uncover the IP 95.202.65.202 from the end alert. The answer is not revealed in the context or question.",
+        "solution": [
+            "Alert indicates a sign-in from an anonymous source for account with AadUserId `89e933b9-5b2e-4bd6-bcdf-033db707ef82`.",
+            "The anonymous activity originated from IP Address `95.202.65.202`, which was also flagged earlier as coming from an anonymizing service."
+        ],
+        "start_alert": 3,
+        "end_alert": 0,
+        "start_entities": [
+            4
+        ],
+        "end_entities": [
+            2
+        ],
+        "shortest_alert_path": [
+            3,
+            1,
+            0
+        ]
+    },
+    {
+        "context": "During an investigation, we observed that inbox rules were manipulated via cloud application ID 20893 from the IP address 255.246.85.58. This raised the alert titled \u201cSuspicious inbox manipulation rule\u201d, indicating that an attacker may have gained access to a mailbox and altered message-handling rules. The next day a separate alert in the same incident flagged potential business email compromise (BEC) activity aiming at financial fraud.",
+        "question": "Which user account was identified in the \"Possible BEC financial fraud\" alert raised on 2024-07-23 at 16:09 UTC?",
+        "answer": "Jordan P",
+        "hint": "Look at the account entity associated with the BEC alert that followed the suspicious inbox rule manipulation.",
+        "solution": [
+            "Account Name `Jordan P` had suspicious inbox manipulation rules created on 2024-07-22 10:00:07.502771+00:00, suggesting an attacker may have gained access.",
+            "The same Account Name `Jordan P` was later involved in possible BEC financial fraud activity on 2024-07-23 16:09:13.506099+00:00, indicating escalation of the compromise."
+        ],
+        "start_alert": 16,
+        "end_alert": 29,
+        "start_entities": [
+            11,
+            15
+        ],
+        "end_entities": [
+            6
+        ],
+        "shortest_alert_path": [
+            16,
+            6,
+            29
+        ]
+    },
+    {
+        "context": "During an investigation, we observed a sign-in originating from the anonymous IP address 95.202.65.202 that triggered an \u201cAnonymous IP address\u201d alert in Microsoft Entra ID. Further analysis showed that the same user account later generated a \u201cSuspicious SAP authentication\u201d alert after successfully signing in to the company\u2019s SAP cloud service. This second alert indicates that an attacker may have taken control of the account to access sensitive financial data in SAP.",
+        "question": "According to the \u201cSuspicious SAP authentication\u201d alert, what is the AppId of the cloud application that was accessed?",
+        "answer": "100",
+        "solution": [
+            "Account (AadUserId: `89e933b9-5b2e-4bd6-bcdf-033db707ef82`) was observed signing in from an anonymous IP address.",
+            "The same account (AadUserId: `89e933b9-5b2e-4bd6-bcdf-033db707ef82`) then performed a suspicious authentication to the SAP cloud application (AppId: `100`)."
+        ],
+        "start_alert": 0,
+        "end_alert": 23,
+        "start_entities": [
+            2
+        ],
+        "end_entities": [
+            24
+        ],
+        "shortest_alert_path": [
+            0,
+            1,
+            23
+        ]
+    },
+    {
+        "context": "During the investigation we first observed an alert titled \"Suspicious inbox manipulation rule\" in which an unnamed user created a rule called \"ITCleanup\" that moves incoming messages to the RSS Feeds folder\u2014behaviour commonly seen when attackers try to hide phishing replies or BEC traffic. This action occurred in Microsoft Exchange Online / Office 365 and involved several external IP addresses.",
+        "question": "According to the follow-up alert \"Suspicious emails sent by BEC-related user\", which email address was identified as the sender of those suspicious messages?",
+        "answer": "laylaw@vnevado.alpineskihouse.co",
+        "solution": [
+            "A suspicious inbox manipulation rule named 'ITCleanup' was created in the mailbox of the account with Email `Jordan P@vnevado.alpineskihouse.co`, suggesting the account may be compromised.",
+            "Following this, suspicious outbound messages were detected with the mailmessage Sender `laylaw@vnevado.alpineskihouse.co`, indicating the compromised user is now sending potentially malicious emails."
+        ],
+        "start_alert": 5,
+        "end_alert": 18,
+        "start_entities": [
+            2,
+            4,
+            10,
+            11,
+            12,
+            13,
+            14
+        ],
+        "end_entities": [
+            22
+        ],
+        "shortest_alert_path": [
+            5,
+            7,
+            18
+        ]
+    },
+    {
+        "context": "On July 22 2024, an alert titled \u201cSuspicious inbox manipulation rule\u201d was raised for the user account Jordan P (email: Jordan P@vnevado.alpineskihouse.co). The alert noted that the user created a rule named \u201cITCleanup\u201d moving messages to the \u201cRSS Feeds\u201d folder, a behavior often associated with mailbox compromise. Several IP addresses (e.g., 255.246.85.58, 192.238.237.190, 180.144.153.174) were observed, and activity involved cloud applications such as Microsoft Exchange Online (AppId 11161) and Microsoft 365 (AppId 20893). While investigating, you notice a related alert the next day reporting a \u201cPassword Spray\u201d attack against the same environment.",
+        "question": "From the \u201cPassword Spray\u201d alert raised on 23 July 2024 at 14:23:51 UTC, identify the Azure AD user ID (AadUserId) of the affected account.",
+        "answer": "89e933b9-5b2e-4bd6-bcdf-033db707ef82",
+        "solution": [
+            "Alert 1 shows that the account with AadUserId `89e933b9-5b2e-4bd6-bcdf-033db707ef82` (user Jordan P) set a suspicious inbox rule named \u201cITCleanup,\u201d moving messages to the folder \u201cRSS Feeds.\u201d",
+            "Alert 2 then reports a Password Spray attack against the same account with AadUserId `89e933b9-5b2e-4bd6-bcdf-033db707ef82`, indicating repeated login attempts and a likely effort to compromise that mailbox."
+        ],
+        "start_alert": 5,
+        "end_alert": 28,
+        "start_entities": [
+            7,
+            6,
+            8,
+            15,
+            10,
+            12,
+            13,
+            4,
+            11,
+            14
+        ],
+        "end_entities": [
+            1
+        ],
+        "shortest_alert_path": [
+            5,
+            1,
+            28
+        ]
+    },
+    {
+        "context": "A password spray attack was detected on 2024-07-23 involving the Azure AD user with ID 89e933b9-5b2e-4bd6-bcdf-033db707ef82. During the investigation we discovered that the same user account was later involved in a sign-in that Microsoft Entra ID flagged as coming from an anonymous IP address (for example via Tor or a VPN).",
+        "question": "During the anonymous sign-in connected to the password spray activity, which IP address was used?",
+        "answer": "95.202.65.202",
+        "solution": [
+            "Password spray attack detected at 2024-07-23 14:23:51.925093 UTC against account AadUserId `89e933b9-5b2e-4bd6-bcdf-033db707ef82`.",
+            "Anonymous sign-in attempt observed at 2024-07-22 08:45:32.664841 UTC originating from IP address `95.202.65.202`."
+        ],
+        "start_alert": 28,
+        "end_alert": 0,
+        "start_entities": [
+            1
+        ],
+        "end_entities": [
+            2
+        ],
+        "shortest_alert_path": [
+            28,
+            1,
+            0
+        ]
+    },
+    {
+        "context": "During the investigation of a suspicious inbox-manipulation rule, we observed that an adversary created an \"ITCleanup\" rule which moved messages into the \"RSS Feeds\" folder. This activity was logged in Exchange Online and involved several external IP addresses as well as the Office 365 cloud application. The initial alert indicates that the attacker may have gained access to a user mailbox and started preparing it for further fraudulent activity.",
+        "question": "Which email account is identified in the later \"Possible BEC financial fraud\" alert that appears to be the target of the fraud attempt?",
+        "answer": "Jordan P@vnevado.alpineskihouse.co",
+        "solution": [
+            "A suspicious inbox manipulation rule was created by the account with AadUserId `89e933b9-5b2e-4bd6-bcdf-033db707ef82`, indicating possible mailbox compromise.",
+            "Shortly after, a possible BEC financial-fraud attempt was detected for the email account `Jordan P@vnevado.alpineskihouse.co`, suggesting the compromised mailbox is being abused."
+        ],
+        "start_alert": 5,
+        "end_alert": 29,
+        "start_entities": [
+            2,
+            4,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15
+        ],
+        "end_entities": [
+            7
+        ],
+        "shortest_alert_path": [
+            5,
+            1,
+            29
+        ]
+    },
+    {
+        "context": "During a recent investigation, a \"Possible BEC financial fraud\" alert was raised. The alert points to suspicious activity involving the user account \"Jordan P\" (email: Jordan P@vnevado.alpineskihouse.co, SID: S-1-5-21-1740051960-3534030288-108486866-1602). Analysts suspect that an attacker may be attempting to execute business-email-compromise-style financial fraud using this identity.",
+        "question": "To correlate on-premises account information with cloud activity, what is the Azure AD (AadUserId) associated with the account involved in the possible BEC fraud?",
+        "answer": "89e933b9-5b2e-4bd6-bcdf-033db707ef82",
+        "solution": [
+            "Detected possible BEC-related financial fraud activity involving the account with AadUserId `89e933b9-5b2e-4bd6-bcdf-033db707ef82`."
+        ],
+        "start_alert": 29,
+        "end_alert": 29,
+        "start_entities": [
+            7,
+            8,
+            6
+        ],
+        "end_entities": [
+            1
+        ],
+        "shortest_alert_path": [
+            29
+        ]
+    },
+    {
+        "context": "During the investigation, we observed that user \"Jordan P\" (email: Jordan P@vnevado.alpineskihouse.co, SID: S-1-5-21-1740051960-3534030288-108486866-1602) generated the alert \"Suspicious SAP authentication\" at 2024-07-22 12:59:26 UTC. The SAP sign-in originated from IP 107.253.5.27 via cloud application AppId 100. A related alert entitled \"Anonymous IP address\"\u2014triggered earlier the same day\u2014indicates that the same user signed in through an anonymizing service (for example, Tor or a VPN).",
+        "question": "What is the IPv4 address reported in the linked \"Anonymous IP address\" alert for this user?",
+        "answer": "95.202.65.202",
+        "explanation": "The \"Anonymous IP address\" alert specifies the source IP 95.202.65.202, identifying the anonymized connection used by the attacker.",
+        "solution": [
+            "A risky sign-in to the SAP application was performed by the Azure AD account with AadUserId `89e933b9-5b2e-4bd6-bcdf-033db707ef82`.",
+            "That sign-in originated from the anonymous IP address with Address `95.202.65.202`."
+        ],
+        "start_alert": 23,
+        "end_alert": 0,
+        "start_entities": [
+            6,
+            7,
+            8,
+            24,
+            25
+        ],
+        "end_entities": [
+            2
+        ],
+        "shortest_alert_path": [
+            23,
+            1,
+            0
+        ]
+    },
+    {
+        "context": "Earlier on 2024-07-22 at 10:00 UTC, a Business Email Compromise (BEC) financial-fraud alert was raised after a risky Azure AD session from IP address 255.246.85.58 created a hidden-inbox rule. Hours later, the same user was observed signing in to SAP in a suspicious manner, generating a follow-up alert tied to the ongoing BEC investigation.",
+        "question": "For the alert that reports the user\u2019s suspicious sign-in to SAP, what is the App ID of the cloud application that was accessed?",
+        "answer": "100",
+        "explanation": "The end alert identifies the cloud application involved in the suspicious SAP sign-in by its App ID, which is 100.",
+        "solution": [
+            "An attacker created a suspicious inbox rule on the user account with Sid `S-1-5-21-1740051960-3534030288-108486866-1602`, indicating potential business email compromise.",
+            "The same compromised user then signed in to the cloud application with AppId `100` (SAP), suggesting the attacker is looking for or manipulating financial data."
+        ],
+        "start_alert": 17,
+        "end_alert": 27,
+        "start_entities": [
+            15
+        ],
+        "end_entities": [
+            24
+        ],
+        "shortest_alert_path": [
+            17,
+            8,
+            27
+        ]
+    },
+    {
+        "context": "During investigation of a business-email-compromise (BEC) campaign, a \u2018Suspicious emails sent by BEC-related user\u2019 alert was raised. The messages were sent from laylaw@vnevado.alpineskihouse.co to tony@avoriaz.alpineskihouse.co and originated from the IP address 255.246.85.58. This suggests a compromised mailbox being leveraged for fraudulent communication.",
+        "question": "A related alert titled \u2018BEC financial fraud\u2019 indicates that an attacker created a malicious inbox rule while signed in through a risky Azure AD session. Which user account (email address) is referenced in that \u2018BEC financial fraud\u2019 alert?",
+        "answer": "Jordan P@vnevado.alpineskihouse.co",
+        "solution": [
+            "At 2024-07-22 10:00:07.521914+00:00, the \u201cBEC financial fraud\u201d alert indicated that the user account with Email `Jordan P@vnevado.alpineskihouse.co` (Field: Email) created a suspicious inbox rule, a common step in business email compromise.",
+            "At 2024-07-22 10:14:23.841423+00:00, the \u201cSuspicious emails sent by BEC-related user\u201d alert showed that emails were sent from IP Address `255.246.85.58` (Field: Address), confirming active misuse of the compromised account."
+        ],
+        "start_alert": 18,
+        "end_alert": 17,
+        "start_entities": [
+            19,
+            20,
+            21,
+            22
+        ],
+        "end_entities": [
+            7
+        ],
+        "shortest_alert_path": [
+            18,
+            15,
+            17
+        ]
+    },
+    {
+        "context": "During an investigation into a possible Business Email Compromise (BEC) targeting the user account \"Jordan P\" (AadUserId ending with ef82), security monitoring detected suspicious activities. Specifically, alerts indicated potential financial fraud attempts tied to this user. In a related alert occurring on the previous day, the attacker appeared to modify that same user\u2019s mailbox rules\u2014an action commonly used to hide or redirect incoming emails after gaining unauthorized access.",
+        "question": "From which IP address did the attacker perform the suspicious inbox manipulation rule associated with the compromised mailbox of user \"Jordan P\"?",
+        "answer": "255.246.85.58",
+        "solution": [
+            "A potential business email compromise (BEC) fraud attempt was detected involving the account with AadUserId `89e933b9-5b2e-4bd6-bcdf-033db707ef82`.",
+            "Earlier, a suspicious inbox-manipulation rule was created from the IP address `255.246.85.58`, indicating possible unauthorized access."
+        ],
+        "start_alert": 29,
+        "end_alert": 16,
+        "start_entities": [
+            1,
+            6,
+            7,
+            8
+        ],
+        "end_entities": [
+            15
+        ],
+        "shortest_alert_path": [
+            29,
+            1,
+            16
+        ]
+    },
+    {
+        "context": "On July 22 2024 at 10:00 UTC, an alert titled \u201cBEC financial fraud\u201d was raised after user Jordan P (SID S-1-5-21-1740051960-3534030288-108486866-1602) created a hidden-inbox rule during a risky Azure AD session from IP 255.246.85.58. This activity suggests a potential business email compromise attempt.",
+        "question": "A follow-up alert reported that suspicious emails were later sent by a user related to this BEC attempt. What email address was shown as the sender of those suspicious messages?",
+        "answer": "laylaw@vnevado.alpineskihouse.co",
+        "solution": [
+            "A suspicious inbox rule was created in a risky Azure AD session for the account with Sid `S-1-5-21-1740051960-3534030288-108486866-1602`.",
+            "Suspicious emails were then sent by the sender `laylaw@vnevado.alpineskihouse.co`, indicating an ongoing BEC fraud attempt."
+        ],
+        "start_alert": 17,
+        "end_alert": 18,
+        "start_entities": [
+            1,
+            6,
+            7,
+            8,
+            15
+        ],
+        "end_entities": [
+            22
+        ],
+        "shortest_alert_path": [
+            17,
+            8,
+            18
+        ]
+    },
+    {
+        "context": "During an ongoing investigation, we observed that the user account \u201cJordan P\u201d (AadUserId 89e933b9-5b2e-4bd6-bcdf-033db707ef82, signing in from IP 107.253.5.27) triggered the alert \u201cSuspicious SAP authentication\u201d on 2024-07-22 13:19:46 UTC. This alert indicates a potentially risky sign-in to SAP that could allow an attacker to view or alter sensitive financial data.",
+        "question": "In the subsequent alert titled \u201cBEC-related user signed in to SAP\u201d raised at 2024-07-22 14:09:41 UTC, what is the Security Identifier (SID) of the account involved?",
+        "answer": "S-1-5-21-1740051960-3534030288-108486866-1602",
+        "solution": [
+            "Account (Sid: S-1-5-21-1740051960-3534030288-108486866-1602) performed a suspicious SAP authentication following a risky Microsoft Entra ID sign-in at 2024-07-22 13:19:46.630275+00:00.",
+            "The same account (Sid: S-1-5-21-1740051960-3534030288-108486866-1602) later signed in to SAP in a manner linked to a business email compromise alert at 2024-07-22 14:09:41.075798+00:00."
+        ],
+        "start_alert": 26,
+        "end_alert": 27,
+        "start_entities": [
+            1,
+            6,
+            7,
+            24,
+            25
+        ],
+        "end_entities": [
+            8
+        ],
+        "shortest_alert_path": [
+            26,
+            8,
+            27
+        ]
+    },
+    {
+        "context": "An alert was raised at 08:45 UTC on 2024-07-22 after the external IP address 95.202.65.202 was used to sign in via an anonymous network, suggesting a potential account compromise. Later the same morning, a second alert indicated that the same user\u2019s mailbox had a suspicious inbox-rule change, consistent with an attacker trying to hide or exfiltrate email. Security telemetry shows this rule change was carried out through a specific cloud application (its identifier is not shown here).",
+        "question": "According to the \u2018Suspicious inbox manipulation rule\u2019 alert raised at 10:00 UTC, what is the App ID of the cloud application that performed the mailbox rule change?",
+        "answer": "20893",
+        "solution": [
+            "A sign-in was made from an anonymous IP address by the account with AadUserId `89e933b9-5b2e-4bd6-bcdf-033db707ef82`.",
+            "Later, a suspicious inbox manipulation rule was created through the cloud application with AppId `20893`."
+        ],
+        "start_alert": 0,
+        "end_alert": 16,
+        "start_entities": [
+            2
+        ],
+        "end_entities": [
+            11
+        ],
+        "shortest_alert_path": [
+            0,
+            1,
+            16
+        ]
+    },
+    {
+        "context": "During an ongoing investigation, we observed a BEC-related user signing in to an SAP cloud application (App ID 100) from the external IP address 107.253.5.27. This activity is considered suspicious because the same user account is connected to previous business-email-compromise alerts and might be attempting to access sensitive financial data.",
+        "question": "Analysts have now detected a suspicious inbox manipulation rule created by this user. What is the primary email address of the mailbox where this rule was configured?",
+        "answer": "laylaw@vnevado.alpineskihouse.co",
+        "solution": [
+            "Account (Name: `Jordan P`) signed in to SAP in a suspicious manner, suggesting possible business-email-compromise activity.",
+            "Mailbox (MailboxPrimaryAddress: `laylaw@vnevado.alpineskihouse.co`) had a suspicious inbox rule ('ITCleanup' moving mail to 'RSS Feeds'), indicating that the account may be compromised and being used for malicious email manipulation."
+        ],
+        "start_alert": 27,
+        "end_alert": 5,
+        "start_entities": [
+            24,
+            25
+        ],
+        "end_entities": [
+            9
+        ],
+        "shortest_alert_path": [
+            27,
+            6,
+            5
+        ]
+    },
+    {
+        "context": "During the investigation of a potential Business Email Compromise (BEC) financial-fraud attempt involving the user account \"Jordan P\" (email: Jordan P@vnevado.alpineskihouse.co, SID S-1-5-21-1740051960-3534030288-108486866-1602), analysts noticed that this activity is connected to an earlier alert that reported a sign-in from an anonymous IP address (for example via Tor or an anonymizing VPN). Identifying that source IP is critical to determine the origin of the suspicious access.",
+        "question": "What IP address was used in the anonymous sign-in that is linked to the possible BEC attempt on Jordan P\u2019s account?",
+        "answer": "95.202.65.202",
+        "explanation": "The end alert in the alert-entity path is \u201cAnonymous IP address,\u201d whose entity reveals the IP value 95.202.65.202.",
+        "solution": [
+            "Possible BEC financial fraud was detected for the user with AadUserId `89e933b9-5b2e-4bd6-bcdf-033db707ef82`.",
+            "The same user was observed signing in from the anonymous IP address `95.202.65.202`."
+        ],
+        "start_alert": 29,
+        "end_alert": 0,
+        "start_entities": [
+            6,
+            7,
+            8
+        ],
+        "end_entities": [
+            2
+        ],
+        "shortest_alert_path": [
+            29,
+            1,
+            0
+        ]
+    },
+    {
+        "context": "During the investigation of a security incident, we observed a risky sign-in to the SAP enterprise application (AppId 100) coming from the external IP address 107.253.5.27. This activity generated the \u201cSuspicious SAP authentication\u201d alert, indicating that an attacker might have gained access to search or modify sensitive financial data. Later in the same incident, another alert was raised for \u201cSuspicious emails sent by BEC-related user,\u201d suggesting that the compromised account began sending fraudulent emails to further the attack.",
+        "question": "According to the alert about the suspicious emails, what email address appears as the sender of those potentially fraudulent messages?",
+        "answer": "laylaw@vnevado.alpineskihouse.co",
+        "solution": [
+            "An account with SID `S-1-5-21-1740051960-3534030288-108486866-1602` performed a suspicious authentication to SAP.",
+            "Subsequently, suspicious emails were sent from the sender address `laylaw@vnevado.alpineskihouse.co`."
+        ],
+        "start_alert": 26,
+        "end_alert": 18,
+        "start_entities": [
+            24,
+            25
+        ],
+        "end_entities": [
+            22
+        ],
+        "shortest_alert_path": [
+            26,
+            8,
+            18
+        ]
+    },
+    {
+        "context": "During our investigation we observed a sign-in originating from the anonymous IP address 95.202.65.202 that was associated with the Azure AD user ID 89e933b9-5b2e-4bd6-bcdf-033db707ef82. Such activity is commonly flagged because attackers often hide their real location behind Tor or anonymizing VPN services.",
+        "question": "A follow-up alert reported that the same user created a suspicious inbox rule. Which cloud application (name and instance) is this inbox manipulation rule associated with?",
+        "answer": "office 365__microsoft 365",
+        "solution": [
+            "The user account with AadUserId `89e933b9-5b2e-4bd6-bcdf-033db707ef82` signed in from an anonymous IP address, suggesting initial compromise activity.",
+            "A suspicious inbox manipulation rule was later created in the cloud-application `Name__InstanceName: office 365__microsoft 365`, indicating that the attacker is abusing the user\u2019s mailbox to hide or redirect messages."
+        ],
+        "start_alert": 0,
+        "end_alert": 5,
+        "start_entities": [
+            1,
+            2
+        ],
+        "end_entities": [
+            12
+        ],
+        "shortest_alert_path": [
+            0,
+            1,
+            5
+        ]
+    },
+    {
+        "context": "During the investigation we identified a risky sign-in to the SAP cloud application (AppId 100) originating from IP address 107.253.5.27. This sign-in generated the alert \u201cSuspicious SAP authentication,\u201d indicating the user account may have been compromised and could be exploring SAP data for malicious purposes.",
+        "question": "Subsequently, the same user was flagged for sending suspicious emails associated with a BEC attempt. From which IP address were these emails sent?",
+        "answer": "255.246.85.58",
+        "solution": [
+            "Account (Email: Jordan P@vnevado.alpineskihouse.co) signed in to SAP via a risky Microsoft Entra ID session, indicating possible compromise.",
+            "Suspicious emails connected to a BEC attempt were sent from IP address (Address: 255.246.85.58), showing potential malicious activity originating from that source."
+        ],
+        "start_alert": 23,
+        "end_alert": 18,
+        "start_entities": [
+            24,
+            25
+        ],
+        "end_entities": [
+            15
+        ],
+        "shortest_alert_path": [
+            23,
+            7,
+            18
+        ]
+    },
+    {
+        "context": "A sign-in to Microsoft Entra ID was observed coming from the anonymous IP address 192.238.237.190. The sign-in was associated with the cloud identity whose AadUserId is 89e933b9-5b2e-4bd6-bcdf-033db707ef82, raising an \"Anonymous IP address\" alert. During the same incident investigation we also found that an attacker created an inbox rule named \"ITCleanup\" which automatically moves incoming messages to the folder \"RSS Feeds\"\u2014a common technique used to hide malicious emails after compromise.",
+        "question": "Which user\u2019s mailbox contained the suspicious inbox rule named \"ITCleanup\" that moved messages to the \"RSS Feeds\" folder?",
+        "answer": "Jordan P",
+        "explanation": "The end alert (\"Suspicious inbox manipulation rule\") identifies the affected mailbox owner as Jordan P (laylaw@vnevado.alpineskihouse.co).",
+        "solution": [
+            "The account with AadUserId `89e933b9-5b2e-4bd6-bcdf-033db707ef82` signed in from an anonymous IP address.",
+            "The user account `Jordan P` set up a suspicious inbox manipulation rule named ITCleanup, moving messages to the RSS Feeds folder, suggesting the mailbox may be compromised."
+        ],
+        "start_alert": 3,
+        "end_alert": 5,
+        "start_entities": [
+            1,
+            4
+        ],
+        "end_entities": [
+            6
+        ],
+        "shortest_alert_path": [
+            3,
+            1,
+            5
+        ]
+    },
+    {
+        "context": "During the investigation we noted that an anonymous sign-in was observed from the IP address 95.202.65.202. Later in the timeline, another alert reported that the same (or related) user account sent out suspicious messages consistent with a business-email-compromise attempt.",
+        "question": "According to the alert about the suspicious emails sent by the BEC-related user, what is the email address of the recipient who received those messages?",
+        "answer": "tony@avoriaz.alpineskihouse.co",
+        "solution": [
+            "Step 1 \u2013 Account:AadUserId `89e933b9-5b2e-4bd6-bcdf-033db707ef82` signed in from an anonymous IP address (Tor / anonymizer VPN) at 2024-07-22 08:45:32 UTC.",
+            "Step 2 \u2013 MailMessage:Recipient `tony@avoriaz.alpineskihouse.co` later received suspicious BEC-related emails that were sent from the (likely compromised) user account referenced in Step 1."
+        ],
+        "start_alert": 0,
+        "end_alert": 18,
+        "start_entities": [
+            2
+        ],
+        "end_entities": [
+            20
+        ],
+        "shortest_alert_path": [
+            0,
+            1,
+            18
+        ]
+    },
+    {
+        "context": "An alert titled \"Suspicious emails sent by BEC-related user\" was raised on 2024-07-22. It involved the user account \"Jordan P\" (SID S-1-5-21-1740051960-3534030288-108486866-1602) sending messages from the IP address 255.246.85.58. The emails originated from sender laylaw@vnevado.alpineskihouse.co and were addressed to tony@avoriaz.alpineskihouse.co. This activity is part of a broader business-email-compromise investigation. A related alert in the same incident later indicated a sign-in attempt from an anonymous source.",
+        "question": "According to the related \"Anonymous IP address\" alert raised during this incident, what is the IP address from which the anonymous sign-in attempt was made?",
+        "answer": "95.202.65.202",
+        "solution": [
+            "User account with AadUserId `89e933b9-5b2e-4bd6-bcdf-033db707ef82` was observed sending suspicious emails potentially related to a Business Email Compromise (BEC).",
+            "Earlier, a sign-in was recorded from the anonymous IP address `95.202.65.202`, indicating the session may have originated from a TOR or VPN service."
+        ],
+        "start_alert": 18,
+        "end_alert": 0,
+        "start_entities": [
+            6,
+            7,
+            8,
+            15,
+            19,
+            20,
+            21,
+            22
+        ],
+        "end_entities": [
+            2
+        ],
+        "shortest_alert_path": [
+            18,
+            1,
+            0
+        ]
+    },
+    {
+        "context": "A recent investigation identified that at 10:00 UTC on July 22, 2024, the mailbox of user Jordan P (account SID S-1-5-21-1740051960-3534030288-108486866-1602) was accessed via cloud application 20893 from the external IP address 255.246.85.58. During that session, a suspicious inbox rule was added that could allow an attacker to hide or redirect messages.",
+        "question": "A short time earlier on the same day, the user\u2019s mailbox had a rule named \u201cITCleanup\u201d created to move messages into the \u201cRSS Feeds\u201d folder. From which external IP address did this earlier inbox-rule creation originate?",
+        "answer": "192.238.237.190",
+        "solution": [
+            "A suspicious inbox rule was created from IP address `192.238.237.190` (Field: Address) at 2024-07-22 09:49:55.558204+00:00.",
+            "Shortly after, at 2024-07-22 10:00:07.502771+00:00, another suspicious inbox manipulation was detected originating from cloud application with AppId `20893` (Field: AppId)."
+        ],
+        "start_alert": 16,
+        "end_alert": 5,
+        "start_entities": [
+            1,
+            6,
+            7,
+            8,
+            11,
+            15
+        ],
+        "end_entities": [
+            4
+        ],
+        "shortest_alert_path": [
+            16,
+            11,
+            5
+        ]
+    },
+    {
+        "context": "During the investigation of a BEC-related security incident, we observed that the user account \"Jordan P\" (AadUserId 89e933b9-5b2e-4bd6-bcdf-033db707ef82, email Jordan P@vnevado.alpineskihouse.co) connected from IP address 255.246.85.58 and created a suspicious inbox rule in a risky Azure AD session. This activity triggered the alert \"BEC financial fraud.\" Further correlation revealed a second alert titled \"Suspicious inbox manipulation rule\" that is tied to the same user activity and references a specific cloud application used to carry out the rule manipulation.",
+        "question": "In the \"Suspicious inbox manipulation rule\" alert, what is the AppId of the cloud application associated with the malicious inbox rule activity?",
+        "answer": "20893",
+        "solution": [
+            "A business email compromise (BEC) attempt was detected when a suspicious inbox rule was created for the account with Sid `S-1-5-21-1740051960-3534030288-108486866-1602`.",
+            "This malicious inbox manipulation was carried out through the cloud application identified by AppId `20893`."
+        ],
+        "start_alert": 17,
+        "end_alert": 16,
+        "start_entities": [
+            1,
+            6,
+            7,
+            8,
+            15
+        ],
+        "end_entities": [
+            11
+        ],
+        "shortest_alert_path": [
+            17,
+            8,
+            16
+        ]
+    },
+    {
+        "context": "Microsoft Entra ID detected a potentially risky sign-in that originated from the anonymous IP address 192.238.237.190. The alert, classified as \"Anonymous IP address,\" indicates the user may have been hiding their true location by using Tor or a VPN service.",
+        "question": "According to the investigation, what is the Azure AD user ID (AadUserId) of the account that logged in from the anonymous IP address 192.238.237.190?",
+        "answer": "89e933b9-5b2e-4bd6-bcdf-033db707ef82",
+        "solution": [
+            "Sign-in from an anonymous IP address was detected for the account where Field: AadUserId, Value: `89e933b9-5b2e-4bd6-bcdf-033db707ef82`."
+        ],
+        "start_alert": 3,
+        "end_alert": 3,
+        "start_entities": [
+            4
+        ],
+        "end_entities": [
+            1
+        ],
+        "shortest_alert_path": [
+            3
+        ]
+    },
+    {
+        "context": "On 2024-07-23 at 14:23 UTC, a Password Spray alert was raised after multiple failed sign-in attempts were recorded against the Azure AD user whose object ID is 89e933b9-5b2e-4bd6-bcdf-033db707ef82. Further investigation showed that all the suspicious authentication attempts originated from the same public IP address, indicating a coordinated attack source.",
+        "question": "During the investigation, analysts isolated a single public IP address responsible for the password-spray attempts. What is that IP address?",
+        "answer": "95.202.65.202",
+        "solution": [
+            "A password spray attack was detected originating from IP Address `95.202.65.202` at `2024-07-23 14:23:51.925093+00:00`."
+        ],
+        "start_alert": 28,
+        "end_alert": 28,
+        "start_entities": [
+            1
+        ],
+        "end_entities": [
+            2
+        ],
+        "shortest_alert_path": [
+            28
+        ]
+    },
+    {
+        "context": "During our investigation, we observed that a business-email-compromise (BEC)-related user account (AadUserId hidden) accessed the SAP cloud application (AppId 100) from the external IP address 107.253.5.27 on 2024-07-22 at 14:09 UTC. This same user is also tied to a later alert indicating that their mailbox had suspicious inbox-rule manipulation\u2014an activity often used by attackers to hide or forward sensitive messages. The second alert references a different cloud application, but its identifier has not yet been confirmed.",
+        "question": "According to the 'Suspicious inbox manipulation rule' alert associated with this incident, what is the AppId of the cloud application involved in that activity?",
+        "answer": "20893",
+        "metadata": {},
+        "solution": [
+            "An attacker likely compromised the user account with AadUserId `89e933b9-5b2e-4bd6-bcdf-033db707ef82`, which signed in to SAP in a suspicious manner, indicating possible reconnaissance of sensitive financial data.",
+            "The same attack chain continued with suspicious inbox-rule manipulation in the cloud application identified by AppId `20893`, suggesting attempts to hide or exfiltrate email communications."
+        ],
+        "start_alert": 27,
+        "end_alert": 16,
+        "start_entities": [
+            24,
+            25
+        ],
+        "end_entities": [
+            11
+        ],
+        "shortest_alert_path": [
+            27,
+            1,
+            16
+        ]
+    },
+    {
+        "context": "During the investigation of a security incident, we observed a \"Suspicious SAP authentication\" alert generated on 2024-07-22 at 12:59:26 UTC. The activity involved cloud application ID 100 and originated from the external IP address 107.253.5.27. This alert suggests a potentially compromised user account accessing SAP after a risky sign-in flagged by Microsoft Entra ID. Further correlation revealed another alert in the same incident: a \"Suspicious inbox manipulation rule\" indicating that an attacker may have altered mailbox rules to hide or exfiltrate email. Your task is to tie these two alerts together.",
+        "question": "What external IP address is associated with the \"Suspicious inbox manipulation rule\" alert linked to this incident?",
+        "answer": "255.246.85.58",
+        "explanation": "The end alert lists the IP address 255.246.85.58 as the source for the suspicious inbox rule manipulation, and this value is not present in the context, ensuring it must be determined by analyzing the connected alert.",
+        "solution": [
+            "Account Sid `S-1-5-21-1740051960-3534030288-108486866-1602` signed in to SAP in a suspicious manner on 2024-07-22 12:59:26 UTC, indicating possible compromise of that user account.",
+            "Inbox rules were manipulated from the suspicious IP Address `255.246.85.58` on 2024-07-22 10:00:07 UTC, suggesting an attacker may be using this IP to exfiltrate or hide email data."
+        ],
+        "start_alert": 23,
+        "end_alert": 16,
+        "start_entities": [
+            24,
+            25
+        ],
+        "end_entities": [
+            15
+        ],
+        "shortest_alert_path": [
+            23,
+            8,
+            16
+        ]
+    },
+    {
+        "context": "A possible Business Email Compromise (BEC) attempt was detected involving the user account \"Jordan P\" (Jordan P@vnevado.alpineskihouse.co). While reviewing related alerts in the same incident, investigators noted a separate warning about a sign-in from an anonymous source (such as Tor or a VPN), suggesting the attacker may have tried to hide their origin.",
+        "question": "According to the alert about the anonymous sign-in, what IP address was used to access the environment?",
+        "answer": "192.238.237.190",
+        "solution": [
+            "Suspicious events indicating a possible BEC financial fraud were detected for the account with field AadUserId `89e933b9-5b2e-4bd6-bcdf-033db707ef82`.",
+            "A sign-in originated from an anonymous IP address with field Address `192.238.237.190`, suggesting the user was hiding their true location."
+        ],
+        "start_alert": 29,
+        "end_alert": 3,
+        "start_entities": [
+            6,
+            7,
+            8
+        ],
+        "end_entities": [
+            4
+        ],
+        "shortest_alert_path": [
+            29,
+            1,
+            3
+        ]
+    },
+    {
+        "context": "On July 22, a \u201cSuspicious inbox manipulation rule\u201d alert was raised after activity coming from cloud application ID 20893 and the external IP address 255.246.85.58. During the same investigation we discovered that the very same user later generated a \u201cBEC-related user signed in to SAP\u201d alert, indicating possible account compromise and unauthorized access to SAP resources.",
+        "question": "When the BEC-related user signed in to SAP, what external IP address was the sign-in initiated from?",
+        "answer": "107.253.5.27",
+        "confidence": 0.07,
+        "solution": [
+            "A suspicious inbox manipulation rule was created for the account with Sid `S-1-5-21-1740051960-3534030288-108486866-1602`.",
+            "That compromised user then signed in to SAP from the suspicious IP Address `107.253.5.27`."
+        ],
+        "start_alert": 16,
+        "end_alert": 27,
+        "start_entities": [
+            11,
+            15
+        ],
+        "end_entities": [
+            25
+        ],
+        "shortest_alert_path": [
+            16,
+            8,
+            27
+        ]
+    },
+    {
+        "context": "During the investigation we noticed a \"Suspicious SAP authentication\" alert on 2024-07-22 12:59:26 UTC. The activity targeted cloud-application ID 100 and came from the external IP address 107.253.5.27, indicating that a risky sign-in might have been used to access SAP.",
+        "question": "A few hours earlier, a separate alert titled \"BEC financial fraud\" was triggered because a hidden-inbox rule was created in a risky Azure AD session. From which IP address did this BEC financial fraud activity originate?",
+        "answer": "255.246.85.58",
+        "solution": [
+            "Suspicious SAP authentication: A risky sign-in was observed for account (Field: Name, Value: `Jordan P`) accessing SAP on 2024-07-22 12:59:26 UTC, suggesting the account may be compromised.",
+            "BEC financial fraud attempt: A malicious inbox rule was created from IP address (Field: Address, Value: `255.246.85.58`) on 2024-07-22 10:00:07 UTC, indicating possible business email compromise activity."
+        ],
+        "start_alert": 23,
+        "end_alert": 17,
+        "start_entities": [
+            24,
+            25
+        ],
+        "end_entities": [
+            15
+        ],
+        "shortest_alert_path": [
+            23,
+            6,
+            17
+        ]
+    },
+    {
+        "context": "During the investigation of a business-email-compromise (BEC) incident, we observed that the account \u201cJordan P\u201d (AadUserId 89e933b9-5b2e-4bd6-bcdf-033db707ef82) signed in to the organisation\u2019s SAP environment in a suspicious manner at 14:09 UTC on 22 July 2024. Earlier the same day, a separate alert titled \u201cSuspicious SAP authentication\u201d had already been raised because the same risky user successfully authenticated to SAP from an external IP address that did not match the company\u2019s normal network ranges.",
+        "question": "What is the external IP address from which Jordan P\u2019s risky sign-in to SAP was detected in the earlier \u201cSuspicious SAP authentication\u201d alert?",
+        "answer": "107.253.5.27",
+        "explanation": "The end alert lists the IP entity with Address 107.253.5.27, which is the source of the risky SAP authentication.",
+        "solution": [
+            "The BEC-related user with AadUserId `89e933b9-5b2e-4bd6-bcdf-033db707ef82` signed in to SAP suspiciously at 2024-07-22 14:09:41.075798+00:00.",
+            "A suspicious SAP authentication originated from IP address `107.253.5.27` at 2024-07-22 12:59:26.126190+00:00."
+        ],
+        "start_alert": 27,
+        "end_alert": 23,
+        "start_entities": [
+            1,
+            6,
+            7,
+            8,
+            24
+        ],
+        "end_entities": [
+            25
+        ],
+        "shortest_alert_path": [
+            27,
+            1,
+            23
+        ]
+    },
+    {
+        "context": "At 12:59 UTC on 22 July 2024, the user account \"Jordan P\" (email: Jordan P@vnevado.alpineskihouse.co, SID: S-1-5-21-1740051960-3534030288-108486866-1602) signed in to the SAP cloud application from the external IP address 107.253.5.27. Microsoft Entra ID classified the session as risky and Microsoft Defender generated a \"Suspicious SAP authentication\" alert, indicating that an attacker might have taken control of the account to access or manipulate sensitive financial data.",
+        "question": "A follow-up \"Suspicious SAP authentication\" alert was raised at 13:19 UTC the same day. What is the Azure AD user ID (AadUserId) associated with this later alert?",
+        "answer": "89e933b9-5b2e-4bd6-bcdf-033db707ef82",
+        "solution": [
+            "First, the SAP cloud application (field: AppId, value: `100`) was accessed in a suspicious authentication at 2024-07-22 12:59:26 UTC.",
+            "A short time later, a risky user account (field: AadUserId, value: `89e933b9-5b2e-4bd6-bcdf-033db707ef82`) authenticated to the same SAP application, indicating that this specific account is tied to the suspicious activity."
+        ],
+        "start_alert": 23,
+        "end_alert": 26,
+        "start_entities": [
+            6,
+            7,
+            8,
+            24,
+            25
+        ],
+        "end_entities": [
+            1
+        ],
+        "shortest_alert_path": [
+            23,
+            24,
+            26
+        ]
+    },
+    {
+        "context": "During the investigation of a Business Email Compromise (BEC) campaign, we observed that user laylaw@vnevado.alpineskihouse.co sent suspicious emails to tony@avoriaz.alpineskihouse.co from the IP address 255.246.85.58 on 2024-07-22 10:14 UTC. This email activity triggered the alert \u201cSuspicious emails sent by BEC-related user,\u201d indicating the account might be compromised. A few hours later, the same investigation surfaced a second alert titled \u201cSuspicious SAP authentication,\u201d pointing out that the (likely compromised) user attempted to sign in to SAP after being flagged with a risky sign-in in Microsoft Entra ID.",
+        "question": "What IP address was used in the later \"Suspicious SAP authentication\" sign-in attempt?",
+        "answer": "107.253.5.27",
+        "confidence": 0.12,
+        "solution": [
+            "Suspicious emails were sent from the account (Name: `Jordan P`), indicating it may be compromised in an ongoing BEC attempt.",
+            "Subsequently, a risky SAP sign-in originated from the IP address (Address: `107.253.5.27`), suggesting the attacker used this source to access sensitive enterprise data."
+        ],
+        "start_alert": 18,
+        "end_alert": 23,
+        "start_entities": [
+            15,
+            19,
+            20,
+            21,
+            22
+        ],
+        "end_entities": [
+            25
+        ],
+        "shortest_alert_path": [
+            18,
+            6,
+            23
+        ]
+    },
+    {
+        "context": "During the investigation, we observed an alert titled \"Suspicious inbox manipulation rule\" indicating that a user\u2019s mailbox rules were altered from IP address 255.246.85.58 while interacting with cloud-application ID 20893. Later in the same incident, a related alert flagged a \"Suspicious SAP authentication,\" suggesting that the (likely compromised) user account attempted to access an SAP environment. This latter alert involves a different cloud application than the first one.",
+        "question": "According to the \"Suspicious SAP authentication\" alert, what is the AppId of the cloud application the attacker tried to access?",
+        "answer": "100",
+        "solution": [
+            "A suspicious inbox manipulation rule was detected for the account with Sid `S-1-5-21-1740051960-3534030288-108486866-1602`.",
+            "Subsequently, a risky sign-in to SAP (cloud-application AppId `100`) was observed, indicating that the attacker may be using the compromised account to access sensitive enterprise resources."
+        ],
+        "start_alert": 16,
+        "end_alert": 23,
+        "start_entities": [
+            11,
+            15
+        ],
+        "end_entities": [
+            24
+        ],
+        "shortest_alert_path": [
+            16,
+            8,
+            23
+        ]
+    },
+    {
+        "context": "During the investigation, analysts noted a suspicious SAP authentication on 2024-07-22 in which a risky user accessed the SAP cloud application (AppId 100) from IP address 107.253.5.27. Later the same day, the same user\u2019s mailbox exhibited a suspicious inbox-rule manipulation, hinting at possible data exfiltration through email.",
+        "question": "What is the AppId of the cloud application involved in the suspicious inbox manipulation rule detected later in the incident?",
+        "answer": "20893",
+        "noInput": {},
+        "solution": [
+            "Suspicious SAP authentication by account Name `Jordan P` indicated potential unauthorized access.",
+            "Suspicious inbox manipulation rule detected for cloud-application AppId `20893`, suggesting possible email exfiltration activity."
+        ],
+        "start_alert": 26,
+        "end_alert": 16,
+        "start_entities": [
+            24,
+            25
+        ],
+        "end_entities": [
+            11
+        ],
+        "shortest_alert_path": [
+            26,
+            6,
+            16
+        ]
+    },
+    {
+        "context": "On July 22 2024, a security alert titled \u201cSuspicious inbox manipulation rule\u201d was triggered for cloud application ID 20893. The alert indicates that an attacker may have gained access to a user\u2019s mailbox and is creating or changing inbox rules in order to hide or exfiltrate messages\u2014an activity often linked to business-email-compromise (BEC) attempts.",
+        "question": "In the follow-up alert labelled \u201cBEC financial fraud\u201d, which IP address is recorded as the source of the risky Azure Active Directory session?",
+        "answer": "255.246.85.58",
+        "metadata": {},
+        "solution": [
+            "A suspicious inbox rule manipulation was detected on the account with AadUserId `89e933b9-5b2e-4bd6-bcdf-033db707ef82`.",
+            "A BEC financial fraud alert shows that the malicious inbox rule originated from IP address `255.246.85.58`."
+        ],
+        "start_alert": 16,
+        "end_alert": 17,
+        "start_entities": [
+            11
+        ],
+        "end_entities": [
+            15
+        ],
+        "shortest_alert_path": [
+            16,
+            1,
+            17
+        ]
+    },
+    {
+        "context": "An investigation is underway into a business-email-compromise (BEC) incident. The first alert shows that the account laylaw@vnevado.alpineskihouse.co, connecting from IP 255.246.85.58, sent suspicious emails to tony@avoriaz.alpineskihouse.co. This raised concern that the user account might be compromised. Later in the same incident, the very same BEC-related user reportedly accessed the company\u2019s SAP environment through a monitored cloud application, generating a separate alert about the suspicious SAP sign-in.",
+        "question": "In the alert about the BEC-related user\u2019s suspicious SAP sign-in, what is the AppId of the cloud application that was used?",
+        "answer": "100",
+        "solution": [
+            "A potentially compromised account with Email `Jordan P@vnevado.alpineskihouse.co` sent suspicious emails, indicating the start of a BEC (Business Email Compromise) attempt.",
+            "The same BEC-related user then performed a suspicious sign-in to the cloud application SAP with AppId `100`, suggesting the attacker is expanding access to sensitive financial data."
+        ],
+        "start_alert": 18,
+        "end_alert": 27,
+        "start_entities": [
+            15,
+            19,
+            20,
+            21,
+            22
+        ],
+        "end_entities": [
+            24
+        ],
+        "shortest_alert_path": [
+            18,
+            7,
+            27
+        ]
+    },
+    {
+        "context": "An investigation was opened after Microsoft Entra ID reported a suspicious SAP authentication: someone accessed the SAP cloud application (AppId 100) from the external IP 107.253.5.27. Although the responsible Azure AD user account is still being identified, this sign-in suggests the attacker may already have control of that identity. Shortly after, a second alert was raised \u2013 a suspicious inbox rule named \"ITCleanup\" was created in the mailbox of Jordan P (laylaw@vnevado.alpineskihouse.co), indicating possible post-compromise activity that could be used for phishing or data exfiltration.",
+        "question": "According to the inbox-manipulation alert for Jordan P\u2019s mailbox, from which IP address did the suspicious activity originate?",
+        "answer": "192.238.237.190",
+        "metadata": {
+            "creator": "junior_security_analyst_test_question_generator_v1"
+        },
+        "solution": [
+            "Risky user account signed in to SAP: AadUserId `89e933b9-5b2e-4bd6-bcdf-033db707ef82`.",
+            "Suspicious inbox manipulation rule was configured from IP address `192.238.237.190`."
+        ],
+        "start_alert": 23,
+        "end_alert": 5,
+        "start_entities": [
+            24,
+            25
+        ],
+        "end_entities": [
+            4
+        ],
+        "shortest_alert_path": [
+            23,
+            1,
+            5
+        ]
+    },
+    {
+        "context": "",
+        "question": "During that risky SAP sign-in connected to the BEC investigation, from which public IP address did the user account \"Jordan P\" access the SAP application?",
+        "answer": "107.253.5.27",
+        "solution": [
+            "A suspicious SAP authentication occurred from IP address (Address: `107.253.5.27`).",
+            "Subsequently, the user account (AadUserId: `89e933b9-5b2e-4bd6-bcdf-033db707ef82`) was involved in a possible BEC financial fraud attempt."
+        ],
+        "start_alert": 29,
+        "end_alert": 23,
+        "start_entities": [
+            1,
+            6,
+            7,
+            8
+        ],
+        "end_entities": [
+            25
+        ],
+        "shortest_alert_path": [
+            29,
+            1,
+            23
+        ]
+    },
+    {
+        "context": "Security monitoring flagged a \"Possible BEC financial fraud\" alert on 2024-07-23. The activity involved the user account \"Jordan P\" (AAD ID 89e933b9-5b2e-4bd6-bcdf-033db707ef82). Investigators noted that the same user was involved in an earlier incident, one day prior, when an inbox rule was created during a risky Azure AD session\u2014typical behavior seen in business-email-compromise scenarios. That prior alert is titled \"BEC financial fraud\" and we need to review the network indicators associated with it.",
+        "question": "In the earlier \"BEC financial fraud\" alert, from which IP address did the risky Azure AD session originate when the malicious inbox rule was created?",
+        "answer": "255.246.85.58",
+        "confidence": 0.15,
+        "solution": [
+            "Possible BEC financial fraud was detected involving account with AadUserId `89e933b9-5b2e-4bd6-bcdf-033db707ef82`.",
+            "A suspicious inbox rule linked to BEC financial fraud was created from IP address `255.246.85.58`."
+        ],
+        "start_alert": 29,
+        "end_alert": 17,
+        "start_entities": [
+            1,
+            6,
+            7,
+            8
+        ],
+        "end_entities": [
+            15
+        ],
+        "shortest_alert_path": [
+            29,
+            1,
+            17
+        ]
+    },
+    {
+        "context": "Earlier today, our monitoring systems flagged a sign-in to Microsoft 365 coming from the anonymous IP address 192.238.237.190, which typically indicates the use of Tor or an anonymizing VPN. This activity is associated with a user account currently under investigation for potential Business Email Compromise (BEC). A few hours later, the same user reportedly accessed the company\u2019s SAP environment in a suspicious manner, possibly to view or alter sensitive financial data.",
+        "question": "During the suspicious SAP log-in linked to the BEC investigation, from which public IP address did the user connect?",
+        "answer": "107.253.5.27",
+        "solution": [
+            "Account (AadUserId = 89e933b9-5b2e-4bd6-bcdf-033db707ef82) signed in from an anonymous IP address at 2024-07-22 09:11:31.290020+00:00.",
+            "The same BEC-related user later signed in to SAP from IP address 107.253.5.27 at 2024-07-22 14:09:41.075798+00:00."
+        ],
+        "start_alert": 3,
+        "end_alert": 27,
+        "start_entities": [
+            4
+        ],
+        "end_entities": [
+            25
+        ],
+        "shortest_alert_path": [
+            3,
+            1,
+            27
+        ]
+    },
+    {
+        "context": "A password spray attack originating from the external IP address 95.202.65.202 was detected on 2024-07-23. Investigation shows that the same activity is linked to a user account which, one day earlier, triggered an alert titled \"Suspicious emails sent by BEC-related user\", indicating that the account may have been leveraged to conduct business-email-compromise (BEC)\u2013style phishing. You need to review the details of that email-related alert to understand who was targeted.",
+        "question": "According to the \"Suspicious emails sent by BEC-related user\" alert, what is the email address of the recipient to whom the suspicious messages were sent?",
+        "answer": "tony@avoriaz.alpineskihouse.co",
+        "solution": [
+            "Password spray attack detected against account AadUserId `89e933b9-5b2e-4bd6-bcdf-033db707ef82`.",
+            "The compromised user subsequently sent suspicious emails to Recipient `tony@avoriaz.alpineskihouse.co`."
+        ],
+        "start_alert": 28,
+        "end_alert": 18,
+        "start_entities": [
+            2
+        ],
+        "end_entities": [
+            20
+        ],
+        "shortest_alert_path": [
+            28,
+            1,
+            18
+        ]
+    },
+    {
+        "context": "During the investigation we saw that user account \"Jordan P\" (email: Jordan P@vnevado.alpineskihouse.co, SID: S-1-5-21-1740051960-3534030288-108486866-1602) signed in to the SAP enterprise application (App ID: 100) from the external IP address 107.253.5.27 on 2024-07-22. Microsoft Entra ID had already flagged this sign-in as risky, raising the alert \"Suspicious SAP authentication\", suggesting the account might have been compromised. The following day, another related alert titled \u201cPassword Spray\u201d was triggered, indicating that an attacker was attempting to guess passwords for multiple accounts in the environment.",
+        "question": "From which external IP address did the \"Password Spray\" activity originate on 2024-07-23?",
+        "answer": "95.202.65.202",
+        "solution": [
+            "Suspicious SAP authentication detected for account (AadUserId) `89e933b9-5b2e-4bd6-bcdf-033db707ef82`.",
+            "Password spray attack identified coming from IP (Address) `95.202.65.202`."
+        ],
+        "start_alert": 26,
+        "end_alert": 28,
+        "start_entities": [
+            6,
+            7,
+            8,
+            24,
+            25
+        ],
+        "end_entities": [
+            2
+        ],
+        "shortest_alert_path": [
+            26,
+            1,
+            28
+        ]
+    },
+    {
+        "context": "During the investigation of a suspected business-email-compromise (BEC) incident, we observed that the user account \"laylaw@vnevado.alpineskihouse.co\" created an unusual inbox rule named \"ITCleanup\" which automatically moves messages to the \"RSS Feeds\" folder. This activity originated from several external IP addresses and was performed through Microsoft Exchange Online and Office 365 cloud applications. Later in the same incident timeline, Microsoft Defender XDR generated another alert indicating that the same compromised user signed in to an SAP environment under suspicious circumstances.",
+        "question": "According to the follow-up alert about the suspicious SAP sign-in, what is the AppId of the cloud application that was accessed?",
+        "answer": "100",
+        "explanation": "The follow-up alert titled \"BEC-related user signed in to SAP\" contains an entity of type \"cloud-application\" with the field AppId set to 100. This is the identifier of the cloud application the attacker accessed during the SAP session.",
+        "solution": [
+            "Alert 1 shows that the account (Field: Name, Value: `Jordan P`) created a suspicious inbox-manipulation rule named \u201cITCleanup\u201d, indicating the user\u2019s mailbox might be compromised.",
+            "Subsequently, Alert 2 reveals that the same BEC-related user accessed the SAP cloud application (Field: AppId, Value: `100`) in a suspicious sign-in, suggesting the attacker is now abusing the compromised account to reach sensitive business systems."
+        ],
+        "start_alert": 5,
+        "end_alert": 27,
+        "start_entities": [
+            2,
+            4,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15
+        ],
+        "end_entities": [
+            24
+        ],
+        "shortest_alert_path": [
+            5,
+            6,
+            27
+        ]
+    },
+    {
+        "context": "During the investigation into a Business Email Compromise (BEC) attempt, we observed that the user account \"Jordan P\" (email: Jordan P@vnevado.alpineskihouse.co, SID: S-1-5-21-1740051960-3534030288-108486866-1602) created a suspicious inbox rule while connected from the IP address 255.246.85.58. This action occurred in what Microsoft Entra ID (Azure AD) classified as a risky session. Shortly before this rule was created, a separate alert reported a sign-in originating from an anonymous IP address that may be related to the same compromised account.",
+        "question": "What anonymous IP address triggered the sign-in alert that is potentially linked to the BEC activity on Jordan P\u2019s mailbox?",
+        "answer": "95.202.65.202",
+        "example_answer_explanation": "Any exact match of the IP address \"95.202.65.202\" (with or without quotes) is scored as correct.",
+        "solution": [
+            "A suspicious inbox rule, consistent with BEC financial fraud, was created for the user account with AadUserId `89e933b9-5b2e-4bd6-bcdf-033db707ef82`.",
+            "That risky activity followed a sign-in originating from the anonymous IP address with Address `95.202.65.202`."
+        ],
+        "start_alert": 17,
+        "end_alert": 0,
+        "start_entities": [
+            6,
+            7,
+            8,
+            15
+        ],
+        "end_entities": [
+            2
+        ],
+        "shortest_alert_path": [
+            17,
+            1,
+            0
+        ]
+    },
+    {
+        "context": "A recent Password Spray alert shows multiple failed authentication attempts originating from the external IP address 95.202.65.202. The attempts were directed at an Azure AD account (user identifier not yet confirmed). Investigation reveals that the same user account later generated another alert: \u201cBEC-related user signed in to SAP,\u201d indicating a potentially compromised account accessing sensitive SAP resources. You need to verify the source network location of this later SAP sign-in to understand the attacker\u2019s movement.",
+        "question": "From which external IP address did the suspicious SAP sign-in associated with the BEC-related alert originate?",
+        "answer": "107.253.5.27",
+        "context2": "Password spray attack came from IP 95.202.65.202. The compromised account later accessed SAP from a different IP indicating lateral attacker pivot.",
+        "solution": [
+            "BEC-related user signed in to SAP from suspicious IP address (Field: Address, Value: 107.253.5.27).",
+            "Password spray attack detected against the account (Field: AadUserId, Value: 89e933b9-5b2e-4bd6-bcdf-033db707ef82)."
+        ],
+        "start_alert": 28,
+        "end_alert": 27,
+        "start_entities": [
+            2
+        ],
+        "end_entities": [
+            25
+        ],
+        "shortest_alert_path": [
+            28,
+            1,
+            27
+        ]
+    },
+    {
+        "context": "During an investigation into a possible Business Email Compromise (BEC) financial-fraud attempt, user account \"Jordan P\" (AadUserId 89e933b9-5b2e-4bd6-bcdf-033db707ef82) was flagged after several suspicious events were detected on 2024-07-23. While reviewing related activity, analysts found that the same user subsequently generated a \"Suspicious SAP authentication\" alert, indicating the account may have been used to access the organisation\u2019s SAP system from an unusual network location.",
+        "question": "From which external IP address did the risky \"Suspicious SAP authentication\" originate?",
+        "answer": "107.253.5.27",
+        "note": "The answer is the IP address entity of the end alert.",
+        "solution": [
+            "Suspicious SAP authentication: A risky sign-in to SAP was detected from IP Address `107.253.5.27` (entity field: Address).",
+            "Possible BEC financial fraud: The account with SID `S-1-5-21-1740051960-3534030288-108486866-1602` (entity field: Sid) was later involved in activity consistent with business email compromise."
+        ],
+        "start_alert": 29,
+        "end_alert": 26,
+        "start_entities": [
+            1,
+            6,
+            7,
+            8
+        ],
+        "end_entities": [
+            25
+        ],
+        "shortest_alert_path": [
+            29,
+            8,
+            26
+        ]
+    },
+    {
+        "context": "On 22 July 2024 at 08:45 UTC, a sign-in originating from the anonymous IP address 95.202.65.202 triggered an alert in the environment. Investigators noted that this IP address was associated with an Entra ID (Azure AD) account whose identity still needed confirmation. The following day, a separate alert indicated potential Business Email Compromise (BEC) activity that was linked back to the same sign-in trail.",
+        "question": "Which user account was identified in the later \"Possible BEC financial fraud\" alert that was connected to the anonymous sign-in from IP 95.202.65.202?",
+        "answer": "Jordan P",
+        "solution": [
+            "An account with AadUserId `89e933b9-5b2e-4bd6-bcdf-033db707ef82` signed in from an anonymous IP address on 2024-07-22 08:45:32 UTC.",
+            "Subsequently, on 2024-07-23 16:09:13 UTC, a Possible BEC financial-fraud attempt was detected involving the account named `Jordan P`."
+        ],
+        "start_alert": 0,
+        "end_alert": 29,
+        "start_entities": [
+            2
+        ],
+        "end_entities": [
+            6
+        ],
+        "shortest_alert_path": [
+            0,
+            1,
+            29
+        ]
+    },
+    {
+        "context": "A suspicious inbox manipulation rule was detected on 2024-07-22 at 10:00:07 UTC for the user \"Jordan P\" (email \"Jordan P@vnevado.alpineskihouse.co\", SID S-1-5-21-1740051960-3534030288-108486866-1602). The activity was performed through cloud application ID 20893 and came from IP address 255.246.85.58. Correlation with other alerts shows that, earlier the same morning at 08:45:32 UTC, the same user account triggered an \"Anonymous IP address\" sign-in alert, indicating use of a privacy-enhancing service such as Tor or a VPN.",
+        "question": "What was the anonymous IP address from which the 08:45:32 UTC sign-in originated?",
+        "answer": "95.202.65.202",
+        "explanation": "The junior analyst needs to trace the entity linkage between the suspicious inbox-rule manipulation and the earlier anonymous sign-in alert, then extract the IP address recorded in that sign-in event.",
+        "solution": [
+            "At 2024-07-22 08:45:32.664841+00:00 a sign-in was detected from an anonymous IP address (Field: Address, Value: `95.202.65.202`).",
+            "Later, at 2024-07-22 10:00:07.502771+00:00 the user (Field: AadUserId, Value: `89e933b9-5b2e-4bd6-bcdf-033db707ef82`) had suspicious inbox rules manipulated, suggesting the account may have been accessed from the previously observed anonymous IP."
+        ],
+        "start_alert": 16,
+        "end_alert": 0,
+        "start_entities": [
+            6,
+            7,
+            8,
+            11,
+            15
+        ],
+        "end_entities": [
+            2
+        ],
+        "shortest_alert_path": [
+            16,
+            1,
+            0
+        ]
+    },
+    {
+        "context": "During an investigation, analysts observed a sign-in originating from the anonymous IP address 95.202.65.202, which triggered the alert \u201cAnonymous IP address\u201d on 2024-07-22. The same user account later appeared in a separate alert indicating that the (potentially compromised) business-email-compromise-related user accessed the organisation\u2019s SAP environment in a suspicious manner.",
+        "question": "According to the alert about the BEC-related user\u2019s suspicious SAP sign-in, what is the cloud application ID (AppId) that was accessed?",
+        "answer": "100",
+        "solution": [
+            "At 2024-07-22 08:45:32.664841+00:00, the account with AadUserId `89e933b9-5b2e-4bd6-bcdf-033db707ef82` signed in from an anonymous IP address, suggesting the user session may be hidden behind Tor or a VPN.",
+            "Later that day, at 2024-07-22 14:09:41.075798+00:00, the same potentially compromised user accessed the SAP cloud application with AppId `100`, triggering a BEC-related alert and indicating suspicious interaction with sensitive financial data."
+        ],
+        "start_alert": 0,
+        "end_alert": 27,
+        "start_entities": [
+            2
+        ],
+        "end_entities": [
+            24
+        ],
+        "shortest_alert_path": [
+            0,
+            1,
+            27
+        ]
+    },
+    {
+        "context": "A suspicious SAP authentication was detected on July 22 2024. The sign-in originated from IP address 107.253.5.27 against cloud application ID 100. The same investigation linked this event to a subsequent Business Email Compromise (BEC) attempt, where an inbox rule was created from a risky Azure AD session to hide incoming emails and facilitate financial fraud.",
+        "question": "According to the related BEC financial-fraud alert, which IP address was used when the attacker created the malicious inbox rule?",
+        "answer": "255.246.85.58",
+        "confidence": 0.2,
+        "solution": [
+            "A user account with SID `S-1-5-21-1740051960-3534030288-108486866-1602` signed in to SAP in a risky manner, triggering the 'Suspicious SAP authentication' alert at 2024-07-22 13:19:46.630275+00:00.",
+            "Later, the 'BEC financial fraud' alert showed that a suspicious inbox rule was created from IP address `255.246.85.58`, indicating a potential business email compromise attempt."
+        ],
+        "start_alert": 26,
+        "end_alert": 17,
+        "start_entities": [
+            24,
+            25
+        ],
+        "end_entities": [
+            15
+        ],
+        "shortest_alert_path": [
+            26,
+            8,
+            17
+        ]
+    },
+    {
+        "context": "During the investigation, you observed that the user account \"Jordan P\" (AadUserId omitted) was flagged for a suspicious sign-in to SAP from the IP address 107.253.5.27, raising concerns of potential business-email-compromise activity. Shortly before this SAP event, another alert titled \"Anonymous IP address\" indicated that the same user had logged in from a different, anonymized source. Identifying that source IP is critical for understanding the attacker\u2019s infrastructure and possible evasion techniques.",
+        "question": "According to the \"Anonymous IP address\" alert associated with this user, what is the anonymized IP address from which the sign-in originated?",
+        "answer": "95.202.65.202",
+        "solution": [
+            "A business-email-compromise-related user with AadUserId `89e933b9-5b2e-4bd6-bcdf-033db707ef82` signed in to SAP suspiciously on 2024-07-22 14:09:41 UTC.",
+            "Earlier that same day, there was a sign-in from the anonymous IP address `95.202.65.202`, suggesting the attacker may have used a privacy-masking service to access the environment."
+        ],
+        "start_alert": 27,
+        "end_alert": 0,
+        "start_entities": [
+            6,
+            7,
+            8,
+            24,
+            25
+        ],
+        "end_entities": [
+            2
+        ],
+        "shortest_alert_path": [
+            27,
+            1,
+            0
+        ]
+    },
+    {
+        "context": "On July 22, 2024 at 09:49 UTC, an alert titled \u201cSuspicious inbox manipulation rule\u201d was raised. The mailbox of user Jordan P (laylaw@vnevado.alpineskihouse.co) had a new rule named \u201cITCleanup\u201d that moved messages to the \u201cRSS Feeds\u201d folder, suggesting the account might have been compromised. Investigation showed multiple external IP addresses (for example 95.202.65.202, 192.238.237.190, 180.144.153.174, 255.246.85.58) interacting with the account through Microsoft Exchange Online (AppId 20893) and Office 365 (AppId 11161). Analysts are now reviewing subsequent alerts to trace the attacker\u2019s activities within the environment.",
+        "question": "During the later \u201cSuspicious SAP authentication\u201d alert in the same incident, from which public IP address did the risky user sign in to the SAP application?",
+        "answer": "107.253.5.27",
+        "solution": [
+            "A suspicious inbox manipulation rule named ITCleanup was created in the mailbox of the user whose account has Sid `S-1-5-21-1740051960-3534030288-108486866-1602`.",
+            "Subsequently, a risky sign-in to SAP was detected coming from the IP address `107.253.5.27`."
+        ],
+        "start_alert": 5,
+        "end_alert": 23,
+        "start_entities": [
+            2,
+            4,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15
+        ],
+        "end_entities": [
+            25
+        ],
+        "shortest_alert_path": [
+            5,
+            8,
+            23
+        ]
+    },
+    {
+        "context": "On July 23 2024 at 16:09 UTC, a \u201cPossible BEC financial fraud\u201d alert was raised for the user account \u201cJordan P\u201d (Jordan P@vnevado.alpineskihouse.co). During the investigation, analysts discovered that this BEC alert is linked to an earlier \u201cPassword Spray\u201d attack that occurred the same day. To understand the attack chain, they must identify the network location from which the password-spray originated.",
+        "question": "What is the IP address that was the source of the password-spray attack associated with the compromised account belonging to Jordan P?",
+        "answer": "95.202.65.202",
+        "solution": [
+            "The attacker initiated a password-spray attack from IP address (Field: Address) `95.202.65.202`.",
+            "Subsequently, the Azure AD account (Field: AadUserId) `89e933b9-5b2e-4bd6-bcdf-033db707ef82` was detected in a possible BEC financial-fraud attempt."
+        ],
+        "start_alert": 29,
+        "end_alert": 28,
+        "start_entities": [
+            6,
+            7,
+            8
+        ],
+        "end_entities": [
+            2
+        ],
+        "shortest_alert_path": [
+            29,
+            1,
+            28
+        ]
+    },
+    {
+        "context": "At 09:49 UTC on 22 July 2024, Microsoft Exchange Online reported a \u201cSuspicious inbox manipulation rule\u201d created in the mailbox of Jordan P (laylaw@vnevado.alpineskihouse.co). The action appeared to come from several unusual IP addresses (95.202.65.202, 192.238.237.190 and 180.144.153.174) via the Microsoft 365 / Exchange Online cloud applications (App ID 11161). Investigation shows this alert is linked to another inbox-rule manipulation that occurred shortly afterwards in the same incident, involving the same mailbox but referencing the underlying directory account object rather than the email address.",
+        "question": "What is the Security Identifier (SID) of the account associated with the later \u201cSuspicious inbox manipulation rule\u201d that occurred at 10:00 UTC on 22 July 2024?",
+        "answer": "S-1-5-21-1740051960-3534030288-108486866-1602",
+        "solution": [
+            "The email account (Field: Email) `Jordan P@vnevado.alpineskihouse.co` created a suspicious inbox rule named ITCleanup that moves messages to the RSS Feeds folder.",
+            "A separate alert shows inbox-rule manipulation for the user (Field: Sid) `S-1-5-21-1740051960-3534030288-108486866-1602`, suggesting this account may also be compromised."
+        ],
+        "start_alert": 5,
+        "end_alert": 16,
+        "start_entities": [
+            2,
+            4,
+            9,
+            10,
+            12,
+            13,
+            14
+        ],
+        "end_entities": [
+            8
+        ],
+        "shortest_alert_path": [
+            5,
+            7,
+            16
+        ]
+    },
+    {
+        "context": "On July 22, 2024, an alert titled \"BEC financial fraud\" was raised after a suspicious inbox rule\u2014likely used to hide incoming emails\u2014was created from the external IP address 255.246.85.58 during a risky Azure AD session. This activity suggests an attempted business-email-compromise (BEC) attack aiming at financial fraud. The investigation later uncovered another related alert on July 23, 2024, flagged as \"Possible BEC financial fraud,\" indicating further suspicious behavior by the same user account.",
+        "question": "During the follow-up \"Possible BEC financial fraud\" alert on July 23 2024, what was the Security Identifier (SID) associated with the user account involved in the suspicious activity?",
+        "answer": "S-1-5-21-1740051960-3534030288-108486866-1602",
+        "solution": [
+            "At 2024-07-22 10:00:07.521914+00:00, a suspicious inbox-rule was created for the account whose AadUserId is `89e933b9-5b2e-4bd6-bcdf-033db707ef82`, pointing to a potential BEC financial-fraud attempt.",
+            "On 2024-07-23 16:09:13.506099+00:00, further BEC-related activity was detected for the account with Sid `S-1-5-21-1740051960-3534030288-108486866-1602`, reinforcing the suspicion of an ongoing business-email-compromise fraud."
+        ],
+        "start_alert": 17,
+        "end_alert": 29,
+        "start_entities": [
+            15
+        ],
+        "end_entities": [
+            8
+        ],
+        "shortest_alert_path": [
+            17,
+            1,
+            29
+        ]
+    },
+    {
+        "context": "During the investigation of a potential Business Email Compromise (BEC) involving user \"Jordan P\" (email: Jordan P@vnevado.alpineskihouse.co, SID: S-1-5-21-1740051960-3534030288-108486866-1602), we observed the creation of a malicious inbox rule while the user was signed in via a risky Azure AD session. Pivoting on the same user\u2019s identifier, we identified an earlier alert titled \"Anonymous IP address\" that indicates the account was accessed through an anonymity-focused service (such as Tor or a VPN) shortly before the BEC activity.",
+        "question": "What is the IP address from which the \"Anonymous IP address\" sign-in to user \"Jordan P\" originated?",
+        "answer": "192.238.237.190",
+        "context_notes": "No answer-revealing data (the actual IP) is present in the context.",
+        "solution": [
+            "A sign-in was detected from an anonymous IP address, Field: Address, Value: `192.238.237.190`.",
+            "Subsequently, a suspicious inbox rule was created for business-email-compromise using the Azure AD account, Field: AadUserId, Value: `89e933b9-5b2e-4bd6-bcdf-033db707ef82`."
+        ],
+        "start_alert": 17,
+        "end_alert": 3,
+        "start_entities": [
+            6,
+            7,
+            8,
+            15
+        ],
+        "end_entities": [
+            4
+        ],
+        "shortest_alert_path": [
+            17,
+            1,
+            3
+        ]
+    },
+    {
+        "context": "A password spray attack was detected coming from the external IP address 95.202.65.202. Further investigation revealed that the attacker likely compromised an Azure AD user (AadUserId not yet confirmed) and subsequently authenticated to the organization\u2019s SAP enterprise application, triggering a \u201cSuspicious SAP authentication\u201d alert. Analysts need to pinpoint which specific account was used in that SAP sign-in.",
+        "question": "Identify the Security Identifier (SID) of the account that carried out the suspicious SAP authentication following the password-spray activity from 95.202.65.202.",
+        "answer": "S-1-5-21-1740051960-3534030288-108486866-1602",
+        "solution": [
+            "On 2024-07-22 12:59:26 UTC, the user account with Sid `S-1-5-21-1740051960-3534030288-108486866-1602` was involved in a suspicious SAP authentication event.",
+            "On 2024-07-23 14:23:51 UTC, a password-spray attack was detected against the account with AadUserId `89e933b9-5b2e-4bd6-bcdf-033db707ef82`."
+        ],
+        "start_alert": 28,
+        "end_alert": 23,
+        "start_entities": [
+            2
+        ],
+        "end_entities": [
+            8
+        ],
+        "shortest_alert_path": [
+            28,
+            1,
+            23
+        ]
+    },
+    {
+        "context": "An alert was triggered on 2024-07-22 at 09:11 UTC after a sign-in was observed from the anonymous IP address 192.238.237.190. This activity is tied to the same user account that later became associated with a Password Spray attack detected on 2024-07-23. Investigators need to identify the external host that launched this later attack in order to update block lists and assess additional exposure.",
+        "question": "What is the IP address that was flagged as the source of the Password Spray attack detected on 2024-07-23 at 14:23 UTC?",
+        "answer": "95.202.65.202",
+        "solution": [
+            "A sign-in was detected from an anonymous IP address using the account with AadUserId `89e933b9-5b2e-4bd6-bcdf-033db707ef82`.",
+            "A password-spray attack was later observed coming from the IP address `95.202.65.202`."
+        ],
+        "start_alert": 3,
+        "end_alert": 28,
+        "start_entities": [
+            4
+        ],
+        "end_entities": [
+            2
+        ],
+        "shortest_alert_path": [
+            3,
+            1,
+            28
+        ]
+    },
+    {
+        "context": "During the investigation of a business email compromise (BEC) incident, we observed a sign-in to the company\u2019s SAP cloud application (App ID 100) originating from the external IP address 107.253.5.27. This sign-in was linked to a user previously flagged in a BEC-related alert. Shortly before this SAP access, another alert indicated that the same compromised user had sent out suspicious emails, suggesting active misuse of the account.",
+        "question": "According to the alert about suspicious emails sent by the BEC-related user, what email address was used as the sender?",
+        "answer": "laylaw@vnevado.alpineskihouse.co",
+        "solution": [
+            "A BEC-related user signed in to SAP in a suspicious manner using account Name `Jordan P`.",
+            "Suspicious emails were subsequently sent by mailmessage Sender `laylaw@vnevado.alpineskihouse.co`."
+        ],
+        "start_alert": 27,
+        "end_alert": 18,
+        "start_entities": [
+            24,
+            25
+        ],
+        "end_entities": [
+            22
+        ],
+        "shortest_alert_path": [
+            27,
+            6,
+            18
+        ]
+    },
+    {
+        "context": "On July 22 2024, an alert titled \u201cSuspicious emails sent by BEC-related user\u201d was raised after messages were delivered to the mailbox tony@avoriaz.alpineskihouse.co from the sender laylaw@vnevado.alpineskihouse.co using the IP address 255.246.85.58. This activity suggested a potential business-email-compromise attempt and prompted further monitoring.",
+        "question": "Following this initial alert, a separate alert named \u201cPossible BEC financial fraud\u201d was triggered on July 23 2024. What is the Azure AD User ID (AadUserId) of the account associated with that second alert?",
+        "answer": "89e933b9-5b2e-4bd6-bcdf-033db707ef82",
+        "solution": [
+            "Suspicious emails were sent by the user with Sid `S-1-5-21-1740051960-3534030288-108486866-1602` (alert: \u201cSuspicious emails sent by BEC-related user\u201d at 2024-07-22 10:14:23.841423 UTC).",
+            "Further activity consistent with a BEC financial fraud attempt was detected from the user with AadUserId `89e933b9-5b2e-4bd6-bcdf-033db707ef82` (alert: \u201cPossible BEC financial fraud\u201d at 2024-07-23 16:09:13.506099 UTC)."
+        ],
+        "start_alert": 18,
+        "end_alert": 29,
+        "start_entities": [
+            15,
+            19,
+            20,
+            21,
+            22
+        ],
+        "end_entities": [
+            1
+        ],
+        "shortest_alert_path": [
+            18,
+            8,
+            29
+        ]
+    },
+    {
+        "context": "Security monitoring has flagged a password-spray attack originating from the external IP address 95.202.65.202. Subsequent investigation shows that the same user account (currently unidentified) later triggered a 'Suspicious SAP authentication' alert after signing in to an SAP cloud application, suggesting the attacker may now be attempting to access sensitive financial data.",
+        "question": "According to the 'Suspicious SAP authentication' alert, what is the AppId of the cloud application the attacker accessed?",
+        "answer": "100",
+        "solution": [
+            "A Password Spray attack was detected on 2024-07-23 14:23:51Z against the account whose AadUserId is `89e933b9-5b2e-4bd6-bcdf-033db707ef82`.",
+            "Later, that same risky account signed in to the SAP cloud service, triggering a \u2018Suspicious SAP authentication\u2019 alert for cloud-application AppId `100`."
+        ],
+        "start_alert": 28,
+        "end_alert": 26,
+        "start_entities": [
+            2
+        ],
+        "end_entities": [
+            24
+        ],
+        "shortest_alert_path": [
+            28,
+            1,
+            26
+        ]
+    },
+    {
+        "context": "On July 22 2024, our monitoring recorded a sign-in attempt from the suspicious IP address 95.202.65.202, flagged by the \u201cAnonymous IP address\u201d alert. Investigation shows that the same network indicator later surfaced in a \u201cPassword Spray\u201d alert issued on July 23 2024, suggesting the attacker reused that infrastructure to brute-force user credentials.",
+        "question": "According to the \u201cPassword Spray\u201d alert that reused the anonymous IP, what is the Azure AD User ID (AadUserId) of the account that the attacker tried to compromise?",
+        "answer": "89e933b9-5b2e-4bd6-bcdf-033db707ef82",
+        "solution": [
+            "An anonymous sign-in attempt was made from IP address (Address) `95.202.65.202` on 2024-07-22 08:45:32 UTC.",
+            "A password-spray attack was detected targeting the account (AadUserId) `89e933b9-5b2e-4bd6-bcdf-033db707ef82` on 2024-07-23 14:23:51 UTC."
+        ],
+        "start_alert": 0,
+        "end_alert": 28,
+        "start_entities": [
+            2
+        ],
+        "end_entities": [
+            1
+        ],
+        "shortest_alert_path": [
+            0,
+            2,
+            28
+        ]
+    },
+    {
+        "context": "During the investigation of a suspicious inbox manipulation rule affecting user Jordan P (who uses the email address Jordan P@vnevado.alpineskihouse.co), analysts noted that the mailbox rules were altered in a way that could enable data exfiltration. The same incident also includes a separate alert indicating that the same user account signed in from an anonymous network, suggesting use of Tor or an anonymizer VPN.",
+        "question": "According to the alert that flagged an anonymous network connection, from which IP address did the risky sign-in originate?",
+        "answer": "192.238.237.190",
+        "confidence": 0.18,
+        "solution": [
+            "Step 1 \u2013 IP Address: A sign-in originated from the anonymous IP address `192.238.237.190` (Field: Address) at 2024-07-22 09:11:31 UTC.",
+            "Step 2 \u2013 Account: Shortly after, the mailbox for the account with AadUserId `89e933b9-5b2e-4bd6-bcdf-033db707ef82` (Field: AadUserId) was altered through a suspicious inbox manipulation rule at 2024-07-22 10:00:07 UTC, indicating the session from the anonymous IP was likely used to tamper with the user\u2019s email."
+        ],
+        "start_alert": 16,
+        "end_alert": 3,
+        "start_entities": [
+            6,
+            7,
+            8,
+            11,
+            15
+        ],
+        "end_entities": [
+            4
+        ],
+        "shortest_alert_path": [
+            16,
+            1,
+            3
+        ]
+    },
+    {
+        "context": "A recent business email compromise (BEC) investigation flagged user account \"Jordan P\" (AadUserId: 89e933b9-5b2e-4bd6-bcdf-033db707ef82) for possible financial-fraud activity. According to the initial alert, the attacker may be using the compromised mailbox of Jordan P to perpetrate fraud. Shortly before this, the same user reportedly signed in to the company\u2019s SAP environment under suspicious circumstances, raising concern that the attacker is targeting sensitive financial data through a cloud application connected to SAP.",
+        "question": "During the suspicious SAP sign-in related to this BEC incident, what is the AppId of the cloud application the user accessed?",
+        "answer": "100",
+        "solution": [
+            "Possible BEC financial fraud was detected involving the account with field Email=`Jordan P@vnevado.alpineskihouse.co`.",
+            "The same BEC-related user (Email=`Jordan P@vnevado.alpineskihouse.co`) then signed in suspiciously to the SAP cloud application with field AppId=`100`."
+        ],
+        "start_alert": 29,
+        "end_alert": 27,
+        "start_entities": [
+            1,
+            6,
+            7,
+            8
+        ],
+        "end_entities": [
+            24
+        ],
+        "shortest_alert_path": [
+            29,
+            7,
+            27
+        ]
+    },
+    {
+        "context": "During the investigation you observed a sign-in coming from the anonymous IP address 95.202.65.202 at 08:45 UTC on 2024-07-22, which raised an \"Anonymous IP address\" alert. Several hours later the same risky user account reportedly accessed the organisation\u2019s SAP environment, triggering a \"Suspicious SAP authentication\" alert.",
+        "question": "According to the \"Suspicious SAP authentication\" alert raised at 13:19 UTC on 2024-07-22, what external IP address was used to sign in to SAP?",
+        "answer": "107.253.5.27",
+        "solution": [
+            "Account AadUserId `89e933b9-5b2e-4bd6-bcdf-033db707ef82` generated an 'Anonymous IP address' alert on 2024-07-22 08:45:32.664841+00:00, indicating a sign-in attempt through an anonymizing service.",
+            "Several hours later, on 2024-07-22 13:19:46.630275+00:00, a 'Suspicious SAP authentication' alert shows the same risky user accessing SAP from IP address `107.253.5.27`, confirming the attacker\u2019s activity originated from that IP."
+        ],
+        "start_alert": 0,
+        "end_alert": 26,
+        "start_entities": [
+            2
+        ],
+        "end_entities": [
+            25
+        ],
+        "shortest_alert_path": [
+            0,
+            1,
+            26
+        ]
+    },
+    {
+        "context": "On 2024-07-23 our security monitoring flagged a \"Password Spray\" attempt coming from the external IP address 95.202.65.202 against an Azure AD account. During triage we noticed that the very same user account had generated an \"Anonymous IP address\" sign-in alert on the previous day, suggesting access through a Tor exit node or VPN.",
+        "question": "According to the \"Anonymous IP address\" alert generated on 2024-07-22, from which IP address did the suspicious sign-in originate?",
+        "answer": "192.238.237.190",
+        "correct_answer": "192.238.237.190",
+        "solution": [
+            "On 2024-07-22 09:11:31.290020+00:00, a sign-in attempt was made from the anonymous IP address `192.238.237.190` (Field: Address, Type: ip), indicating the use of TOR or an anonymizing VPN.",
+            "One day later, on 2024-07-23 14:23:51.925093+00:00, a Password Spray attack was detected against the user account with AadUserId `89e933b9-5b2e-4bd6-bcdf-033db707ef82` (Field: AadUserId, Type: account), suggesting that the earlier anonymous connection may have been used to launch the credential-stuffing attempt."
+        ],
+        "start_alert": 28,
+        "end_alert": 3,
+        "start_entities": [
+            2
+        ],
+        "end_entities": [
+            4
+        ],
+        "shortest_alert_path": [
+            28,
+            1,
+            3
+        ]
+    },
+    {
+        "context": "While reviewing a recent incident, we observed that user Jordan P (laylaw@vnevado.alpineskihouse.co) created a suspicious inbox rule named \"ITCleanup\" to move messages into the RSS Feeds folder. The activity originated from IP addresses 192.238.237.190 and 255.246.85.58 and involved Microsoft Exchange Online and Office 365 cloud applications (App IDs 20893 and 11161). Around the same timeframe, another alert flagged a sign-in from an anonymous IP address, suggesting the same account might have been used via a privacy-masking service.",
+        "question": "According to the anonymous IP address sign-in alert related to this incident, what is the Azure AD user ID (AadUserId) of the account that performed the sign-in?",
+        "answer": "89e933b9-5b2e-4bd6-bcdf-033db707ef82",
+        "solution": [
+            "The user account with AadUserId `89e933b9-5b2e-4bd6-bcdf-033db707ef82` (Jordan P \u2013 laylaw@vnevado.alpineskihouse.co) created a suspicious inbox rule named \"ITCleanup\" that moves messages to the \"RSS Feeds\" folder (alert: Suspicious inbox manipulation rule, time: 2024-07-22 09:49:55 UTC).",
+            "The same user account with AadUserId `89e933b9-5b2e-4bd6-bcdf-033db707ef82` also signed in from an anonymous IP address, indicating possible compromise (alert: Anonymous IP address, time: 2024-07-22 08:45:32 UTC)."
+        ],
+        "start_alert": 5,
+        "end_alert": 0,
+        "start_entities": [
+            7,
+            8,
+            4,
+            9,
+            11,
+            15,
+            13,
+            10,
+            12,
+            6
+        ],
+        "end_entities": [
+            1
+        ],
+        "shortest_alert_path": [
+            5,
+            1,
+            0
+        ]
+    },
+    {
+        "context": "During the investigation of a Business Email Compromise (BEC) attempt, a user named \"Jordan P\" (email: Jordan P@vnevado.alpineskihouse.co, SID: S-1-5-21-1740051960-3534030288-108486866-1602) was observed creating a suspicious inbox rule while signed in from the IP address 255.246.85.58. The activity was flagged in a \"BEC financial fraud\" alert on 2024-07-22. The next day, a separate \"Password Spray\" alert was triggered, indicating that an attacker attempted to guess user credentials shortly after the initial BEC-related activity.",
+        "question": "According to the \"Password Spray\" alert triggered on 2024-07-23, what was the source IP address involved in that attack?",
+        "answer": "95.202.65.202",
+        "solution": [
+            "A suspicious inbox rule related to BEC financial fraud was created in a risky Azure AD session by the account with AadUserId `89e933b9-5b2e-4bd6-bcdf-033db707ef82`.",
+            "Shortly afterwards, a password spray attack was detected coming from the IP address `95.202.65.202`."
+        ],
+        "start_alert": 17,
+        "end_alert": 28,
+        "start_entities": [
+            6,
+            7,
+            8,
+            15
+        ],
+        "end_entities": [
+            2
+        ],
+        "shortest_alert_path": [
+            17,
+            1,
+            28
+        ]
+    },
+    {
+        "context": "We are analyzing a Business Email Compromise (BEC) financial-fraud incident involving the user account \"Jordan P\" (AadUserId 89e933b9-5b2e-4bd6-bcdf-033db707ef82, SID S-1-5-21-1740051960-3534030288-108486866-1602). At 2024-07-22 10:00:07 UTC an alert titled \"BEC financial fraud\" was triggered after a suspicious inbox rule was created during a risky Azure AD session. A related alert named \"Suspicious inbox manipulation rule\" reports that the same user set up a malicious rule called ITCleanup to move incoming mail to the RSS Feeds folder, a common tactic to hide fraudulent activity.",
+        "question": "What was the IP address associated with the \"Suspicious inbox manipulation rule\" alert tied to user Jordan P\u2019s mailbox?",
+        "answer": "95.202.65.202",
+        "solution": [
+            "A suspicious inbox manipulation rule was set from IP address `95.202.65.202`, moving incoming messages to the folder RSS Feeds (alert: \u201cSuspicious inbox manipulation rule\u201d, Time: 2024-07-22 09:49:55.558204 +00:00, entity field: Address, value: 95.202.65.202).",
+            "Shortly after, in the same mailbox, a risky session created a rule intended for Business Email Compromise (alert: \u201cBEC financial fraud\u201d, Time: 2024-07-22 10:00:07.521914 +00:00, entity field: Sid, value: S-1-5-21-1740051960-3534030288-108486866-1602)."
+        ],
+        "start_alert": 17,
+        "end_alert": 5,
+        "start_entities": [
+            1,
+            6,
+            7,
+            8,
+            15
+        ],
+        "end_entities": [
+            2
+        ],
+        "shortest_alert_path": [
+            17,
+            8,
+            5
+        ]
+    },
+    {
+        "context": "On 2024-07-23 a \"Password Spray\" attack was detected against the Azure AD account with ID 89e933b9-5b2e-4bd6-bcdf-033db707ef82 from the external IP address 95.202.65.202. While tracing related activity, analysts discovered that this compromised identity is connected to an earlier alert in which a suspicious inbox rule called \"ITCleanup\" was created to move incoming messages to the \"RSS Feeds\" folder\u2014often a sign that an attacker is attempting to hide malicious emails. Identifying the affected mailbox is critical to assess potential business-email-compromise impact.",
+        "question": "Which user\u2019s email address was associated with the suspicious inbox manipulation rule named \"ITCleanup\" that is linked to the password-spray incident?",
+        "answer": "Jordan P@vnevado.alpineskihouse.co",
+        "solution": [
+            "A password spray attack was detected against the account with field AadUserId `89e933b9-5b2e-4bd6-bcdf-033db707ef82`.",
+            "A suspicious inbox manipulation rule (ITCleanup) was created for the mailbox with field Email `Jordan P@vnevado.alpineskihouse.co`, moving messages to the RSS Feeds folder."
+        ],
+        "start_alert": 28,
+        "end_alert": 5,
+        "start_entities": [
+            1,
+            2
+        ],
+        "end_entities": [
+            7
+        ],
+        "shortest_alert_path": [
+            28,
+            1,
+            5
+        ]
+    },
+    {
+        "context": "During the investigation, we observed that user \"Jordan P\" (Jordan P@vnevado.alpineskihouse.co, SID S-1-5-21-1740051960-3534030288-108486866-1602) was flagged for a Business Email Compromise-related sign-in to the SAP cloud application (AppId 100) on 2024-07-22 from the external IP address 107.253.5.27. The following day, a separate alert reported that a Password Spray attack had been detected in the environment, possibly linked to the same threat actor.",
+        "question": "According to the Password Spray alert raised on 2024-07-23, what was the source IP address used in that attack?",
+        "answer": "95.202.65.202",
+        "solution": [
+            "At 2024-07-22 14:09:41 UTC, a potentially compromised user with AadUserId `89e933b9-5b2e-4bd6-bcdf-033db707ef82` signed in to SAP in a suspicious manner (BEC-related).",
+            "On 2024-07-23 14:23:51 UTC, a password-spray attack was detected coming from IP address `95.202.65.202`."
+        ],
+        "start_alert": 27,
+        "end_alert": 28,
+        "start_entities": [
+            6,
+            7,
+            8,
+            24,
+            25
+        ],
+        "end_entities": [
+            2
+        ],
+        "shortest_alert_path": [
+            27,
+            1,
+            28
+        ]
+    },
+    {
+        "context": "An investigation was initiated after detecting a suspicious inbox manipulation rule on 2024-07-22 that was associated with the user account \"Jordan P\" (email: Jordan P@vnevado.alpineskihouse.co, SID: S-1-5-21-1740051960-3534030288-108486866-1602). The activity originated from the IP address 255.246.85.58 and was tied to cloud application ID 20893. On the following day, 2024-07-23, the security platform raised an additional alert named \"Password Spray,\" indicating a credential-stuffing attempt against the environment.",
+        "question": "According to the \"Password Spray\" alert triggered on 2024-07-23, which IP address was identified as the source of the attack?",
+        "answer": "95.202.65.202",
+        "solution": [
+            "Suspicious inbox manipulation was detected for the account with AadUserId `89e933b9-5b2e-4bd6-bcdf-033db707ef82` at 2024-07-22 10:00:07.502771Z.",
+            "A password spray attack was observed originating from IP address `95.202.65.202` at 2024-07-23 14:23:51.925093Z."
+        ],
+        "start_alert": 16,
+        "end_alert": 28,
+        "start_entities": [
+            6,
+            7,
+            8,
+            11,
+            15
+        ],
+        "end_entities": [
+            2
+        ],
+        "shortest_alert_path": [
+            16,
+            1,
+            28
+        ]
+    },
+    {
+        "context": "Security monitoring tools raised an alert titled \"Suspicious SAP authentication\" indicating that the user account \"Jordan P\" (AadUserId 89e933b9-5b2e-4bd6-bcdf-033db707ef82, SID S-1-5-21-1740051960-3534030288-108486866-1602) successfully signed in to the corporate SAP application (AppId 100) while the account was already flagged as risky in Microsoft Entra ID. This event may suggest that an attacker gained control of the user and attempted to access sensitive financial data in SAP for potential further exploitation.",
+        "question": "During the follow-up investigation, security logs showed the same risky user connecting from an external IP address. What was this external IP address?",
+        "answer": "107.253.5.27",
+        "solution": [
+            "Suspicious SAP authentication originated from IP address `107.253.5.27` (Field: Address)."
+        ],
+        "start_alert": 26,
+        "end_alert": 26,
+        "start_entities": [
+            1,
+            8,
+            24,
+            6,
+            7
+        ],
+        "end_entities": [
+            25
+        ],
+        "shortest_alert_path": [
+            26
+        ]
+    },
+    {
+        "context": "On 2024-07-22 at 13:19 UTC, a \u201cSuspicious SAP authentication\u201d alert was raised when the user account \u201cJordan P\u201d (email: Jordan P@vnevado.alpineskihouse.co, SID S-1-5-21-1740051960-3534030288-108486866-1602) accessed an SAP application (App ID 100) from the external IP address 107.253.5.27. Investigation shows that this user was also involved in an earlier sign-in that Microsoft Entra ID labeled as coming from an anonymous network source (for example, via Tor or a VPN).",
+        "question": "According to the related \u201cAnonymous IP address\u201d alert, from which IP address did the risky sign-in originate?",
+        "answer": "95.202.65.202",
+        "note": "The context references the risky user and initial IP but intentionally omits the anonymous IP so the analyst must recall or investigate the end alert to answer.",
+        "solution": [
+            "A risky sign-in was detected where the user account with field AadUserId and value `89e933b9-5b2e-4bd6-bcdf-033db707ef82` authenticated to SAP.",
+            "This authentication request came from an anonymous IP address with field Address and value `95.202.65.202`."
+        ],
+        "start_alert": 26,
+        "end_alert": 0,
+        "start_entities": [
+            6,
+            7,
+            8,
+            24,
+            25
+        ],
+        "end_entities": [
+            2
+        ],
+        "shortest_alert_path": [
+            26,
+            1,
+            0
+        ]
+    },
+    {
+        "context": "During an investigation, an alert titled \"Suspicious SAP authentication\" was raised when the user account \"Jordan P\" (email: Jordan P@vnevado.alpineskihouse.co, SID: S-1-5-21-1740051960-3534030288-108486866-1602) accessed the SAP enterprise application (AppId 100) from IP address 107.253.5.27. This activity is linked to a risky sign-in detected in Microsoft Entra ID and may indicate that an attacker has taken control of the account.",
+        "question": "What is the Azure AD user ID (AadUserId) of the account associated with this suspicious SAP authentication activity?",
+        "answer": "89e933b9-5b2e-4bd6-bcdf-033db707ef82",
+        "solution": [
+            "On 2024-07-22 12:59:26.126190+00:00, a suspicious SAP authentication was detected for the user account with AadUserId `89e933b9-5b2e-4bd6-bcdf-033db707ef82`."
+        ],
+        "start_alert": 23,
+        "end_alert": 23,
+        "start_entities": [
+            6,
+            24,
+            25,
+            7,
+            8
+        ],
+        "end_entities": [
+            1
+        ],
+        "shortest_alert_path": [
+            23
+        ]
+    },
+    {
+        "context": "A user named Jordan P (email: Jordan P@vnevado.alpineskihouse.co) was flagged after signing in to SAP from IP address 107.253.5.27. This activity was linked to an ongoing Business Email Compromise (BEC) investigation in Microsoft Defender XDR, indicating the account might have been taken over to access sensitive financial data in SAP.",
+        "question": "From a correlated alert, incident responders identified the Windows Security Identifier (SID) tied to Jordan P\u2019s account. What is that SID?",
+        "answer": "S-1-5-21-1740051960-3534030288-108486866-1602",
+        "note": "Hidden",
+        "solution": [
+            "A user account with Sid `S-1-5-21-1740051960-3534030288-108486866-1602` (field: Sid) that is already linked to Business Email Compromise (BEC) activity suspiciously signed in to SAP, indicating possible attacker control and access to sensitive financial data."
+        ],
+        "start_alert": 27,
+        "end_alert": 27,
+        "start_entities": [
+            7,
+            6,
+            25,
+            24,
+            1
+        ],
+        "end_entities": [
+            8
+        ],
+        "shortest_alert_path": [
+            27
+        ]
+    },
+    {
+        "context": "Security monitoring has flagged a Password Spray attack originating from the external IP address 95.202.65.202 on 2024-07-23. This attack is believed to target corporate user accounts and may have led to further malicious activity. During the investigation, analysts discovered a related alert indicating that an attacker created a suspicious inbox manipulation rule on the same day, suggesting the attacker might have gained access to one of our mailboxes. The exact user account affected by the mailbox rule change needs to be determined to continue containment and remediation efforts.",
+        "question": "Which user\u2019s email account was identified as having a suspicious inbox manipulation rule following the password-spray activity from IP 95.202.65.202?",
+        "answer": "Jordan P@vnevado.alpineskihouse.co",
+        "answer_type": "email",
+        "solution": [
+            "A password spray attack was detected targeting the account with AadUserId `89e933b9-5b2e-4bd6-bcdf-033db707ef82` at 2024-07-23 14:23:51.925093+00:00.",
+            "Suspicious inbox manipulation rules were created for the email account `Jordan P@vnevado.alpineskihouse.co` at 2024-07-22 10:00:07.502771+00:00, indicating possible unauthorized mailbox access."
+        ],
+        "start_alert": 28,
+        "end_alert": 16,
+        "start_entities": [
+            2
+        ],
+        "end_entities": [
+            7
+        ],
+        "shortest_alert_path": [
+            28,
+            1,
+            16
+        ]
+    },
+    {
+        "context": "During the investigation of a business-email-compromise\u2013related incident, we identified a risky Azure AD session originating from IP address 255.246.85.58 that created a malicious inbox rule designed to hide incoming messages. This activity suggests an attacker was attempting to set up financial fraud by manipulating the victim\u2019s mailbox.",
+        "question": "Later in the attack sequence, the same compromised user account was observed logging in to the company\u2019s SAP system, triggering a \u2018Suspicious SAP authentication\u2019 alert. What was the external IP address from which this risky SAP sign-in originated?",
+        "answer": "107.253.5.27",
+        "solution": [
+            "A malicious inbox rule was created for the account (Email: `Jordan P@vnevado.alpineskihouse.co`), signaling a potential business-email-compromise attempt.",
+            "Soon after, a suspicious SAP sign-in occurred from the IP address (Address: `107.253.5.27`), suggesting the attacker is using this host to access sensitive financial data."
+        ],
+        "start_alert": 17,
+        "end_alert": 26,
+        "start_entities": [
+            15
+        ],
+        "end_entities": [
+            25
+        ],
+        "shortest_alert_path": [
+            17,
+            7,
+            26
+        ]
+    },
+    {
+        "context": "A \u201cBEC financial fraud\u201d alert was raised after the user account \"Jordan P\" (AadUserId 89e933b9-5b2e-4bd6-bcdf-033db707ef82, SID S-1-5-21-1740051960-3534030288-108486866-1602) created a suspicious inbox rule during a risky Azure Active Directory session. This activity suggests a possible business-email-compromise attempt aimed at financial fraud.",
+        "question": "Shortly after the inbox-rule creation, sign-in telemetry shows the same account connecting from an external IP address that does not belong to the corporate network. What is that IP address?",
+        "answer": "255.246.85.58",
+        "solution": [
+            "A suspicious inbox rule was created in a risky Azure AD session (possible BEC financial fraud) originating from ip.Address `255.246.85.58`."
+        ],
+        "start_alert": 17,
+        "end_alert": 17,
+        "start_entities": [
+            1,
+            6,
+            7,
+            8
+        ],
+        "end_entities": [
+            15
+        ],
+        "shortest_alert_path": [
+            17
+        ]
+    },
+    {
+        "context": "During an investigation we observed that the mailbox laylaw@vnevado.alpineskihouse.co was accessed from multiple external IP addresses (e.g., 95.202.65.202 and 180.144.153.174). Shortly afterward, a suspicious inbox rule named \"ITCleanup\" was created to move messages to the \"RSS Feeds\" folder. This activity raised a \u201cSuspicious inbox manipulation rule\u201d alert, suggesting possible account compromise aiming to hide or redirect email communications\u2014often a precursor to business email compromise (BEC) attempts.",
+        "question": "A follow-up alert titled \u201cBEC financial fraud\u201d was later generated for the same user session. What is the display name of the account associated with this BEC alert?",
+        "answer": "Jordan P",
+        "solution": [
+            "At 2024-07-22 09:49:55.558204+00:00, the account (Email: `Jordan P@vnevado.alpineskihouse.co`) created a suspicious inbox rule named \u201cITCleanup\u201d that moves messages to the folder \u201cRSS Feeds,\u201d indicating possible mailbox compromise.",
+            "Eleven minutes later, at 2024-07-22 10:00:07.521914+00:00, the same user (Name: `Jordan P`) was detected creating another hiding-inbox rule during a risky Azure AD session, pointing to a potential Business Email Compromise (BEC) financial-fraud attempt."
+        ],
+        "start_alert": 5,
+        "end_alert": 17,
+        "start_entities": [
+            2,
+            4,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14
+        ],
+        "end_entities": [
+            6
+        ],
+        "shortest_alert_path": [
+            5,
+            7,
+            17
+        ]
+    },
+    {
+        "context": "During the investigation, we observed that user \"Jordan P\" (email: Jordan P@vnevado.alpineskihouse.co, SID: S-1-5-21-1740051960-3534030288-108486866-1602) successfully authenticated to the SAP enterprise application (App ID 100) from the external IP address 107.253.5.27 on 2024-07-22 12:59:26 UTC. This activity generated a \"Suspicious SAP authentication\" alert because the account had already been flagged as risky in Microsoft Entra ID.",
+        "question": "Earlier that day, the same user triggered an \"Anonymous IP address\" alert indicating a sign-in through an anonymizing service. What was the source IP address associated with that anonymous sign-in?",
+        "answer": "192.238.237.190",
+        "solution": [
+            "A risky sign-in into SAP was detected from the user account with AadUserId `89e933b9-5b2e-4bd6-bcdf-033db707ef82` (alert time: 2024-07-22 12:59:26 UTC).",
+            "Earlier that day, a sign-in was recorded from the anonymous IP address `192.238.237.190` (alert time: 2024-07-22 09:11:31 UTC), indicating that the attacker likely hid their origin while accessing the account."
+        ],
+        "start_alert": 23,
+        "end_alert": 3,
+        "start_entities": [
+            6,
+            7,
+            8,
+            24,
+            25
+        ],
+        "end_entities": [
+            4
+        ],
+        "shortest_alert_path": [
+            23,
+            1,
+            3
+        ]
+    },
+    {
+        "context": "During the investigation of a potential compromise, we observed a risky sign-in to the SAP cloud application (AppId 100) from the external IP address 107.253.5.27. This suspicious SAP authentication suggests that an attacker might have gained access to a user account to interact with sensitive financial data. Subsequent analysis revealed another alert in the same incident indicating that the same user later created an inbox rule in Outlook to move messages into a hidden folder\u2014an activity frequently associated with phishing or data-exfiltration campaigns.",
+        "question": "According to the \u2018Suspicious inbox manipulation rule\u2019 alert tied to the same incident, from which IP address was the malicious inbox rule change performed?",
+        "answer": "255.246.85.58",
+        "explanation": "The end alert specifies that the suspicious rule creation came from the IP address 255.246.85.58. This is distinct from the IP seen in the initial SAP authentication alert (107.253.5.27), indicating the attacker may have used a different source when manipulating the mailbox.",
+        "solution": [
+            "A risky sign-in alert indicates that the account with Email `Jordan P@vnevado.alpineskihouse.co` accessed the SAP application.",
+            "Shortly afterwards, from the IP Address `255.246.85.58`, a suspicious inbox-manipulation rule named ITCleanup was created to move messages to the RSS Feeds folder."
+        ],
+        "start_alert": 26,
+        "end_alert": 5,
+        "start_entities": [
+            24,
+            25
+        ],
+        "end_entities": [
+            15
+        ],
+        "shortest_alert_path": [
+            26,
+            7,
+            5
+        ]
+    },
+    {
+        "context": "During the investigation of a Business Email Compromise (BEC) incident, analysts observed an alert titled \"Suspicious emails sent by BEC-related user\" that fired on 2024-07-22. In this alert, messages were sent from laylaw@vnevado.alpineskihouse.co to tony@avoriaz.alpineskihouse.co via the external IP 255.246.85.58, and activity was tied to an account with SID S-1-5-21-1740051960-3534030288-108486866-1602 (AAD user ID 89e933b9-5b2e-4bd6-bcdf-033db707ef82). While pivoting on related entities, defenders found a separate but connected alert that referenced a different user account also implicated in the campaign.",
+        "question": "What is the display name of the additional user account that appears in the related alert connected to this BEC investigation?",
+        "answer": "Jordan P",
+        "confidence": 0.18,
+        "solution": [
+            "The user account with Name `Jordan P` has sent suspicious emails indicating a possible BEC (Business Email Compromise) attempt."
+        ],
+        "start_alert": 18,
+        "end_alert": 18,
+        "start_entities": [
+            8,
+            20,
+            22,
+            1,
+            15,
+            21,
+            19
+        ],
+        "end_entities": [
+            6
+        ],
+        "shortest_alert_path": [
+            18
+        ]
+    }
+]

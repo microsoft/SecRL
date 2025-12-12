@@ -83,7 +83,7 @@ The generation process is as follows:
 
 After all the questions are generated, you should expect new files in `secgym/questions` folder like `incident_<i>_qa.json` where `i` is the incident number.
 
-Note: All results from the paper use the questions in `secgym/questions/tests` folder. The train questions under `secgym/questions/train` are only partial and used for Expel to collect new rules.
+Note: All results from the paper use the questions in `secgym/questions/o1/test` folder. The train questions under `secgym/questions/o1/train` are only partial and used for Expel to collect new rules. Please use the quetion answer pairs from `secgym/questions/o1/test` for benchmarking against the results shown in the paper. We highly recommend using the latest models to generate the question answer dataset yourselves before running any hill climbing training experiments as to minimize noise and bias during training. Currently the latest question answer pairs are generated using OpenAI O3 with low correlation paths and can be found in `secgym/questions/o3/`.
 
 
 ## 📊 Results
