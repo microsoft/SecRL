@@ -93,7 +93,7 @@ langsmith==0.3.13
 Levenshtein==0.25.1
 markdown-it-py==3.0.0
 MarkupSafe==3.0.2
-marshmallow==3.26.1
+marshmallow==3.26.2
 matplotlib==3.9.2
 mdurl==0.1.2
 mlcroissant==1.0.17
