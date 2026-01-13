@@ -10,7 +10,7 @@ attrs==25.2.0
 azure-ai-inference==1.0.0b9
 azure-ai-ml==1.26.3
 azure-common==1.1.28
-azure-core==1.33.0
+azure-core==1.38.0
 azure-core-tracing-opentelemetry==1.0.0b12
 azure-identity==1.17.1
 azure-mgmt-core==1.5.0
