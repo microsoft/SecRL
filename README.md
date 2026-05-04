@@ -5,6 +5,7 @@
 [![Blog](https://img.shields.io/badge/Blog-5C2D91?style=for-the-badge&logo=rss&logoColor=white)](https://www.microsoft.com/en-us/security/blog/2025/10/14/microsoft-raises-the-bar-a-smarter-way-to-measure-ai-for-cybersecurity/)
 
 ## 🎉 News
+- **[2026/05/04]**: Our paper "ExCyTIn-Bench: Evaluating LLM agents on Cyber Threat Investigation" has been accepted by ICML 2026!
 - **[2025/11/25]**: We updated the evaluation chart with Claude Opus-4.5 and GPT 5.1!
 - **[2025/11/04]**: We updated the evaluation chart with Claude Sonnet-4.5 and Haiku-4.5. These are base model results with default parameters; we will share results with [extended thinking](https://docs.claude.com/en/docs/build-with-claude/extended-thinking) and [larger context windows](https://docs.claude.com/en/docs/build-with-claude/context-windows#1m-token-context-window) soon!
 - **[2025/10/28]**: Checkout [open-source research](https://www.arc.computer/blog/inference-time-continual-learning) applying in-context continual learning methods to the ExCyTIn framework, achieving significant cost reductions and enabling cross-incident knowledge transfer.
