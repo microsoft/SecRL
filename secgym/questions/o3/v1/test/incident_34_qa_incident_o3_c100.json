@@ -1,0 +1,2146 @@
+[
+    {
+        "context": "During the investigation of a suspicious Task Scheduler activity detected on July 4 2024 at 22:35 UTC, we saw a PowerShell script that dropped a file named \"winatp-intro-backdoor.exe\" onto the desktop and used \"schtasks.exe\" to create and immediately run a task called \"yrei\"\u2014a classic persistence technique. A follow-up alert reported that an uncommon file was created and written to a Windows Run registry key on the same machine, indicating a potential attempt to maintain access across reboots.",
+        "question": "According to the follow-up alert that reported an uncommon file being added to a Run Key, which IP address is associated with that activity?",
+        "answer": "72.5.72.208",
+        "solution": [
+            "A host with AadDeviceId `02b8f519-1123-4228-b32a-ccb78af3449f` was observed performing suspicious Task Scheduler activity, indicating a possible attempt at establishing persistence.",
+            "Soon after, an uncommon file was created and added to a Run Key, and the activity involved the IP address `72.5.72.208`, reinforcing the likelihood of malicious persistence on the system."
+        ],
+        "start_alert": 21,
+        "end_alert": 23,
+        "start_entities": [
+            7,
+            8,
+            13,
+            14,
+            15
+        ],
+        "end_entities": [
+            18
+        ],
+        "shortest_alert_path": [
+            21,
+            2,
+            23
+        ]
+    },
+    {
+        "context": "During a recent investigation, it was observed that PowerShell dropped a suspicious file named \"winatp-intro-backdoor.exe\" on a device at 2024-07-04 22:35:03 UTC and executed it. Just moments earlier, at 22:35:01 UTC, another alert indicated that a process had executed PowerShell to download a file or run an encoded command\u2014an activity commonly leveraged by attackers to stage additional payloads or run malicious instructions in memory.",
+        "question": "According to the alert that flagged the suspicious PowerShell download or encoded command at 22:35:01 UTC, what is the Security Identifier (SID) of the account under which the PowerShell process ran?",
+        "answer": "S-1-5-21-1870156660-7534030218-135086563-1193",
+        "solution": [
+            "An account with SID `S-1-5-21-1870156660-7534030218-135086563-1193` executed PowerShell to download a file or run an encoded command (Suspicious PowerShell download or encoded command execution).",
+            "The PowerShell process with ExtractedFileName `powershell.exe` then dropped and executed a suspicious file on the machine (Powershell dropped a suspicious file on the machine)."
+        ],
+        "start_alert": 25,
+        "end_alert": 22,
+        "start_entities": [
+            16
+        ],
+        "end_entities": [
+            5
+        ],
+        "shortest_alert_path": [
+            25,
+            8,
+            22
+        ]
+    },
+    {
+        "context": "A security investigation uncovered that a Microsoft Word document with macros (winword.exe, PID 9780, launched from the path c:\\scripts\\...) invoked PowerShell, leading to an alert titled \"Suspicious PowerShell download or encoded command execution\" on 2024-07-04 at 22:35:04 UTC. Log correlation shows that just a few seconds earlier, at 22:35:01 UTC, a separate but related alert with the same title was triggered and mapped to a single Azure AD user account. Analysts need to reference the unique Azure AD user identifier tied to that earlier alert for further triage, but the identifier itself is not shown in the investigation summary.",
+        "question": "Provide the Azure AD user ID (AadUserId) associated with the earlier \"Suspicious PowerShell download or encoded command execution\" alert raised at 22:35:01 UTC on 2024-07-04.",
+        "answer": "16320fec-8d90-403b-b7fe-78f715d4728d",
+        "solution": [
+            "A suspicious PowerShell download or encoded command was executed on the host (HostName=`vnevado-win10e`) at 2024-07-04 22:35:04 UTC.",
+            "This activity is tied to the user account (AadUserId=`16320fec-8d90-403b-b7fe-78f715d4728d`), which triggered its own suspicious PowerShell execution at 2024-07-04 22:35:01 UTC."
+        ],
+        "start_alert": 26,
+        "end_alert": 22,
+        "start_entities": [
+            11,
+            12
+        ],
+        "end_entities": [
+            6
+        ],
+        "shortest_alert_path": [
+            26,
+            1,
+            22
+        ]
+    },
+    {
+        "context": "During an investigation into suspicious activity on July 4, 2024, analysts noted that the process \"winword.exe\" (PID 9780) opened a macro-enabled document (rs4_winatp-intro-invoice.docm) and later invoked a suspicious PowerShell command. This behavior suggested possible installation or lateral-movement activity. Shortly afterwards, the same attack chain triggered another alert: a process previously involved in the malicious activity leveraged Windows Task Scheduler to create or modify a scheduled task\u2014likely to gain persistence.",
+        "question": "According to the \"Suspicious Task Scheduler activity\" alert raised at 22:35:01 UTC on 2024-07-04, what is the Azure AD user ID (AadUserId) of the account associated with this task manipulation?",
+        "answer": "16320fec-8d90-403b-b7fe-78f715d4728d",
+        "solution": [
+            "A suspicious PowerShell command line was executed with the entity ProcessId__CreatedTimeUtc__CommandLine `8604__2024-06-26t12:00:39.2886108z__\"powershell.exe\" -w movedn -exec bypass -command ...`, indicating an attempt to drop and schedule a malicious payload.",
+            "Following this, Task Scheduler activity was observed from the account entity AadUserId `16320fec-8d90-403b-b7fe-78f715d4728d`, suggesting the attacker tried to establish persistence by creating and running the scheduled task."
+        ],
+        "start_alert": 10,
+        "end_alert": 21,
+        "start_entities": [
+            11,
+            12,
+            16
+        ],
+        "end_entities": [
+            6
+        ],
+        "shortest_alert_path": [
+            10,
+            7,
+            21
+        ]
+    },
+    {
+        "context": "During the investigation, we observed that the user account \"samuelf\" (AadUserId 16320fec-8d90-403b-b7fe-78f715d4728d) executed the file \"winatp-intro-backdoor.exe\" with process ID 10208 and modified a RunOnce registry key so the file will launch after reboot. This activity was flagged by the alert titled \"An uncommon file was created and added to a Run Key.\" Shortly after, another alert indicates that an analyst (u141) manually triggered an automated investigation on the same machine to review and remediate any threat artifacts.",
+        "question": "On which host did analyst u141 manually start the automated investigation?",
+        "answer": "vnevado-win10e",
+        "context_type": "security_incident",
+        "solution": [
+            "HostName=`vnevado-win10e`: An uncommon file was created and added to a Run Key, potentially establishing persistence.",
+            "HostName=`vnevado-win10e`: A user manually initiated an Automated Investigation on the same host to analyze and remediate the suspicious activity."
+        ],
+        "start_alert": 23,
+        "end_alert": 0,
+        "start_entities": [
+            4,
+            5,
+            6,
+            9,
+            18,
+            19
+        ],
+        "end_entities": [
+            1
+        ],
+        "shortest_alert_path": [
+            23,
+            1,
+            0
+        ]
+    },
+    {
+        "context": "While examining a security incident, analysts observed that the account \"samuelf\" launched a PowerShell command which created and executed a file called \"winatp-intro-backdoor.exe\". Moments later, user \"u141\" (u141@ash.alpineskihouse.co) manually triggered an automated investigation on the workstation vnevado-win10e.vnevado.alpineskihouse.co to assess any resulting threat activity.",
+        "question": "Identify the Azure AD device ID of the host on which user \"u141\" initiated the automated investigation.",
+        "answer": "02b8f519-1123-4228-b32a-ccb78af3449f",
+        "solution": [
+            "An automated investigation was manually started on the device whose AadDeviceId is `02b8f519-1123-4228-b32a-ccb78af3449f`.",
+            "Shortly after, PowerShell dropped and executed a suspicious file on the host with HostName `vnevado-win10e`."
+        ],
+        "start_alert": 25,
+        "end_alert": 0,
+        "start_entities": [
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            16
+        ],
+        "end_entities": [
+            2
+        ],
+        "shortest_alert_path": [
+            25,
+            1,
+            0
+        ]
+    },
+    {
+        "context": "During an investigation of an endpoint, the alert system flagged an \"Anomaly detected in ASEP registry\" at 2024-07-04 22:35:01 UTC. The activity originated from IP address 72.5.72.208, where a process (PID 10208) ran the command: reg add hkcu\\software\\microsoft\\windows\\currentversion\\runonce /f /v yrei /t reg_expand_sz /d %userprofile%\\desktop\\winatp-intro-backdoor.exe. This registry modification could allow malicious code to run automatically after a reboot. Shortly before this, another alert indicated that a suspicious process executed a PowerShell command, suggesting further post-exploitation activity.",
+        "question": "According to the \"Suspicious process executed PowerShell command\" alert raised moments before the registry anomaly, what is the name of the process that ran the PowerShell command?",
+        "answer": "powershell.exe",
+        "solution": [
+            "Alert at 2024-07-04T22:35:01Z: An account (field AadUserId = `16320fec-8d90-403b-b7fe-78f715d4728d`) registered a suspicious command or file in an ASEP registry key, establishing persistence.",
+            "Alert at 2024-07-04T22:35:00Z: A process (field ExtractedFileName = `powershell.exe`) executed a suspicious PowerShell command, which likely set up or triggered the ASEP registry change."
+        ],
+        "start_alert": 17,
+        "end_alert": 3,
+        "start_entities": [
+            18,
+            19
+        ],
+        "end_entities": [
+            8
+        ],
+        "shortest_alert_path": [
+            17,
+            6,
+            3
+        ]
+    },
+    {
+        "context": "During the investigation we noted that account 'samuelf' executed a PowerShell command to drop and schedule the malicious file 'winatp-intro-backdoor.exe'. Shortly after, the security platform reported that user u141 (u141@ash.alpineskihouse.co) manually triggered an Automated Investigation on the workstation vnevado-win10e.vnevado.alpineskihouse.co in response to the anomalous scheduled task that had been created.",
+        "question": "What is the Azure AD Device ID of the host vnevado-win10e.vnevado.alpineskihouse.co on which the manual Automated Investigation was started?",
+        "answer": "02b8f519-1123-4228-b32a-ccb78af3449f",
+        "solution": [
+            "An anomalous scheduled task was created on the host with HostName `vnevado-win10e`.",
+            "User `u141` manually initiated an automated investigation on the device with AadDeviceId `02b8f519-1123-4228-b32a-ccb78af3449f`."
+        ],
+        "start_alert": 20,
+        "end_alert": 0,
+        "start_entities": [
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            13,
+            14
+        ],
+        "end_entities": [
+            2
+        ],
+        "shortest_alert_path": [
+            20,
+            1,
+            0
+        ]
+    },
+    {
+        "context": "During the investigation of a suspicious LDAP query that was initiated from the process \"winword.exe\" (command line: \"winword.exe c:\\scripts\\rs4_winatp-intro-invoice.docm\"), we noted that attackers often leverage LDAP queries for reconnaissance to enumerate users, groups, or other domain objects. Immediately around the same time, another alert flagged the use of Task Scheduler by a process connected to this earlier malicious activity, suggesting an attempt to gain persistence.",
+        "question": "According to the related Task Scheduler alert observed moments after the LDAP reconnaissance, which executable was responsible for the scheduler activity?",
+        "answer": "schtasks.exe",
+        "note": "We purposefully withheld the answer from the context to test the analyst\u2019s ability to correlate the two alerts and identify the process involved in the Task Scheduler activity.",
+        "solution": [
+            "Alert 1 \u2013 Suspicious LDAP query: The account with field AadUserId and value `16320fec-8d90-403b-b7fe-78f715d4728d` executed an LDAP query, indicating possible reconnaissance.",
+            "Alert 2 \u2013 Suspicious Task Scheduler activity: The process with field ExtractedFileName and value `schtasks.exe` was used to create or modify a scheduled task, suggesting an attempt to establish persistence."
+        ],
+        "start_alert": 24,
+        "end_alert": 21,
+        "start_entities": [
+            11,
+            12
+        ],
+        "end_entities": [
+            14
+        ],
+        "shortest_alert_path": [
+            24,
+            6,
+            21
+        ]
+    },
+    {
+        "context": "During the investigation, we observed that Microsoft Word (winword.exe) executed a macro-enabled document, which soon after triggered a suspicious LDAP query\u2014an activity often linked to domain reconnaissance. Shortly before this LDAP activity was logged, another alert indicated that an anomalous scheduled task had been created on the same timeline, suggesting a possible attempt at gaining persistence on the affected device.",
+        "question": "According to the alert about the anomalous scheduled task creation, what is the Process ID of the PowerShell process that was used to create the task?",
+        "answer": "8604",
+        "solution": [
+            "HostName `vnevado-win10e` executed a suspicious LDAP query on 2024-07-04 22:35:02 UTC, indicating possible reconnaissance on the domain controller.",
+            "ProcessId `8604` (CreatedTimeUtc `2024-06-26T12:00:39.2886108Z`) launched `powershell.exe` with a long obfuscated CommandLine that writes a Base64-encoded payload (`winatp-intro-backdoor.exe`), schedules a one-time task named `yrei`, and immediately runs it \u2013 establishing persistence via a scheduled task."
+        ],
+        "start_alert": 24,
+        "end_alert": 20,
+        "start_entities": [
+            11,
+            12
+        ],
+        "end_entities": [
+            7
+        ],
+        "shortest_alert_path": [
+            24,
+            1,
+            20
+        ]
+    },
+    {
+        "context": "During an investigation into a suspicious PowerShell activity, analysts observed that the process \"winword.exe\" (PID 9780) executed a command on 2024-06-26T11:57:20Z to run a macro-enabled document (rs4_winatp-intro-invoice.docm). This behavior triggered an alert titled \"Suspicious PowerShell download or encoded command execution,\" suggesting the process may have attempted to download or run additional payloads in memory.",
+        "question": "Subsequent analysis revealed that PowerShell later dropped and executed a potentially malicious file on the same machine. What is the name of the file that was dropped?",
+        "answer": "winatp-intro-backdoor.exe",
+        "solution": [
+            "PowerShell executed a suspicious download or encoded command on device with AadDeviceId `02b8f519-1123-4228-b32a-ccb78af3449f` (2024-07-04 22:35:04.145779 UTC).",
+            "On the same machine, PowerShell then dropped and ran a suspicious file named `winatp-intro-backdoor.exe` (2024-07-04 22:35:03.736539 UTC)."
+        ],
+        "start_alert": 26,
+        "end_alert": 25,
+        "start_entities": [
+            11,
+            12
+        ],
+        "end_entities": [
+            16
+        ],
+        "shortest_alert_path": [
+            26,
+            2,
+            25
+        ]
+    },
+    {
+        "context": "On 2024-07-04 at 22:35 UTC our monitoring flagged an alert: \u201cPowershell dropped a suspicious file on the machine and executed it.\u201d The command line shows that PowerShell created a file named \u201cwinatp-intro-backdoor.exe\u201d on the desktop and set up a scheduled task to run it. This activity was associated with an as-yet-unidentified user account. Almost simultaneously, another alert was raised for a \u201cSuspicious LDAP query,\u201d suggesting possible reconnaissance of the domain environment. Investigators need to understand which process issued that LDAP query.",
+        "question": "What is the name of the executable that launched the process responsible for the suspicious LDAP query detected at 22:35:02 UTC on 2024-07-04?",
+        "answer": "winword.exe",
+        "solution": [
+            "The user account (Field: Name, Value: `samuelf`) launched a PowerShell session that dropped and executed a suspicious file on the machine at 2024-07-04 22:35:03Z.",
+            "Earlier, a process (Field: ProcessId__CreatedTimeUtc__CommandLine, Value: `9780__2024-06-26t11:57:20.2959493z__\"winword.exe\" c:\\scripts\\rs4_winatp-intro-invoice.docm`) performed a suspicious LDAP query, indicating reconnaissance activity."
+        ],
+        "start_alert": 25,
+        "end_alert": 24,
+        "start_entities": [
+            7,
+            8,
+            9,
+            16
+        ],
+        "end_entities": [
+            11
+        ],
+        "shortest_alert_path": [
+            25,
+            4,
+            24
+        ]
+    },
+    {
+        "context": "During a security review, an analyst manually started an automated investigation on the workstation \"vnevado-win10e.vnevado.alpineskihouse.co\" to identify and remediate potential threats. Immediately after the investigation began, the system generated an alert titled \"An anomalous scheduled task was created,\" indicating that someone had set up a suspicious scheduled task on the same host\u2014often a tactic used for persistence. The alert logs show that this task was created under a specific user account, but only the security identifier (SID) for that account is recorded.",
+        "question": "What is the SID of the user account under which the anomalous scheduled task was created on host \"vnevado-win10e\"?",
+        "answer": "S-1-5-21-1870156660-7534030218-135086563-1193",
+        "solution": [
+            "Automated investigation was manually started on host with HostName `vnevado-win10e` (2024-07-04 22:35:00 UTC).",
+            "Immediately after, an anomalous scheduled task was created by the account with Sid `S-1-5-21-1870156660-7534030218-135086563-1193`, suggesting the attacker might be establishing persistence on `vnevado-win10e`."
+        ],
+        "start_alert": 0,
+        "end_alert": 20,
+        "start_entities": [
+            1,
+            2
+        ],
+        "end_entities": [
+            5
+        ],
+        "shortest_alert_path": [
+            0,
+            1,
+            20
+        ]
+    },
+    {
+        "context": "During an investigation on host \"vnevado-win10e\" (AadDeviceId: 02b8f519-1123-4228-b32a-ccb78af3449f), the user account \"samuelf\" (SID S-1-5-21-..., AadUserId 16320fec-8d90-403b-b7fe-78f715d4728d) was observed running the process \"winword.exe\" (PID 9780, created 2024-06-26T11:57:20Z) that issued a suspicious LDAP query\u2014activity often associated with domain reconnaissance. Immediately afterward, telemetry shows a related alert indicating that PowerShell executed a download or encoded command on the same endpoint, suggesting the attacker attempted to pull down or run an additional payload.",
+        "question": "What is the name of the executable that PowerShell attempted to download or execute in the follow-up alert?",
+        "answer": "winatp-intro-backdoor.exe",
+        "solution": [
+            "An LDAP reconnaissance was performed by process with ProcessId__CreatedTimeUtc__CommandLine `9780__2024-06-26t11:57:20.2959493z__\"winword.exe\" c:\\scripts\\rs4_winatp-intro-invoice.docm`.",
+            "Immediately after, a suspicious PowerShell session downloaded or executed the payload with ExtractedFileName `winatp-intro-backdoor.exe`."
+        ],
+        "start_alert": 24,
+        "end_alert": 26,
+        "start_entities": [
+            1,
+            2,
+            4,
+            5,
+            6,
+            11,
+            12
+        ],
+        "end_entities": [
+            9
+        ],
+        "shortest_alert_path": [
+            24,
+            11,
+            26
+        ]
+    },
+    {
+        "context": "On 2024-07-04 an alert reported that an uncommon executable (winatp-intro-backdoor.exe) was written to disk and registered in the HKCU RunOnce key. This change was made from IP address 72.5.72.208 by a process whose command line showed it adding the registry entry so the file would run after reboot. Just seconds earlier on the same host, Microsoft Defender also raised an alert that a suspicious process had executed an extensive, Base-64-heavy PowerShell command\u2014likely a staging action for the backdoor that had just been installed.",
+        "question": "According to the \u201cSuspicious process executed PowerShell command\u201d alert, what was the Process ID of the process that launched the PowerShell payload?",
+        "answer": "8604",
+        "solution": [
+            "Alert 1 shows that an uncommon file was created and added to a Run Key by the account Name `samuelf`.",
+            "Alert 2 reveals the suspicious PowerShell execution: ProcessId `8604`, CreatedTimeUtc `2024-06-26T12:00:39.2886108Z`, CommandLine beginning with `\"powershell.exe\" -w movedn -exec bypass -command ...`."
+        ],
+        "start_alert": 23,
+        "end_alert": 3,
+        "start_entities": [
+            18,
+            19
+        ],
+        "end_entities": [
+            7
+        ],
+        "shortest_alert_path": [
+            23,
+            4,
+            3
+        ]
+    },
+    {
+        "context": "On July 4 2024 at 22:35 UTC a security operator (u141@ash.alpineskihouse.co) manually kicked off an automated investigation on the workstation vnevado-win10e (AadDeviceId: 02b8f519-1123-4228-b32a-ccb78af3449f). Just two seconds later, Microsoft Defender raised another alert on the same machine: \u201cSuspicious LDAP query,\u201d indicating possible domain-reconnaissance activity by a user account querying the directory.",
+        "question": "What is the AadUserId of the account associated with the \u201cSuspicious LDAP query\u201d alert that was triggered on host vnevado-win10e?",
+        "answer": "16320fec-8d90-403b-b7fe-78f715d4728d",
+        "solution": [
+            "An automated investigation was manually initiated on the device with AadDeviceId `02b8f519-1123-4228-b32a-ccb78af3449f`.",
+            "A suspicious LDAP query was executed by the account with AadUserId `16320fec-8d90-403b-b7fe-78f715d4728d`, indicating potential reconnaissance activity."
+        ],
+        "start_alert": 0,
+        "end_alert": 24,
+        "start_entities": [
+            1,
+            2
+        ],
+        "end_entities": [
+            6
+        ],
+        "shortest_alert_path": [
+            0,
+            2,
+            24
+        ]
+    },
+    {
+        "context": "During an investigation, an alert titled \"Powershell dropped a suspicious file on the machine\" was raised on 2024-07-04. The event involved the process \"powershell.exe\" executed by user account \"samuelf\" (SID S-1-5-21-1870156660-7534030218-135086563-1193) on the Windows 10 host \"vnevado-win10e\" (AAD device ID 02b8f519-1123-4228-b32a-ccb78af3449f). According to the alert, PowerShell downloaded and immediately ran a potentially malicious executable, but the alert summary does not list the file\u2019s name.",
+        "question": "What is the exact name of the executable file that PowerShell downloaded and executed during this suspicious activity on host \"vnevado-win10e\"?",
+        "answer": "winatp-intro-backdoor.exe",
+        "solution": [
+            "Powershell dropped a suspicious file on the machine (Field: Name, Value: `winatp-intro-backdoor.exe`)."
+        ],
+        "start_alert": 25,
+        "end_alert": 25,
+        "start_entities": [
+            8,
+            4,
+            1,
+            5,
+            2,
+            6,
+            9
+        ],
+        "end_entities": [
+            16
+        ],
+        "shortest_alert_path": [
+            25
+        ]
+    },
+    {
+        "context": "On 2024-07-04 at 22:35:01 UTC, an alert titled \"Suspicious PowerShell download or encoded command execution\" was raised for host vnevado-win10e (user account: samuelf). The alert indicates that PowerShell was used to fetch or run potentially malicious code. Just two seconds later, a follow-up alert reported that the same PowerShell session had dropped and executed a suspicious executable on the machine.",
+        "question": "According to the follow-up alert, what is the exact name of the executable file that PowerShell deposited and ran on host vnevado-win10e?",
+        "answer": "winatp-intro-backdoor.exe",
+        "solution": [
+            "Step 1 \u2013 HostName: `vnevado-win10e`: A process on this host executed PowerShell to download a file or run an encoded command (alert: Suspicious PowerShell download or encoded command execution).",
+            "Step 2 \u2013 Name: `winatp-intro-backdoor.exe`: That PowerShell session then dropped and executed the suspicious file winatp-intro-backdoor.exe on the machine (alert: Powershell dropped a suspicious file on the machine)."
+        ],
+        "start_alert": 22,
+        "end_alert": 25,
+        "start_entities": [
+            1,
+            2,
+            4,
+            5,
+            6,
+            8,
+            9
+        ],
+        "end_entities": [
+            16
+        ],
+        "shortest_alert_path": [
+            22,
+            1,
+            25
+        ]
+    },
+    {
+        "context": "During the investigation we saw the process \"schtasks.exe\" (PID 1616) start with the command line \"schtasks.exe /run /tn yrei\", shortly before a file named \"winatp-intro-backdoor.exe\" appeared. This sequence raised an alert titled \"Suspicious PowerShell command line\" indicating potentially malicious PowerShell use on the device. Only a few seconds later a second alert, \"Suspicious PowerShell download or encoded command execution\", was generated for the same host, showing that PowerShell had likely been used to pull down additional payloads or run an obfuscated command.",
+        "question": "Which user account is associated with the later alert that reported the suspicious PowerShell download or encoded command execution?",
+        "answer": "samuelf",
+        "solution": [
+            "A suspicious PowerShell command line was detected on the host with HostName `vnevado-win10e`.",
+            "Immediately after, a process executed PowerShell to download or run an encoded command under the account with Name `samuelf`."
+        ],
+        "start_alert": 10,
+        "end_alert": 26,
+        "start_entities": [
+            14,
+            15,
+            16
+        ],
+        "end_entities": [
+            4
+        ],
+        "shortest_alert_path": [
+            10,
+            1,
+            26
+        ]
+    },
+    {
+        "context": "During the incident investigation, Microsoft Defender flagged an alert titled \"An anomalous scheduled task was created.\" We observed a PowerShell process (PID 8604) running a lengthy base-64 encoded command that wrote a file named \"winatp-intro-backdoor.exe\" to the user\u2019s Desktop and immediately registered a one-time task called \"yrei\" through a subsequent \"schtasks.exe\" process (PID 1348). This sequence suggests an attempt to establish persistence on the host. Shortly afterward, another alert was raised\u2014\"An uncommon file was created and added to a Run Key\"\u2014which is often indicative of malware ensuring execution after reboot.",
+        "question": "According to the follow-up alert that reported the uncommon file being added to a Run Key, what external IP address was associated with that activity?",
+        "answer": "72.5.72.208",
+        "solution": [
+            "A scheduled task was created that references the suspicious file (ExtractedFileName: `winatp-intro-backdoor.exe`), indicating a potential persistence attempt.",
+            "Moments later, an uncommon file was added to a Run registry key and the machine communicated with a suspicious external host (Address: `72.5.72.208`), reinforcing evidence of malicious activity."
+        ],
+        "start_alert": 20,
+        "end_alert": 23,
+        "start_entities": [
+            7,
+            8,
+            13,
+            14
+        ],
+        "end_entities": [
+            18
+        ],
+        "shortest_alert_path": [
+            20,
+            9,
+            23
+        ]
+    },
+    {
+        "context": "During an investigation into an alert titled \"Anomaly detected in ASEP registry\", we observed that a process with ID 10208 executed the command `reg add hkcu\\software\\microsoft\\windows\\currentversion\\runonce /f /v yrei /t reg_expand_sz /d %userprofile%\\desktop\\winatp-intro-backdoor.exe` from IP address 72.5.72.208. This behavior indicates an attempt to persist a malicious executable so it runs on the next reboot.",
+        "question": "A subsequent alert in this incident flagged a process that executed a PowerShell command to download a file or run an encoded script. What was the name of the executable process involved in that PowerShell-related alert?",
+        "answer": "powershell.exe",
+        "solution": [
+            "An alert indicated that an account (Sid: `S-1-5-21-1870156660-7534030218-135086563-1193`) created or modified an ASEP registry key to establish persistence.",
+            "Subsequently, a process (ExtractedFileName: `powershell.exe`) was observed executing a suspicious download or encoded command, likely leveraging that persistence."
+        ],
+        "start_alert": 17,
+        "end_alert": 22,
+        "start_entities": [
+            18,
+            19
+        ],
+        "end_entities": [
+            8
+        ],
+        "shortest_alert_path": [
+            17,
+            5,
+            22
+        ]
+    },
+    {
+        "context": "During an investigation, we observed that PowerShell dropped a suspicious file named `winatp-intro-backdoor.exe` on a machine. Only a second later, another alert titled \u201cSuspicious PowerShell download or encoded command execution\u201d was raised, indicating that a different process had invoked PowerShell to download a file or run an encoded command. Identifying this process is key to understanding how the attacker chained their actions.",
+        "question": "According to the \u201cSuspicious PowerShell download or encoded command execution\u201d alert raised at 2024-07-04 22:35:04 UTC, which executable was the parent process that launched PowerShell?",
+        "answer": "winword.exe",
+        "solution": [
+            "On host device with HostName `vnevado-win10e`, PowerShell dropped and executed a suspicious file (alert: \u201cPowershell dropped a suspicious file on the machine\u201d).",
+            "Immediately after, process with field ProcessId__CreatedTimeUtc__CommandLine `9780__2024-06-26t11:57:20.2959493z__\"winword.exe\" c:\\scripts\\rs4_winatp-intro-invoice.docm` ran a suspicious PowerShell download / encoded command (alert: \u201cSuspicious PowerShell download or encoded command execution\u201d)."
+        ],
+        "start_alert": 25,
+        "end_alert": 26,
+        "start_entities": [
+            16
+        ],
+        "end_entities": [
+            11
+        ],
+        "shortest_alert_path": [
+            25,
+            1,
+            26
+        ]
+    },
+    {
+        "context": "On July 4, 2024, Microsoft Defender flagged an alert on host \"vnevado-win10e\" after a PowerShell command dropped the file \"winatp-intro-backdoor.exe\" and used schtasks.exe to create and immediately run a new scheduled task\u2014behaviour often seen when an attacker tries to gain persistence. The activity was executed under a user context identified only by its Azure AD and SID values in the initial alert.",
+        "question": "During the investigation, analysts mapped this activity to a specific user account. What is the username (the logon name, not the SID or AAD ID) ultimately associated with this anomalous scheduled task?",
+        "answer": "samuelf",
+        "solution": [
+            "An anomalous scheduled task was created by account Name `samuelf`."
+        ],
+        "start_alert": 20,
+        "end_alert": 20,
+        "start_entities": [
+            6,
+            2,
+            1,
+            5,
+            9,
+            7,
+            14,
+            8
+        ],
+        "end_entities": [
+            4
+        ],
+        "shortest_alert_path": [
+            20
+        ]
+    },
+    {
+        "context": "On July 4th, 2024 at 22:35 UTC, user u141 manually kicked off an Automated Investigation against the Windows 10 endpoint vnevado-win10e (device ID 02b8f519-1123-4228-b32a-ccb78af3449f). Just a few seconds after the investigation began, Microsoft Defender raised a new alert titled \u201cPowershell dropped a suspicious file on the machine,\u201d indicating that a PowerShell session on the same host created and executed an unexpected file.",
+        "question": "Which user account was identified in the alert that reported PowerShell dropping a suspicious file on vnevado-win10e?",
+        "answer": "samuelf",
+        "solution": [
+            "A manual trigger launched an automated investigation on the host with AadDeviceId `02b8f519-1123-4228-b32a-ccb78af3449f`.",
+            "PowerShell, executed under the account Name `samuelf`, dropped and ran a suspicious file on the machine."
+        ],
+        "start_alert": 0,
+        "end_alert": 25,
+        "start_entities": [
+            1,
+            2
+        ],
+        "end_entities": [
+            4
+        ],
+        "shortest_alert_path": [
+            0,
+            2,
+            25
+        ]
+    },
+    {
+        "context": "During the investigation of a suspicious Task Scheduler activity, we observed that the process \"schtasks.exe\" (PID 1616, created at 2024-06-26T12:00:40Z) was used to run a scheduled task named \"yrei\". This behaviour may indicate an attempt to launch malicious code and gain persistence. Pivoting from this task, a related alert indicated that a suspicious process later executed a PowerShell command on the same endpoint.",
+        "question": "Which user account was associated with the process that executed the suspicious PowerShell command?",
+        "answer": "samuelf",
+        "confidence": 0.17,
+        "solution": [
+            "Alert 'Suspicious Task Scheduler activity' shows the process with ExtractedFileName `powershell.exe` was used to create or modify a scheduled task.",
+            "Alert 'Suspicious process executed PowerShell command' indicates that the account Name `samuelf` executed a suspicious PowerShell command."
+        ],
+        "start_alert": 21,
+        "end_alert": 3,
+        "start_entities": [
+            14,
+            15
+        ],
+        "end_entities": [
+            4
+        ],
+        "shortest_alert_path": [
+            21,
+            8,
+            3
+        ]
+    },
+    {
+        "context": "An automated investigation was manually triggered on the workstation vnevado-win10e (device ID 02b8f519-1123-4228-b32a-ccb78af3449f). This investigation began at 22:35 UTC and is reviewing any suspicious activity on the device, including potential misuse of PowerShell for downloading payloads or running encoded commands.",
+        "question": "During this investigation, a separate alert flagged a suspicious PowerShell download or encoded command execution. Which user account was tied to that PowerShell activity?",
+        "answer": "samuelf",
+        "confidence": 0.09,
+        "solution": [
+            "An automated investigation was manually triggered on the host with AadDeviceId `02b8f519-1123-4228-b32a-ccb78af3449f`.",
+            "During this period, a suspicious PowerShell download or encoded command was executed by the account with Name `samuelf`."
+        ],
+        "start_alert": 0,
+        "end_alert": 26,
+        "start_entities": [
+            1,
+            2
+        ],
+        "end_entities": [
+            4
+        ],
+        "shortest_alert_path": [
+            0,
+            2,
+            26
+        ]
+    },
+    {
+        "context": "An automated investigation was manually triggered on host `vnevado-win10e.vnevado.alpineskihouse.co` (device ID 02b8f519-1123-4228-b32a-ccb78af3449f) by user `u141@ash.alpineskihouse.co`. Shortly after, a detection reported that a suspicious process executed a PowerShell command on the same endpoint, suggesting an attacker may be running commands in memory to avoid leaving traces.",
+        "question": "According to the detection for the suspicious PowerShell execution, which user account was associated with the process that ran the PowerShell command?",
+        "answer": "samuelf",
+        "solution": [
+            "An automated investigation was manually started on the host whose AadDeviceId is `02b8f519-1123-4228-b32a-ccb78af3449f`.",
+            "Subsequently, a suspicious process executed a PowerShell command while running under the account Name `samuelf`."
+        ],
+        "start_alert": 0,
+        "end_alert": 3,
+        "start_entities": [
+            1,
+            2
+        ],
+        "end_entities": [
+            4
+        ],
+        "shortest_alert_path": [
+            0,
+            2,
+            3
+        ]
+    },
+    {
+        "context": "During an investigation on host vnevado-win10e (device ID 02b8f519-1123-4228-b32a-ccb78af3449f), we observed the process winatp-intro-backdoor.exe (PID 10208) adding a persistence entry to the RunOnce registry path. This action triggered the alert \u201cAnomaly detected in ASEP registry\u201d, indicating that a potentially malicious program may execute automatically after reboot. Immediately afterward, a second alert titled \u201cAn uncommon file was created and added to a Run Key\u201d was raised for the same machine, signaling that a suspicious file had been written to disk and registered for automatic startup.",
+        "question": "Which user account was associated with the alert indicating that an uncommon file was created and added to a Run Key on host vnevado-win10e?",
+        "answer": "samuelf",
+        "solution": [
+            "Account (Name: samuelf) triggered an alert for an anomaly detected in the ASEP registry where a suspicious command or file was registered for persistence.",
+            "Account (Name: samuelf) then created an uncommon file and added it to a Run registry key, further establishing persistence on the system."
+        ],
+        "start_alert": 17,
+        "end_alert": 23,
+        "start_entities": [
+            1,
+            2,
+            5,
+            6,
+            9,
+            18,
+            19
+        ],
+        "end_entities": [
+            4
+        ],
+        "shortest_alert_path": [
+            17,
+            4,
+            23
+        ]
+    },
+    {
+        "context": "During the investigation we observed that an uncommon file (winatp-intro-backdoor.exe) was added to the HKCU RunOnce registry key via a command executed from IP address 72.5.72.208 at 22:35:02 UTC on 2024-07-04. Just moments earlier, another alert was raised because a process invoked PowerShell to download a file or run an encoded script on the same device.",
+        "question": "According to the alert titled \u201cSuspicious PowerShell download or encoded command execution\u201d raised at 22:35:01 UTC on 2024-07-04, which executable was responsible for launching the PowerShell activity?",
+        "answer": "powershell.exe",
+        "solution": [
+            "A process executed PowerShell with ExtractedFileName `powershell.exe`, performing a suspicious download or encoded command at 2024-07-04 22:35:01.807662+00:00.",
+            "Immediately after, on the host with HostName `vnevado-win10e`, an uncommon file was created and added to a Run registry key at 2024-07-04 22:35:02.252731+00:00, indicating possible persistence."
+        ],
+        "start_alert": 23,
+        "end_alert": 22,
+        "start_entities": [
+            18,
+            19
+        ],
+        "end_entities": [
+            8
+        ],
+        "shortest_alert_path": [
+            23,
+            1,
+            22
+        ]
+    },
+    {
+        "context": "During an investigation, an alert titled \"Suspicious LDAP query\" was raised on host \"vnevado-win10e\" (AAD Device ID: 02b8f519-1123-4228-b32a-ccb78af3449f) at 22:35:02 UTC on 2024-07-04. The activity was executed under the user account \"samuelf\" (SID S-1-5-21-1870156660-7534030218-135086563-1193) and involved the process \"winword.exe\" launching a macro-enabled document (rs4_winatp-intro-invoice.docm). While reviewing related alerts, you note that just a second earlier there was a separate alert for a \"Suspicious PowerShell command line\" on the same machine, suggesting the attacker may have dropped or interacted with a malicious file via PowerShell.",
+        "question": "What is the name of the file that was involved in the \"Suspicious PowerShell command line\" activity observed on host \"vnevado-win10e\"?",
+        "answer": "winatp-intro-backdoor.exe",
+        "solution": [
+            "A process with ExtractedFileName `winword.exe` executed a suspicious LDAP query at 2024-07-04 22:35:02.608830+00:00, suggesting reconnaissance activity.",
+            "A suspicious PowerShell command referenced the file Name `winatp-intro-backdoor.exe` at 2024-07-04 22:35:01.005559+00:00, indicating possible payload execution."
+        ],
+        "start_alert": 24,
+        "end_alert": 10,
+        "start_entities": [
+            1,
+            2,
+            4,
+            5,
+            6,
+            11,
+            12
+        ],
+        "end_entities": [
+            16
+        ],
+        "shortest_alert_path": [
+            24,
+            12,
+            10
+        ]
+    },
+    {
+        "context": "During the investigation of an incident on July 4 2024, security telemetry showed that a PowerShell script created an anomalous scheduled task named \"yrei\" which was configured to run a file called \"winatp-intro-backdoor.exe\" from a user\u2019s Desktop folder. The task was created through a command issued by \"schtasks.exe\" only seconds before the suspicious activity was detected. Immediately after this persistence mechanism was set up on the same machine, another alert was raised for a \u201cSuspicious LDAP query,\u201d suggesting the attacker began performing directory reconnaissance.",
+        "question": "According to the \u201cSuspicious LDAP query\u201d alert that followed the creation of the rogue scheduled task, which executable process was responsible for launching the LDAP query?",
+        "answer": "winword.exe",
+        "solution": [
+            "On host `vnevado-win10e` (Field: HostName), an anomalous scheduled task was created, suggesting the attacker is trying to establish persistence.",
+            "The process identified by `9780__2024-06-26t11:57:20.2959493z__\"winword.exe\" c:\\scripts\\rs4_winatp-intro-invoice.docm` (Field: ProcessId__CreatedTimeUtc__CommandLine) subsequently executed a suspicious LDAP query, indicating reconnaissance activity."
+        ],
+        "start_alert": 20,
+        "end_alert": 24,
+        "start_entities": [
+            7,
+            8,
+            9,
+            13,
+            14
+        ],
+        "end_entities": [
+            11
+        ],
+        "shortest_alert_path": [
+            20,
+            1,
+            24
+        ]
+    },
+    {
+        "context": "During an investigation, we observed a process \"winword.exe\" executing a document macro (rs4_winatp-intro-invoice.docm). Immediately after this suspicious LDAP query was generated, Microsoft Defender recorded that PowerShell dropped and executed a suspicious file on the same machine.",
+        "question": "What is the name of the file that PowerShell dropped and executed on the machine following the LDAP reconnaissance activity?",
+        "answer": "winatp-intro-backdoor.exe",
+        "solution": [
+            "At 2024-07-04 22:35:02.608830+00:00 a suspicious LDAP query was run, performed under the account with Sid `S-1-5-21-1870156660-7534030218-135086563-1193`.",
+            "Seconds later, at 2024-07-04 22:35:03.736539+00:00, PowerShell dropped and executed the suspicious file `winatp-intro-backdoor.exe` on the machine."
+        ],
+        "start_alert": 24,
+        "end_alert": 25,
+        "start_entities": [
+            11,
+            12
+        ],
+        "end_entities": [
+            16
+        ],
+        "shortest_alert_path": [
+            24,
+            5,
+            25
+        ]
+    },
+    {
+        "context": "During an investigation on July 4, 2024, at 22:35 UTC, a host executed a long, base-64-encoded PowerShell command from the file \"powershell.exe\" (process ID 8604), suggesting an attempt to download and run an external payload named \"winatp-intro-backdoor.exe\" via a scheduled task called \"yrei\". This behavior triggered the alert \"Suspicious PowerShell download or encoded command execution\".",
+        "question": "A related alert reported that an uncommon file was created and added to a Run registry key just seconds before the PowerShell activity. What is the IP address associated with that uncommon-file-creation alert?",
+        "answer": "72.5.72.208",
+        "solution": [
+            "A suspicious PowerShell download or encoded command was executed by the account with Sid `S-1-5-21-1870156660-7534030218-135086563-1193`.",
+            "Soon after, an uncommon file was created and added to a Run key, with the activity tied to the IP address `72.5.72.208`."
+        ],
+        "start_alert": 26,
+        "end_alert": 23,
+        "start_entities": [
+            7,
+            8,
+            11,
+            12
+        ],
+        "end_entities": [
+            18
+        ],
+        "shortest_alert_path": [
+            26,
+            5,
+            23
+        ]
+    },
+    {
+        "context": "During the investigation of a security incident, a PowerShell command was executed by a suspicious process under the account 'samuelf' (SID S-1-5-21-1870156660-7534030218-135086563-1193) on host 'vnevado-win10e' (device ID 02b8f519-1123-4228-b32a-ccb78af3449f). Analysts determined that this activity was linked to a specific malicious executable later classified as a backdoor.",
+        "question": "Which executable file was ultimately identified as the backdoor associated with the suspicious PowerShell activity on host 'vnevado-win10e'?",
+        "answer": "winatp-intro-backdoor.exe",
+        "solution": [
+            "At 2024-07-04 22:35:00.698474+00:00, the process (ExtractedFileName: `winatp-intro-backdoor.exe`) executed a suspicious PowerShell command."
+        ],
+        "start_alert": 3,
+        "end_alert": 3,
+        "start_entities": [
+            4,
+            2,
+            6,
+            1,
+            8,
+            5
+        ],
+        "end_entities": [
+            9
+        ],
+        "shortest_alert_path": [
+            3
+        ]
+    },
+    {
+        "context": "During an investigation, we observed that on 2024-07-04 at 22:35:03 UTC, PowerShell dropped and ran a suspicious file named \"winatp-intro-backdoor.exe\" on one of the hosts. This behavior can indicate an attempt by an attacker to execute malicious payloads in memory while avoiding detection. Shortly before this event, a separate alert reported that a suspicious process had executed a PowerShell command, suggesting a possible link between the two activities.",
+        "question": "According to the alert about the suspicious process that executed a PowerShell command, which user account was responsible for running that command?",
+        "answer": "samuelf",
+        "solution": [
+            "Process with ProcessId__CreatedTimeUtc__CommandLine `8604__2024-06-26t12:00:39.2886108z__\"powershell.exe\" -w movedn ...` dropped and ran a suspicious file on the machine.",
+            "The PowerShell command was executed by the account with Name `samuelf`."
+        ],
+        "start_alert": 25,
+        "end_alert": 3,
+        "start_entities": [
+            16
+        ],
+        "end_entities": [
+            4
+        ],
+        "shortest_alert_path": [
+            25,
+            7,
+            3
+        ]
+    },
+    {
+        "context": "During a recent investigation on host \"vnevado-win10e\" (device ID 02b8f519-1123-4228-b32a-ccb78af3449f), we observed that the user account \"samuelf\" (SID S-1-5-21-1870156660-7534030218-135086563-1193) used \"schtasks.exe\" to create an anomalous one-time scheduled task pointing to an executable stored in the user\u2019s OneDrive Desktop folder. This activity is often associated with attempts to gain persistence on a device.",
+        "question": "Shortly before the scheduled task was created, a \"Suspicious PowerShell command line\" alert was raised on the same endpoint. What is the name of the executable that the PowerShell command tried to run?",
+        "answer": "winatp-intro-backdoor.exe",
+        "solution": [
+            "An anomalous scheduled task was created by the account with Sid `S-1-5-21-1870156660-7534030218-135086563-1193`.",
+            "A suspicious PowerShell command line executed a file named `winatp-intro-backdoor.exe`."
+        ],
+        "start_alert": 20,
+        "end_alert": 10,
+        "start_entities": [
+            8,
+            4,
+            13,
+            9,
+            5,
+            2,
+            1,
+            6,
+            14
+        ],
+        "end_entities": [
+            16
+        ],
+        "shortest_alert_path": [
+            20,
+            5,
+            10
+        ]
+    },
+    {
+        "context": "During the investigation you observed a 'Suspicious PowerShell download or encoded command execution' alert. The process `powershell.exe` (PID 8604) was started on 2024-07-04 and used a long, base-64-encoded command that ultimately wrote a file named `winatp-intro-backdoor.exe` to the workstation\u2019s desktop and scheduled it to run via `schtasks`. This PowerShell activity is linked to another alert that reported an 'Anomaly detected in ASEP registry', indicating a potentially malicious command was registered to run at startup.",
+        "question": "According to the 'Anomaly detected in ASEP registry' alert that is connected to the suspicious PowerShell activity, what IP address is associated with this registry modification?",
+        "answer": "72.5.72.208",
+        "solution": [
+            "A PowerShell script was executed to download or run encoded content by the user account with AadUserId `16320fec-8d90-403b-b7fe-78f715d4728d`.",
+            "Shortly afterwards, a process modified an ASEP registry key and referenced the suspicious IP address `72.5.72.208`, indicating a potential persistence mechanism tied to that external host."
+        ],
+        "start_alert": 22,
+        "end_alert": 17,
+        "start_entities": [
+            7,
+            8
+        ],
+        "end_entities": [
+            18
+        ],
+        "shortest_alert_path": [
+            22,
+            6,
+            17
+        ]
+    },
+    {
+        "context": "During an investigation of a suspicious PowerShell activity on 2024-07-04, analysts observed a process (`powershell.exe`, PID 8604) that executed a long, base-64-encoded command. The script rebuilt a payload named `winatp-intro-backdoor.exe`, saved it to the Desktop, registered it with `schtasks`, and modified a Run-type registry location to ensure execution after reboot. Just a fraction of a second later, a second alert was raised: \u201cAn uncommon file was created and added to a Run Key,\u201d indicating possible persistence establishment by the attacker. This follow-up alert is linked to the same activity chain and includes network information about an external system contacted during the event.",
+        "question": "Which external IP address is referenced in the alert that reports the creation of an uncommon file added to a Run Key immediately after the malicious PowerShell activity?",
+        "answer": "72.5.72.208",
+        "solution": [
+            "The account Name `samuelf` executed a suspicious PowerShell command that attempted to download a file or run encoded content.",
+            "The IP Address `72.5.72.208` is associated with the creation of an uncommon file that was added to a Run registry key for persistence."
+        ],
+        "start_alert": 22,
+        "end_alert": 23,
+        "start_entities": [
+            7,
+            8
+        ],
+        "end_entities": [
+            18
+        ],
+        "shortest_alert_path": [
+            22,
+            4,
+            23
+        ]
+    },
+    {
+        "context": "During the investigation we observed that on host \"vnevado-win10e\" (device ID 02b8f519-1123-4228-b32a-ccb78af3449f) a suspicious PowerShell command (PID 8604) was executed that wrote a payload to the user\u2019s Desktop and attempted to register a one-time scheduled task named \"yrei\" for persistence. Seconds later, Defender raised a separate alert titled \"An anomalous scheduled task was created\", indicating that another Windows utility was used to actually create this task.",
+        "question": "According to the \"An anomalous scheduled task was created\" alert, which executable was used to register the scheduled task \"yrei\"?",
+        "answer": "schtasks.exe",
+        "solution": [
+            "Host with AadDeviceId `02b8f519-1123-4228-b32a-ccb78af3449f` executed a suspicious PowerShell command at 2024-07-04T22:35:00.698474Z.",
+            "On the same device, process entity with ProcessId__CreatedTimeUtc__CommandLine value `1348__2024-06-26t12:00:40.0878355z__\"schtasks.exe\" /create /sc once /tn yrei /tr \"c:\\users\\samuelf\\onedrive - (new) alpineskihouse\\desktop\\winatp-intro-backdoor.exe\" /st 11:58 /f` created an anomalous scheduled task, indicating a likely attempt to establish persistence."
+        ],
+        "start_alert": 3,
+        "end_alert": 20,
+        "start_entities": [
+            1,
+            2,
+            5,
+            6,
+            7,
+            8,
+            9
+        ],
+        "end_entities": [
+            13
+        ],
+        "shortest_alert_path": [
+            3,
+            2,
+            20
+        ]
+    },
+    {
+        "context": "During an investigation of a suspicious PowerShell activity (\"powershell.exe\" was launched from the file rs4_winatp-intro-invoice.docm) on 2024-07-04, analysts observed that the script tried to download and run a payload named \"winatp-intro-backdoor.exe\" and even scheduled a task called \"yrei\" for persistence. This behaviour triggered the alert titled \"Suspicious PowerShell download or encoded command execution\". A few seconds earlier, another alert\u2014\"Anomaly detected in ASEP registry\"\u2014was raised, indicating that a process had registered a suspicious command in the Auto-Start Extensibility Point (ASEP) registry to maintain persistence after reboot. That registry-related alert is linked to the same activity chain and references a single external IP address used by the attacker.",
+        "question": "According to the \"Anomaly detected in ASEP registry\" alert linked to this incident, what is the external IP address that was involved?",
+        "answer": "72.5.72.208",
+        "solution": [
+            "A PowerShell command executed by user with AadUserId `16320fec-8d90-403b-b7fe-78f715d4728d` attempted to download a file or run an encoded script.",
+            "Shortly before, an anomaly was detected where a process associated with IP address `72.5.72.208` registered a suspicious command in the ASEP registry, ensuring it persists after reboot."
+        ],
+        "start_alert": 26,
+        "end_alert": 17,
+        "start_entities": [
+            7,
+            8,
+            11,
+            12
+        ],
+        "end_entities": [
+            18
+        ],
+        "shortest_alert_path": [
+            26,
+            6,
+            17
+        ]
+    },
+    {
+        "context": "During our investigation of a suspicious PowerShell command line execution, we noted that it originated from an unidentified device (AadDeviceId withheld). Shortly afterwards, security operator u141 (u141@ash.alpineskihouse.co) manually triggered a Microsoft 365 Defender automated investigation on one of the organization\u2019s Windows endpoints. The automated investigation alert does not specify the device in the start-alert details you are reviewing, but the end-alert record contains the hostname of the machine that was targeted.",
+        "question": "According to the alert that was raised when user u141 manually initiated an automated investigation, what is the hostname of the device on which the investigation was started?",
+        "answer": "vnevado-win10e",
+        "solution": [
+            "A suspicious PowerShell command line was executed on the host whose AadDeviceId is `02b8f519-1123-4228-b32a-ccb78af3449f`.",
+            "Subsequently, an automated investigation was manually initiated on the host with HostName `vnevado-win10e`."
+        ],
+        "start_alert": 10,
+        "end_alert": 0,
+        "start_entities": [
+            8,
+            9,
+            5,
+            7,
+            16,
+            6,
+            15,
+            13,
+            11,
+            4
+        ],
+        "end_entities": [
+            1
+        ],
+        "shortest_alert_path": [
+            10,
+            2,
+            0
+        ]
+    },
+    {
+        "context": "During an investigation, we observed that on host \"vnevado-win10e\" the user account \"samuelf\" ran the Windows Task Scheduler utility (`schtasks.exe`). Two commands were recorded: first a task creation that would run a backdoor executable located in the user\u2019s OneDrive folder, and moments later a task run command executed that scheduled task. This sequence was flagged by Microsoft Defender as \"Suspicious Task Scheduler activity,\" suggesting an attempt to gain persistence by launching malicious code.",
+        "question": "Following the suspicious Task Scheduler activity, security telemetry showed an additional process execution related to this incident. What is the name of the executable that was ultimately started after the scheduled task ran?",
+        "answer": "powershell.exe",
+        "solution": [
+            "A suspicious Task Scheduler activity was detected involving the process whose ExtractedFileName is `powershell.exe`, indicating an attempt to establish persistence."
+        ],
+        "start_alert": 21,
+        "end_alert": 21,
+        "start_entities": [
+            2,
+            4,
+            5,
+            1,
+            14,
+            6,
+            15,
+            13,
+            9
+        ],
+        "end_entities": [
+            8
+        ],
+        "shortest_alert_path": [
+            21
+        ]
+    },
+    {
+        "context": "A process named \"winatp-intro-backdoor.exe\" was added to the RunOnce registry key on host \"vnevado-win10e\" by account \"samuelf\" (SID S-1-5-21-1870156660-7534030218-135086563-1193). The command was executed at 2024-06-26 13:17:18 UTC via the Windows \"reg add\" utility, indicating an attempt to establish persistence after a reboot. Subsequent investigation revealed that, shortly after this persistence mechanism was set, the same endpoint initiated an outbound network connection that is considered suspicious.",
+        "question": "To which external IP address did host \"vnevado-win10e\" connect following the suspicious RunOnce registry modification described above?",
+        "answer": "72.5.72.208",
+        "solution": [
+            "At 2024-07-04 22:35:01.084834+00:00, a process registered a suspicious command or file in the ASEP registry; this activity is associated with the IP address (Address) `72.5.72.208`."
+        ],
+        "start_alert": 17,
+        "end_alert": 17,
+        "start_entities": [
+            5,
+            19,
+            4,
+            1,
+            6,
+            9,
+            2
+        ],
+        "end_entities": [
+            18
+        ],
+        "shortest_alert_path": [
+            17
+        ]
+    },
+    {
+        "context": "During the investigation we identified an anomalous scheduled task created by the process `schtasks.exe`, which was used to schedule the execution of a suspicious backdoor executable. Only a few seconds after this persistence attempt, a new alert indicated that PowerShell was invoked to download external content or run an encoded command, but this activity was launched from a different process (not `schtasks.exe`).",
+        "question": "According to the follow-up alert about the suspicious PowerShell download or encoded command execution, which executable (process file name) was responsible for launching the PowerShell instance?",
+        "answer": "winword.exe",
+        "solution": [
+            "An anomalous scheduled task was created that launches the process (Field: ExtractedFileName, Value: `powershell.exe`).",
+            "Soon after, a suspicious PowerShell download or encoded command was executed by a process (Field: ProcessId__CreatedTimeUtc__CommandLine, Value: `9780__2024-06-26t11:57:20.2959493z__\"winword.exe\" c:\\scripts\\rs4_winatp-intro-invoice.docm`)."
+        ],
+        "start_alert": 20,
+        "end_alert": 26,
+        "start_entities": [
+            13,
+            14
+        ],
+        "end_entities": [
+            11
+        ],
+        "shortest_alert_path": [
+            20,
+            8,
+            26
+        ]
+    },
+    {
+        "context": "During an investigation of a recent security incident, analysts noted that Microsoft Word (winword.exe) executed the macro-enabled document \"rs4_winatp-intro-invoice.docm\" (process ID 9780, UTC time 2024-06-26T11:57:20Z). This activity coincided with a \"Suspicious LDAP query\" alert, suggesting the attacker may have been performing domain reconnaissance. Within the same time window, another alert titled \"An uncommon file was created and added to a Run Key\" was raised, indicating that persistence might have been established on the compromised host.",
+        "question": "According to the alert \"An uncommon file was created and added to a Run Key,\" which IP address is associated with this persistence activity?",
+        "answer": "72.5.72.208",
+        "solution": [
+            "A suspicious LDAP query was executed by an account with Sid `S-1-5-21-1870156660-7534030218-135086563-1193`.",
+            "An uncommon file was created and added to a Run Key, and the activity is associated with the IP address `72.5.72.208`."
+        ],
+        "start_alert": 24,
+        "end_alert": 23,
+        "start_entities": [
+            11,
+            12
+        ],
+        "end_entities": [
+            18
+        ],
+        "shortest_alert_path": [
+            24,
+            5,
+            23
+        ]
+    },
+    {
+        "context": "During an investigation of a persistence-related alert, we observed that the file `winatp-intro-backdoor.exe` was created on a host and registered under the RunOnce registry key via the following command (PID 10208, 2024-06-26T13:17:18Z):\n\nreg  add hkcu\\software\\microsoft\\windows\\currentversion\\runonce /f /v yrei /t reg_expand_sz /d %userprofile%\\desktop\\winatp-intro-backdoor.exe\n\nThis action triggered the alert \u201cAn uncommon file was created and added to a Run Key.\u201d Shortly after, another alert\u2014\u201cSuspicious LDAP query\u201d (indicating possible domain reconnaissance)\u2014was raised from the same machine.",
+        "question": "Which executable was identified as the process responsible for issuing the suspicious LDAP query?",
+        "answer": "winword.exe",
+        "solution": [
+            "The account with AadUserId `16320fec-8d90-403b-b7fe-78f715d4728d` created an uncommon file and added it to a Run registry key, suggesting a persistence attempt.",
+            "The process with ExtractedFileName `winword.exe` executed a suspicious LDAP query, indicating possible reconnaissance activity."
+        ],
+        "start_alert": 23,
+        "end_alert": 24,
+        "start_entities": [
+            9,
+            18,
+            19
+        ],
+        "end_entities": [
+            12
+        ],
+        "shortest_alert_path": [
+            23,
+            6,
+            24
+        ]
+    },
+    {
+        "context": "Following a suspicious PowerShell session in which the account \"samuelf\" ran an encoded command from powershell.exe (originally spawned by winword.exe), a security responder (u141@ash.alpineskihouse.co) manually kicked off an Automated Investigation to inspect the affected workstation for malicious artifacts.",
+        "question": "According to the investigation alert generated at 22:35:00 UTC on 2024-07-04, what is the hostname of the workstation where user u141 initiated the automated investigation?",
+        "answer": "vnevado-win10e",
+        "solution": [
+            "At 2024-07-04 22:35:00.400749+00:00, an automated investigation was manually initiated on host with HostName `vnevado-win10e`.",
+            "A few seconds later, at 2024-07-04 22:35:04.145779+00:00, a suspicious PowerShell download or encoded command was executed on the same device, identified by AadDeviceId `02b8f519-1123-4228-b32a-ccb78af3449f`."
+        ],
+        "start_alert": 26,
+        "end_alert": 0,
+        "start_entities": [
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            11,
+            12
+        ],
+        "end_entities": [
+            1
+        ],
+        "shortest_alert_path": [
+            26,
+            2,
+            0
+        ]
+    },
+    {
+        "context": "During the investigation of a suspicious PowerShell command line executed on host \"vnevado-win10e\" (Device ID 02b8f519-1123-4228-b32a-ccb78af3449f) by user \"samuelf\" (AAD user ID 16320fec-8d90-403b-b7fe-78f715d4728d), several related processes were observed, including \"winword.exe\" launching a macro-enabled document and a scheduled task started with \"schtasks.exe /run /tn yrei\". Analysts now suspect that these activities eventually dropped and executed a dedicated backdoor on the same endpoint.",
+        "question": "What is the exact file name of the executable that was ultimately identified as the backdoor connected to this sequence of events?",
+        "answer": "winatp-intro-backdoor.exe",
+        "solution": [
+            "A suspicious PowerShell command was observed, extracting or executing the file with ExtractedFileName `winatp-intro-backdoor.exe`."
+        ],
+        "start_alert": 10,
+        "end_alert": 10,
+        "start_entities": [
+            8,
+            12,
+            1,
+            6,
+            15,
+            2,
+            11,
+            4,
+            14
+        ],
+        "end_entities": [
+            9
+        ],
+        "shortest_alert_path": [
+            10
+        ]
+    },
+    {
+        "context": "During the investigation, we noted that user account 'samuelf' on host 'vnevado-win10e' launched a heavily obfuscated PowerShell command to download and schedule execution of a back-door binary. This action triggered the alert \u201cSuspicious PowerShell download or encoded command execution.\u201d A second, related alert was raised only a few seconds later, indicating another suspicious execution chain tied to the same incident.",
+        "question": "According to the second alert that followed moments later, which executable opened the malicious document 'rs4_winatp-intro-invoice.docm' under C:\\scripts\\ ?",
+        "answer": "winword.exe",
+        "explanation": "The end alert\u2019s entity shows the command line \"winword.exe c:\\scripts\\rs4_winatp-intro-invoice.docm\", identifying winword.exe as the process responsible for opening the malicious document.",
+        "solution": [
+            "Suspicious PowerShell activity was initiated by the account with field AadUserId = `16320fec-8d90-403b-b7fe-78f715d4728d`.",
+            "That activity resulted in the creation of the process with field ProcessId__CreatedTimeUtc__CommandLine = `9780__2024-06-26t11:57:20.2959493z__\"winword.exe\" c:\\scripts\\rs4_winatp-intro-invoice.docm`, which executed the malicious payload."
+        ],
+        "start_alert": 22,
+        "end_alert": 26,
+        "start_entities": [
+            1,
+            2,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9
+        ],
+        "end_entities": [
+            11
+        ],
+        "shortest_alert_path": [
+            22,
+            6,
+            26
+        ]
+    },
+    {
+        "context": "During the incident, the machine executed a long and obfuscated PowerShell command that wrote a file called \"winatp-intro-backdoor.exe\" to the user\u2019s Desktop and scheduled it to run via the \"yrei\" scheduled task. This behavior was captured in the alert titled \"Suspicious PowerShell command line\", highlighting potential persistence activity initiated through PowerShell and Schtasks.",
+        "question": "Immediately after the above PowerShell activity, an alert named \"An uncommon file was created and added to a Run Key\" was triggered. According to that alert, which IP address is associated with the event?",
+        "answer": "72.5.72.208",
+        "solution": [
+            "Account Sid: S-1-5-21-1870156660-7534030218-135086563-1193 \u2013 The user with this SID ran a suspicious PowerShell command at 2024-07-04 22:35:01 UTC.",
+            "IP Address: 72.5.72.208 \u2013 One second later, activity from this IP created an uncommon file and placed it in a Run registry key, likely establishing persistence."
+        ],
+        "start_alert": 10,
+        "end_alert": 23,
+        "start_entities": [
+            7,
+            8,
+            11,
+            12,
+            13,
+            14,
+            15,
+            16
+        ],
+        "end_entities": [
+            18
+        ],
+        "shortest_alert_path": [
+            10,
+            5,
+            23
+        ]
+    },
+    {
+        "context": "During the investigation of a suspicious persistence mechanism, we observed that the executable \"schtasks.exe\" was used to create and immediately run a scheduled task named \"yrei\", pointing to a backdoor binary. This activity triggered the alert \"Suspicious Task Scheduler activity\" on 2024-07-04 22:35 UTC. Just seconds later, a separate alert flagged that PowerShell was executed in a potentially malicious fashion (download or encoded command execution), indicating that another process had invoked PowerShell for follow-up actions.",
+        "question": "According to the follow-up alert about the malicious PowerShell activity, what is the name of the process that initiated this PowerShell execution?",
+        "answer": "winword.exe",
+        "context_debug": {
+            "start_alert_name": "Suspicious Task Scheduler activity",
+            "start_alert_entities": [
+                "\"schtasks.exe\" /create /sc once /tn yrei /tr \"c:\\users\\samuelf\\onedrive - (new) alpineskihouse\\desktop\\winatp-intro-backdoor.exe\" /st 11:58 /f",
+                "\"schtasks.exe\" /run /tn yrei"
+            ],
+            "end_alert_name": "Suspicious PowerShell download or encoded command execution",
+            "hidden_end_entity": "\"winword.exe\" c:\\scripts\\rs4_winatp-intro-invoice.docm"
+        },
+        "solution": [
+            "Suspicious Task Scheduler activity was performed by an account with Sid `S-1-5-21-1870156660-7534030218-135086563-1193`.",
+            "A suspicious PowerShell download or encoded command was executed by the process (`ProcessId__CreatedTimeUtc__CommandLine`) `9780__2024-06-26t11:57:20.2959493z__\"winword.exe\" c:\\scripts\\rs4_winatp-intro-invoice.docm`."
+        ],
+        "start_alert": 21,
+        "end_alert": 26,
+        "start_entities": [
+            13,
+            14,
+            15
+        ],
+        "end_entities": [
+            11
+        ],
+        "shortest_alert_path": [
+            21,
+            5,
+            26
+        ]
+    },
+    {
+        "context": "An alert reported that an uncommon file named \"winatp-intro-backdoor.exe\" was created on a machine reachable at IP 72.5.72.208, and a command was executed to add this file to the RunOnce registry key using the Windows REG utility (Process ID 10208, time 2024-06-26T13:17:18Z). This behavior suggests an attempt to ensure the malware runs after reboot. Investigators noted that a closely-timed alert indicates the same malware was also configured through Windows Task Scheduler to maintain persistence.",
+        "question": "In the related \"Suspicious Task Scheduler activity\" alert, which Windows command-line utility did the attacker use to create the scheduled task that launches the malicious file?",
+        "answer": "schtasks.exe",
+        "confidence": 0.14,
+        "solution": [
+            "An uncommon file was created and added to a Run Key on host with AadDeviceId `02b8f519-1123-4228-b32a-ccb78af3449f`, establishing persistence.",
+            "Earlier, the Task Scheduler was used by process with ProcessId `1348` at `2024-06-26T12:00:40.0878355Z` running the command line `\"schtasks.exe\" /create /sc once /tn yrei /tr \"c:\\users\\samuelf\\onedrive - (new) alpineskihouse\\desktop\\winatp-intro-backdoor.exe\" /st 11:58 /f`, indicating an attempt to schedule the malicious backdoor."
+        ],
+        "start_alert": 23,
+        "end_alert": 21,
+        "start_entities": [
+            18,
+            19
+        ],
+        "end_entities": [
+            13
+        ],
+        "shortest_alert_path": [
+            23,
+            2,
+            21
+        ]
+    },
+    {
+        "context": "A security alert flagged host \"vnevado-win10e\" after the user account \"samuelf\" ran a potentially dangerous PowerShell command. The alert (\"Suspicious process executed PowerShell command\") warns that attackers often leverage PowerShell to execute payloads in-memory and avoid leaving traces on disk.",
+        "question": "In the follow-up alert titled \"Suspicious PowerShell command line\" that occurred moments later, which executable file name was associated with the activity?",
+        "answer": "winatp-intro-backdoor.exe",
+        "solution": [
+            "A suspicious PowerShell command was executed by the account with Name = `samuelf`.",
+            "That PowerShell activity launched the file with Name = `winatp-intro-backdoor.exe`, indicating possible backdoor installation."
+        ],
+        "start_alert": 3,
+        "end_alert": 10,
+        "start_entities": [
+            1,
+            2,
+            4,
+            5,
+            6,
+            8,
+            9
+        ],
+        "end_entities": [
+            16
+        ],
+        "shortest_alert_path": [
+            3,
+            4,
+            10
+        ]
+    },
+    {
+        "context": "During the investigation you observed a process starting Task Scheduler with the command line \"schtasks.exe /run /tn yrei\" (Process ID 1616, created 2024-06-26T12:00:40Z). This action triggered the alert \"Suspicious Task Scheduler activity\" indicating a potential attempt to establish persistence. Pivoting from that alert revealed another alert titled \"An anomalous scheduled task was created,\" suggesting a user account was responsible for creating the suspicious task.",
+        "question": "According to the alert that reports the creation of the anomalous scheduled task, what is the username of the account that created the task?",
+        "answer": "samuelf",
+        "solution": [
+            "A process with ExtractedFileName `winatp-intro-backdoor.exe` was used through Task Scheduler, suggesting attempted persistence.",
+            "Subsequently, an anomalous scheduled task was created by the account with Name `samuelf`, indicating possible attacker-controlled persistence."
+        ],
+        "start_alert": 21,
+        "end_alert": 20,
+        "start_entities": [
+            15
+        ],
+        "end_entities": [
+            4
+        ],
+        "shortest_alert_path": [
+            21,
+            9,
+            20
+        ]
+    },
+    {
+        "context": "On July 4 2024 at 22:35 UTC, an anomalous scheduled task was created on a host via the process \"schtasks.exe\", suggesting that an attacker might be trying to gain persistence. Just a few seconds later in the same incident, a follow-up alert indicated that PowerShell deposited and executed a potentially malicious file on the system.",
+        "question": "According to the follow-up alert that reported PowerShell dropping a suspicious executable, what is the exact name of the file that was placed on the machine?",
+        "answer": "winatp-intro-backdoor.exe",
+        "solution": [
+            "Account Name `samuelf` created an anomalous scheduled task, suggesting the attacker established persistence.",
+            "PowerShell subsequently dropped and executed the suspicious file Name `winatp-intro-backdoor.exe`, indicating malicious code execution on the host."
+        ],
+        "start_alert": 20,
+        "end_alert": 25,
+        "start_entities": [
+            14
+        ],
+        "end_entities": [
+            16
+        ],
+        "shortest_alert_path": [
+            20,
+            4,
+            25
+        ]
+    },
+    {
+        "context": "During the investigation we noted that account 'samuelf' executed a heavily obfuscated PowerShell command which created a Task Scheduler job named 'yrei' to launch the file 'winatp-intro-backdoor.exe'. This suspicious persistence activity prompted analyst u141 (u141@ash.alpineskihouse.co) to manually start an Automated Investigation on the affected workstation.",
+        "question": "On which host did analyst u141 manually initiate the Automated Investigation?",
+        "answer": "vnevado-win10e",
+        "confidence": 0.21,
+        "solution": [
+            "At 2024-07-04 22:35:00.400749+00:00, an automated investigation was manually initiated on host with HostName `vnevado-win10e`.",
+            "At 2024-07-04 22:35:01.761898+00:00, suspicious Task Scheduler activity was detected on the same host with HostName `vnevado-win10e`."
+        ],
+        "start_alert": 21,
+        "end_alert": 0,
+        "start_entities": [
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            13,
+            14,
+            15
+        ],
+        "end_entities": [
+            1
+        ],
+        "shortest_alert_path": [
+            21,
+            1,
+            0
+        ]
+    },
+    {
+        "context": "Microsoft security monitoring flagged that the process \"winword.exe\" (PID 9780) launched the document \"rs4_winatp-intro-invoice.docm\" on 2024-07-04 22:35:04 UTC and then invoked PowerShell to download or run an encoded command. Because attackers often use such techniques to execute malicious payloads in memory, the incident is being investigated. A related alert fired only a few seconds earlier states that a suspicious process executed a PowerShell command, and analysts need to determine which user account (identified by its SID) was responsible for that execution.",
+        "question": "According to the alert titled \"Suspicious process executed PowerShell command\" raised at 2024-07-04 22:35:00 UTC, what is the Security Identifier (SID) of the account that ran the PowerShell command?",
+        "answer": "S-1-5-21-1870156660-7534030218-135086563-1193",
+        "solution": [
+            "At 2024-07-04 22:35:00.698474+00:00, a suspicious process executed a PowerShell command under the user account with Sid `S-1-5-21-1870156660-7534030218-135086563-1193`.",
+            "A few seconds later, at 2024-07-04 22:35:04.145779+00:00, the same user account with Sid `S-1-5-21-1870156660-7534030218-135086563-1193` executed PowerShell to download a file or run an encoded command."
+        ],
+        "start_alert": 26,
+        "end_alert": 3,
+        "start_entities": [
+            11,
+            12
+        ],
+        "end_entities": [
+            5
+        ],
+        "shortest_alert_path": [
+            26,
+            5,
+            3
+        ]
+    },
+    {
+        "context": "During the investigation, we observed that the user account \"samuelf\" (SID: S-1-5-21-1870156660-7534030218-135086563-1193) on host \"vnevado-win10e\" launched the file \"winatp-intro-backdoor.exe\", which in turn triggered the alert \"Suspicious PowerShell download or encoded command execution\". This indicates that the executable spawned a PowerShell process to download external content or run an encoded command, a common technique used by attackers to execute malicious payloads in memory.",
+        "question": "According to the related alert, what is the name of the executable that was ultimately invoked to run the PowerShell commands?",
+        "answer": "powershell.exe",
+        "solution": [
+            "A process with ExtractedFileName `powershell.exe` executed a suspicious PowerShell download or encoded command."
+        ],
+        "start_alert": 22,
+        "end_alert": 22,
+        "start_entities": [
+            5,
+            6,
+            4,
+            9,
+            1,
+            2
+        ],
+        "end_entities": [
+            8
+        ],
+        "shortest_alert_path": [
+            22
+        ]
+    },
+    {
+        "context": "During the investigation you found that on 2024-07-04 at 22:35:02 UTC a system communicating with the external IP address 72.5.72.208 created an uncommon file and registered it in a Windows Run registry key \u2013 a typical persistence technique. One second earlier, the same endpoint triggered a \u201cSuspicious PowerShell command line\u201d alert, indicating that PowerShell had likely been abused to fetch or execute a payload in-memory.",
+        "question": "According to the \u201cSuspicious PowerShell command line\u201d alert raised at 22:35:01 UTC, what is the name of the file that was involved in this activity?",
+        "answer": "winatp-intro-backdoor.exe",
+        "solution": [
+            "Alert shows an uncommon file was created and added to a Run Key on the host with HostName `vnevado-win10e`.",
+            "Another alert reveals a suspicious PowerShell command line that referenced the file with Name `winatp-intro-backdoor.exe`, indicating the malicious payload in use."
+        ],
+        "start_alert": 23,
+        "end_alert": 10,
+        "start_entities": [
+            18
+        ],
+        "end_entities": [
+            16
+        ],
+        "shortest_alert_path": [
+            23,
+            1,
+            10
+        ]
+    },
+    {
+        "context": "During an investigation into suspicious Task Scheduler abuse, analysts observed a PowerShell script that created and immediately triggered a one-time task named \u201cyrei.\u201d The script wrote a file called \"winatp-intro-backdoor.exe\" to a user\u2019s Desktop and used schtasks.exe to schedule and run it. This activity was flagged in the alert titled \u201cSuspicious Task Scheduler activity\u201d raised on 2024-07-04 at 22:35 UTC. A second, related alert fired almost simultaneously, indicating that a process had inserted a malicious command into an Auto-Start Extension Point (ASEP) registry key to ensure persistence after reboot.",
+        "question": "According to the related \u201cAnomaly detected in ASEP registry\u201d alert that followed the Task Scheduler abuse, what IP address was associated with the suspicious registry entry?",
+        "answer": "72.5.72.208",
+        "solution": [
+            "Suspicious Task Scheduler activity was executed by the account (Name = 'samuelf'), indicating an attempt to create or modify a scheduled task for persistence.",
+            "An anomaly was detected in the ASEP registry originating from the IP (Address = '72.5.72.208'), suggesting that a malicious command was planted to execute after a system reboot."
+        ],
+        "start_alert": 21,
+        "end_alert": 17,
+        "start_entities": [
+            7,
+            8,
+            13,
+            14,
+            15
+        ],
+        "end_entities": [
+            18
+        ],
+        "shortest_alert_path": [
+            21,
+            4,
+            17
+        ]
+    },
+    {
+        "context": "An automated investigation was manually initiated on host vnevado-win10e (AadDeviceId 02b8f519-1123-4228-b32a-ccb78af3449f) by user u141 (u141@ash.alpineskihouse.co). Just seconds later, the same device generated a new alert titled \"Suspicious PowerShell download or encoded command execution,\" indicating that PowerShell was used to download a file or run an encoded command\u2014behavior commonly associated with attacker activity.",
+        "question": "According to the \"Suspicious PowerShell download or encoded command execution\" alert that occurred moments after the manual investigation began, which user account was associated with the suspicious PowerShell activity on host vnevado-win10e?",
+        "answer": "samuelf",
+        "solution": [
+            "An automated investigation was manually started on the host with AadDeviceId `02b8f519-1123-4228-b32a-ccb78af3449f`.",
+            "Soon after, the account with Name `samuelf` executed a suspicious PowerShell download or encoded command."
+        ],
+        "start_alert": 0,
+        "end_alert": 22,
+        "start_entities": [
+            1,
+            2
+        ],
+        "end_entities": [
+            4
+        ],
+        "shortest_alert_path": [
+            0,
+            2,
+            22
+        ]
+    },
+    {
+        "context": "On 2024-07-04 at 22:35:02 UTC, the host vnevado-win10e (device ID 02b8f519-1123-4228-b32a-ccb78af3449f) generated an alert: \u201cAn uncommon file was created and added to a Run Key.\u201d The process winatp-intro-backdoor.exe (PID 10208) executed a command that added itself to the HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\RunOnce registry path, ensuring persistence after reboot. This action was performed under an account identified only by SID S-1-5-21-1870156660-7534030218-135086563-1193. In a closely-timed related alert, security telemetry flagged an \u201cAnomaly detected in ASEP registry,\u201d indicating another suspicious autorun entry on the same machine.",
+        "question": "According to the \"Anomaly detected in ASEP registry\" alert that occurred at 22:35:01 UTC, which user account name was responsible for registering the suspicious command or file?",
+        "answer": "samuelf",
+        "solution": [
+            "An anomaly was detected in the ASEP registry by the account Name `samuelf`.",
+            "Shortly after, an uncommon file was created and added to a Run Key on the host HostName `vnevado-win10e`."
+        ],
+        "start_alert": 23,
+        "end_alert": 17,
+        "start_entities": [
+            1,
+            2,
+            5,
+            6,
+            9,
+            18,
+            19
+        ],
+        "end_entities": [
+            4
+        ],
+        "shortest_alert_path": [
+            23,
+            1,
+            17
+        ]
+    },
+    {
+        "context": "While investigating a \"Suspicious Task Scheduler activity\" on host \"vnevado-win10e\", security analysts noted that the user account \"samuelf\" leveraged \"powershell.exe\" together with \"schtasks.exe\" to create and immediately run a task named \"yrei\". The PowerShell script, launched via an encoded command, reconstructs a binary from Base64, writes it to the user\u2019s Desktop, and schedules the task to execute that binary. A subsequent alert titled \"Suspicious PowerShell command line\" was raised for the same timeframe and machine, indicating the drop-and-execute behavior of this payload.",
+        "question": "What is the name of the executable that the suspicious PowerShell script drops to disk and schedules for execution, as identified in the 'Suspicious PowerShell command line' alert?",
+        "answer": "winatp-intro-backdoor.exe",
+        "solution": [
+            "Suspicious Task Scheduler activity was initiated by account Name `samuelf`.",
+            "A suspicious PowerShell command line executed the file Name `winatp-intro-backdoor.exe`."
+        ],
+        "start_alert": 21,
+        "end_alert": 10,
+        "start_entities": [
+            1,
+            13,
+            14,
+            15,
+            4,
+            2,
+            8,
+            5,
+            7
+        ],
+        "end_entities": [
+            16
+        ],
+        "shortest_alert_path": [
+            21,
+            4,
+            10
+        ]
+    },
+    {
+        "context": "During an investigation on July 4 2024, we observed that a PowerShell process (PID 8604) executed a long, obfuscated command to drop a file named \"winatp-intro-backdoor.exe\" onto an endpoint\u2019s desktop and schedule it for execution via the task \u2018yrei\u2019. This behaviour triggered the alert titled \u201cPowershell dropped a suspicious file on the machine\u201d. Just seconds earlier, the same host generated another alert, \u201cAn uncommon file was created and added to a Run Key\u201d, suggesting that a newly created file was registered for persistence in the Registry\u2014an action often linked to adversary attempts to maintain access after reboot.",
+        "question": "According to the alert stating that an uncommon file was created and added to a Run Key, what IP address is associated with this activity?",
+        "answer": "72.5.72.208",
+        "solution": [
+            "PowerShell dropped and executed a suspicious file on the host with HostName `vnevado-win10e`.",
+            "An uncommon file was created and added to a Run registry key from the source IP Address `72.5.72.208`."
+        ],
+        "start_alert": 25,
+        "end_alert": 23,
+        "start_entities": [
+            7,
+            8,
+            16
+        ],
+        "end_entities": [
+            18
+        ],
+        "shortest_alert_path": [
+            25,
+            1,
+            23
+        ]
+    },
+    {
+        "context": "User u141 (u141@ash.alpineskihouse.co) manually kicked off an automated investigation on a Windows 10 endpoint identified by Azure AD device ID 02b8f519-1123-4228-b32a-ccb78af3449f. The investigation is reviewing artifacts on that device for potential remediation.",
+        "question": "What is the short host name of the endpoint (as recorded in the investigation) associated with Azure AD device ID 02b8f519-1123-4228-b32a-ccb78af3449f?",
+        "answer": "vnevado-win10e",
+        "note": "The description of the start alert originally included the full FQDN (which contained the answer). That portion has been excluded from the context to avoid leaking the answer.",
+        "solution": [
+            "User `u141` manually initiated an automated investigation on the host (HostName: `vnevado-win10e`)."
+        ],
+        "start_alert": 0,
+        "end_alert": 0,
+        "start_entities": [
+            2
+        ],
+        "end_entities": [
+            1
+        ],
+        "shortest_alert_path": [
+            0
+        ]
+    },
+    {
+        "context": "During an investigation, an alert was generated at 22:35:02 UTC on 2024-07-04 indicating that an uncommon file had been created on a host associated with the IP address 72.5.72.208 and then placed in a registry Run key\u2014an activity often linked to persistence techniques. Moments later, a second alert reported that PowerShell had dropped and executed a potentially malicious file on the same machine.",
+        "question": "According to the follow-up alert stating that PowerShell dropped and executed a suspicious file on the affected machine, what is the exact name of that file?",
+        "answer": "winatp-intro-backdoor.exe",
+        "solution": [
+            "Account Name=samuelf created an uncommon file and added it to a Run registry key, indicating an attempt to persist after reboot.",
+            "File Name=winatp-intro-backdoor.exe was dropped and executed by PowerShell, confirming the presence of suspicious malware on the system."
+        ],
+        "start_alert": 23,
+        "end_alert": 25,
+        "start_entities": [
+            18
+        ],
+        "end_entities": [
+            16
+        ],
+        "shortest_alert_path": [
+            23,
+            4,
+            25
+        ]
+    },
+    {
+        "context": "During the investigation, we observed that the executable \"schtasks.exe\" was used to create an anomalous scheduled task on one of the devices\u2014an activity often associated with attackers attempting to gain persistence. Pivoting from this event, telemetry shows that only seconds earlier a related alert was triggered indicating a suspicious process had run a PowerShell command on the same host. We need to identify the user behind that PowerShell activity.",
+        "question": "According to the alert that flagged the suspicious PowerShell command execution, which user account triggered the command?",
+        "answer": "samuelf",
+        "solution": [
+            "At 2024-07-04T22:35:01.260626Z, an anomalous scheduled task was created under account Sid `S-1-5-21-1870156660-7534030218-135086563-1193`, indicating a possible attempt to gain persistence.",
+            "One second earlier, at 2024-07-04T22:35:00.698474Z, the account Name `samuelf` executed a suspicious PowerShell command, showing potential malicious activity and linking the user to the persistence mechanism."
+        ],
+        "start_alert": 20,
+        "end_alert": 3,
+        "start_entities": [
+            14
+        ],
+        "end_entities": [
+            4
+        ],
+        "shortest_alert_path": [
+            20,
+            5,
+            3
+        ]
+    },
+    {
+        "context": "On 2024-07-04 an alert flagged a suspicious LDAP query that appeared to originate from the user account \"samuelf\" after opening a macro-enabled Word document (winword.exe). Moments later, analyst u141 manually launched a Microsoft 365 automated investigation on the same workstation, identified in the alert text as vnevado-win10e.vnevado.alpineskihouse.co, to collect and remediate any threat artifacts discovered.",
+        "question": "According to the alert that recorded the manual launch of the automated investigation, what is the Azure AD device ID (AadDeviceId) of the host vnevado-win10e.vnevado.alpineskihouse.co?",
+        "answer": "02b8f519-1123-4228-b32a-ccb78af3449f",
+        "solution": [
+            "An automated investigation was manually initiated on host with AadDeviceId `02b8f519-1123-4228-b32a-ccb78af3449f`.",
+            "Shortly after, a suspicious LDAP query was executed on the same host with AadDeviceId `02b8f519-1123-4228-b32a-ccb78af3449f`, indicating potential reconnaissance activity."
+        ],
+        "start_alert": 24,
+        "end_alert": 0,
+        "start_entities": [
+            4,
+            5,
+            6,
+            11,
+            12
+        ],
+        "end_entities": [
+            2
+        ],
+        "shortest_alert_path": [
+            24,
+            2,
+            0
+        ]
+    },
+    {
+        "context": "During an investigation, we observed that the host executed a suspicious PowerShell command line shortly after an Office document (winword.exe) spawned a series of scheduled-task commands (schtasks.exe) designed to run a file named \"winatp-intro-backdoor.exe.\" This activity triggered the alert titled \"Suspicious PowerShell command line\" on 2024-07-04 at 22:35 UTC, suggesting that PowerShell may have been abused to run additional payloads or collect system information.",
+        "question": "A follow-up alert, \"Suspicious PowerShell download or encoded command execution,\" was raised one second later. What is the Security Identifier (SID) of the account that ran this potentially malicious PowerShell activity?",
+        "answer": "S-1-5-21-1870156660-7534030218-135086563-1193",
+        "solution": [
+            "A suspicious PowerShell command line spawned a process with ExtractedFileName `winatp-intro-backdoor.exe`.",
+            "The suspicious PowerShell download or encoded command execution was performed by the account with Sid `S-1-5-21-1870156660-7534030218-135086563-1193`."
+        ],
+        "start_alert": 10,
+        "end_alert": 22,
+        "start_entities": [
+            11,
+            12,
+            13,
+            14,
+            15,
+            16
+        ],
+        "end_entities": [
+            5
+        ],
+        "shortest_alert_path": [
+            10,
+            9,
+            22
+        ]
+    },
+    {
+        "context": "During the investigation of a security incident on host \"vnevado-win10e\" under user account \"samuelf\", we observed a suspicious PowerShell command execution (Process ID 8604) that attempted to create and run a back-door executable via a scheduled task. This activity was flagged by the alert titled \"Suspicious process executed PowerShell command\" on 2024-07-04 22:35 UTC. A follow-up alert, generated only a few seconds later, indicates that another process leveraged PowerShell to download a file or execute an encoded script, suggesting a potential attempt to bring additional malicious payloads onto the device.",
+        "question": "According to the follow-up alert (\"Suspicious PowerShell download or encoded command execution\" at 22:35:04 UTC), which executable was the parent process that invoked PowerShell?",
+        "answer": "winword.exe",
+        "solution": [
+            "A suspicious PowerShell command was executed by the process with ExtractedFileName `powershell.exe`.",
+            "A suspicious PowerShell download or encoded command was observed from a process with ProcessId `9780`, CreatedTimeUtc `2024-06-26t11:57:20.2959493z`, and CommandLine `\"winword.exe\" c:\\scripts\\rs4_winatp-intro-invoice.docm`."
+        ],
+        "start_alert": 3,
+        "end_alert": 26,
+        "start_entities": [
+            1,
+            2,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9
+        ],
+        "end_entities": [
+            11
+        ],
+        "shortest_alert_path": [
+            3,
+            8,
+            26
+        ]
+    },
+    {
+        "context": "During the investigation of a suspicious PowerShell command execution linked to the process \"winword.exe\" that launched a macro-enabled document, analysts noted that the same machine soon executed a command via \"schtasks.exe\" to run a task named \"yrei\"\u2014a known technique for gaining persistence. This behavior was captured in the alert titled \"Suspicious PowerShell command line\" on 2024-07-04. Minutes later, another alert reported that an anomalous scheduled task had been created on the device, suggesting an attacker might be attempting to maintain long-term access.",
+        "question": "According to the alert about the anomalous scheduled task creation, which user account was responsible for creating that task?",
+        "answer": "samuelf",
+        "solution": [
+            "Suspicious PowerShell activity was detected on host HostName=`vnevado-win10e`.",
+            "An anomalous scheduled task was subsequently created by account Name=`samuelf`."
+        ],
+        "start_alert": 10,
+        "end_alert": 20,
+        "start_entities": [
+            11,
+            12,
+            15,
+            16
+        ],
+        "end_entities": [
+            4
+        ],
+        "shortest_alert_path": [
+            10,
+            1,
+            20
+        ]
+    },
+    {
+        "context": "On 2024-07-04 at 22:35 UTC, user u141 (u141@ash.alpineskihouse.co) manually triggered a Microsoft Defender Automated Investigation on the workstation vnevado-win10e.vnevado.alpineskihouse.co (device ID 02b8f519-1123-4228-b32a-ccb78af3449f). Just seconds after this action, another security alert reported that an uncommon file had been created and added to a Windows Run registry key on the same machine\u2014behaviour often associated with persistence techniques used by attackers.",
+        "question": "Which user account was identified in the alert about the uncommon file being added to a Run registry key on host vnevado-win10e?",
+        "answer": "samuelf",
+        "solution": [
+            "An automated investigation was manually initiated on host `HostName: vnevado-win10e`.",
+            "During the investigation, an uncommon file was created and added to a Run registry key by the account `Name: samuelf`."
+        ],
+        "start_alert": 0,
+        "end_alert": 23,
+        "start_entities": [
+            1,
+            2
+        ],
+        "end_entities": [
+            4
+        ],
+        "shortest_alert_path": [
+            0,
+            1,
+            23
+        ]
+    },
+    {
+        "context": "During the investigation of a suspicious PowerShell execution observed on 2024-07-04 at 22:35:01 UTC, a script created and scheduled a file called \"winatp-intro-backdoor.exe\" via schtasks on the same host. This early indicator suggests an attacker may have been staging persistence. Immediately after this PowerShell activity, another alert was raised for a \"Suspicious LDAP query,\" which is commonly used by attackers for domain reconnaissance. The security team needs to tie these two alerts together to understand which user account performed the LDAP query.",
+        "question": "What is the Security Identifier (SID) of the account associated with the \"Suspicious LDAP query\" alert that occurred right after the malicious PowerShell activity?",
+        "answer": "S-1-5-21-1870156660-7534030218-135086563-1193",
+        "solution": [
+            "Account Name `samuelf` executed a suspicious PowerShell command on 2024-07-04 22:35:01 UTC, suggesting possible in-memory payload execution or system reconnaissance.",
+            "Account SID `S-1-5-21-1870156660-7534030218-135086563-1193` carried out a suspicious LDAP query one second later (2024-07-04 22:35:02 UTC), indicating potential directory reconnaissance activity."
+        ],
+        "start_alert": 10,
+        "end_alert": 24,
+        "start_entities": [
+            7,
+            8,
+            9,
+            13,
+            14,
+            15,
+            16
+        ],
+        "end_entities": [
+            5
+        ],
+        "shortest_alert_path": [
+            10,
+            4,
+            24
+        ]
+    },
+    {
+        "context": "During the investigation we saw that on host \"vnevado-win10e\" (AAD Device ID 02b8f519-1123-4228-b32a-ccb78af3449f) the user account \"samuelf\" launched a lengthy, base-64-encoded PowerShell command with process ID 8604. Microsoft Defender raised the alert \"Suspicious PowerShell download or encoded command execution\" for this activity.",
+        "question": "According to the related \"Suspicious process executed PowerShell command\" alert that fired at 2024-07-04 22:35:00 UTC, what is the Windows security identifier (SID) of the account that executed the PowerShell command?",
+        "answer": "S-1-5-21-1870156660-7534030218-135086563-1193",
+        "solution": [
+            "Step 1 \u2013 account (Field: Sid, Value: `S-1-5-21-1870156660-7534030218-135086563-1193`) executed a suspicious PowerShell command (alert: \u201cSuspicious process executed PowerShell command\u201d, Time: 2024-07-04 22:35:00.698474 +00:00).",
+            "Step 2 \u2013 the same account (Field: Sid, Value: `S-1-5-21-1870156660-7534030218-135086563-1193`) then launched PowerShell to download a file or run an encoded script (alert: \u201cSuspicious PowerShell download or encoded command execution\u201d, Time: 2024-07-04 22:35:01.807662 +00:00)."
+        ],
+        "start_alert": 22,
+        "end_alert": 3,
+        "start_entities": [
+            1,
+            2,
+            4,
+            6,
+            7,
+            8,
+            9
+        ],
+        "end_entities": [
+            5
+        ],
+        "shortest_alert_path": [
+            22,
+            5,
+            3
+        ]
+    },
+    {
+        "context": "A manual automated investigation was initiated by user u141 on the device vnevado-win10e.vnevado.alpineskihouse.co. Shortly after the investigation began, another alert in the same incident signaled a \u201cSuspicious PowerShell command line,\u201d indicating potentially malicious PowerShell usage on a connected machine. PowerShell is often abused by attackers to execute payloads in-memory, download external code, or carry out lateral movement while avoiding disk writes and traditional defenses.",
+        "question": "According to the \u201cSuspicious PowerShell command line\u201d alert, what is the Azure AD user ID (AadUserId) of the account associated with that activity?",
+        "answer": "16320fec-8d90-403b-b7fe-78f715d4728d",
+        "solution": [
+            "Automated investigation was manually initiated on host with HostName `vnevado-win10e`.",
+            "During the investigation, a suspicious PowerShell command was executed by the account with AadUserId `16320fec-8d90-403b-b7fe-78f715d4728d`."
+        ],
+        "start_alert": 0,
+        "end_alert": 10,
+        "start_entities": [
+            1,
+            2
+        ],
+        "end_entities": [
+            6
+        ],
+        "shortest_alert_path": [
+            0,
+            1,
+            10
+        ]
+    },
+    {
+        "context": "During the investigation we observed a process (`powershell.exe`, PID 8604) on 2024-07-04 executing an unusually long, base-64\u2013encoded PowerShell command that created and scheduled a file named \u201cwinatp-intro-backdoor.exe\u201d. This activity triggered the alert \u201cSuspicious PowerShell download or encoded command execution\u201d. The same user account soon performed a \u201cSuspicious LDAP query\u201d against the domain controller two seconds earlier (2024-07-04 22:35:02 UTC), suggesting possible reconnaissance. You have been asked to correlate the two alerts and identify the user involved in the LDAP activity.",
+        "question": "According to the \u201cSuspicious LDAP query\u201d alert raised at 22:35:02 UTC on 2024-07-04, what is the Azure AD user ID (AadUserId) of the account that executed the LDAP query?",
+        "answer": "16320fec-8d90-403b-b7fe-78f715d4728d",
+        "solution": [
+            "An account with SID `S-1-5-21-1870156660-7534030218-135086563-1193` executed PowerShell to download a file or run an encoded command on 2024-07-04 22:35:04.145779+00:00.",
+            "Shortly before, an LDAP reconnaissance query was performed by the Azure AD user `16320fec-8d90-403b-b7fe-78f715d4728d` at 2024-07-04 22:35:02.608830+00:00."
+        ],
+        "start_alert": 26,
+        "end_alert": 24,
+        "start_entities": [
+            7,
+            8,
+            9
+        ],
+        "end_entities": [
+            6
+        ],
+        "shortest_alert_path": [
+            26,
+            5,
+            24
+        ]
+    },
+    {
+        "context": "During the investigation of a security incident on July 4, 2024, analysts observed that a PowerShell process (\"powershell.exe\") executed a lengthy Base64-encoded command which created and scheduled the file \"winatp-intro-backdoor.exe\" to run after a short delay. This activity triggered the alert titled \"Powershell dropped a suspicious file on the machine\". Shortly before this event, another alert was raised \u2013 \"Anomaly detected in ASEP registry\" \u2013 indicating that a process had registered a suspicious command or file to run automatically after reboot, a common persistence technique.",
+        "question": "The \"Anomaly detected in ASEP registry\" alert references a specific external IP address related to the suspicious registration activity. What is that IP address?",
+        "answer": "72.5.72.208",
+        "solution": [
+            "At 2024-07-04 22:35:01 UTC an anomaly was detected in the ASEP registry, and the process responsible was communicating with IP address (Field: Address) `72.5.72.208`.",
+            "Two seconds later, at 2024-07-04 22:35:03 UTC, PowerShell dropped and executed a suspicious file under the Azure AD user account (Field: AadUserId) `16320fec-8d90-403b-b7fe-78f715d4728d`."
+        ],
+        "start_alert": 25,
+        "end_alert": 17,
+        "start_entities": [
+            7,
+            8,
+            16
+        ],
+        "end_entities": [
+            18
+        ],
+        "shortest_alert_path": [
+            25,
+            6,
+            17
+        ]
+    },
+    {
+        "context": "During an investigation on July 4th, a suspicious PowerShell command line was observed. The activity originated after the document rs4_winatp-intro-invoice.docm was opened with winword.exe (PID 9780), and shortly afterwards schtasks.exe (PID 1616) was spawned to run a task named \"yrei\". This chain of events triggered the alert \"Suspicious PowerShell command line\", indicating possible use of PowerShell for post-exploitation actions.",
+        "question": "According to the follow-up alert \"Powershell dropped a suspicious file on the machine\", which user account carried out the PowerShell activity?",
+        "answer": "samuelf",
+        "note": "If the trainee names the account exactly as shown (case-insensitive) the answer is correct.",
+        "solution": [
+            "A suspicious PowerShell command line was observed, involving the process with ExtractedFileName `powershell.exe`.",
+            "A few seconds later, PowerShell dropped and executed a suspicious file on the machine under the account Name `samuelf`."
+        ],
+        "start_alert": 10,
+        "end_alert": 25,
+        "start_entities": [
+            11,
+            12,
+            14,
+            15
+        ],
+        "end_entities": [
+            4
+        ],
+        "shortest_alert_path": [
+            10,
+            8,
+            25
+        ]
+    },
+    {
+        "context": "During an investigation into a suspicious persistence mechanism, security telemetry showed that the process \"schtasks.exe\" was used on an endpoint to create and immediately run a scheduled task named \"yrei\". The task was configured to launch the binary located at:\n   c:\\users\\samuelf\\onedrive - (new) alpineskihouse\\desktop\\winatp-intro-backdoor.exe\nThis activity triggered the alert \"Suspicious Task Scheduler activity\" on 2024-07-04 at 22:35 UTC, indicating a potential attempt to ensure the malware is executed automatically. Shortly after this scheduler event, a second alert titled \"Suspicious PowerShell download or encoded command execution\" was raised on the same machine, implying the attacker might have leveraged PowerShell to fetch or run additional payloads.",
+        "question": "Which security identifier (SID) is associated with the account that ran the suspicious PowerShell command detected immediately after the Task Scheduler activity?",
+        "answer": "S-1-5-21-1870156660-7534030218-135086563-1193",
+        "solution": [
+            "A suspicious Task Scheduler activity was detected on host `vnevado-win10e` (HostName = vnevado-win10e).",
+            "A process subsequently executed PowerShell to download a file or run an encoded command under the user account with SID `S-1-5-21-1870156660-7534030218-135086563-1193` (Sid = S-1-5-21-1870156660-7534030218-135086563-1193)."
+        ],
+        "start_alert": 21,
+        "end_alert": 22,
+        "start_entities": [
+            13,
+            14,
+            15
+        ],
+        "end_entities": [
+            5
+        ],
+        "shortest_alert_path": [
+            21,
+            1,
+            22
+        ]
+    },
+    {
+        "context": "During an investigation into a recent threat, analysts observed a suspicious PowerShell command (PID 8604) executed via \"powershell.exe\" that wrote a payload named \"winatp-intro-backdoor.exe\" to the user\u2019s Desktop and created a one-time scheduled task called \"yrei\" to run it. This activity triggered the alert \u201cSuspicious PowerShell command line\u201d on 2024-07-04 22:35:01 UTC. Only moments later, a second alert titled \u201cAnomaly detected in ASEP registry\u201d was raised, indicating that a process had registered a potentially malicious command for automatic execution on reboot\u2014suggesting an attempt at persistence by contacting an external network location.",
+        "question": "According to the \u201cAnomaly detected in ASEP registry\u201d alert that followed the suspicious PowerShell activity, what is the external IP address associated with the suspicious registry entry?",
+        "answer": "72.5.72.208",
+        "solution": [
+            "Alert 1 shows a suspicious PowerShell command executed by account.Sid = `S-1-5-21-1870156660-7534030218-135086563-1193`.",
+            "Alert 2 indicates an anomaly in the ASEP registry tied to ip.Address = `72.5.72.208`, suggesting an attempt to establish persistence."
+        ],
+        "start_alert": 10,
+        "end_alert": 17,
+        "start_entities": [
+            7,
+            8,
+            11,
+            12,
+            13,
+            14,
+            15,
+            16
+        ],
+        "end_entities": [
+            18
+        ],
+        "shortest_alert_path": [
+            10,
+            5,
+            17
+        ]
+    },
+    {
+        "context": "During the investigation, analysts noted that on July 4 a Microsoft Word process (\"winword.exe\" with PID 9780) launched a PowerShell command to download or run an encoded script on an endpoint whose device ID is still being confirmed. Just seconds earlier, a related alert titled \"Suspicious Task Scheduler activity\" indicated that a different process had been used to create or modify scheduled tasks\u2014likely an attempt to gain persistence.",
+        "question": "According to the \"Suspicious Task Scheduler activity\" alert, which executable was responsible for interacting with Task Scheduler on the affected device?",
+        "answer": "schtasks.exe",
+        "solution": [
+            "The device identified by AadDeviceId `02b8f519-1123-4228-b32a-ccb78af3449f` executed a suspicious PowerShell command to download or run an encoded payload.",
+            "Immediately afterwards, the attacker leveraged Task Scheduler via the process with ExtractedFileName `schtasks.exe` to create or modify a scheduled task and gain persistence."
+        ],
+        "start_alert": 26,
+        "end_alert": 21,
+        "start_entities": [
+            11,
+            12
+        ],
+        "end_entities": [
+            14
+        ],
+        "shortest_alert_path": [
+            26,
+            2,
+            21
+        ]
+    },
+    {
+        "context": "During our investigation we observed that the attacker used the binary \"schtasks.exe\" to create a one-time task named \"yrei\" that launches the backdoor \"winatp-intro-backdoor.exe\" from the user SamuelF\u2019s OneDrive folder. Just a few seconds later, a related alert reported that PowerShell was invoked to download a payload or run an encoded command \u2013 an activity commonly used by attackers to execute code in memory and avoid leaving artifacts on disk.",
+        "question": "According to the alert about the suspicious PowerShell download or encoded command execution, what is the SID of the account that ran the PowerShell process?",
+        "answer": "S-1-5-21-1870156660-7534030218-135086563-1193",
+        "solution": [
+            "An anomalous scheduled task was created that launched the process with ExtractedFileName `powershell.exe`.",
+            "Moments later, PowerShell was used to download or run an encoded command by the account whose Sid is `S-1-5-21-1870156660-7534030218-135086563-1193`."
+        ],
+        "start_alert": 20,
+        "end_alert": 22,
+        "start_entities": [
+            13,
+            14
+        ],
+        "end_entities": [
+            5
+        ],
+        "shortest_alert_path": [
+            20,
+            8,
+            22
+        ]
+    },
+    {
+        "context": "On 2024-07-04 at 22:35 UTC, a suspicious PowerShell command was launched on workstation 'vnevado-win10e' (AAD Device ID 02b8f519-1123-4228-b32a-ccb78af3449f) by user 'samuelf'. The command used powershell.exe with a long base-64-encoded payload that created a file named 'winatp-intro-backdoor.exe' and scheduled it to run via the task 'yrei'. Just one second later, Microsoft Defender raised another alert titled \"Suspicious PowerShell download or encoded command execution\", indicating that a process had executed PowerShell to fetch or run additional code. Investigators need to determine which security identifier (SID) was associated with the account that triggered this second alert.",
+        "question": "What is the SID of the user account linked to the alert \"Suspicious PowerShell download or encoded command execution\" that occurred at 22:35:01 UTC on 2024-07-04?",
+        "answer": "S-1-5-21-1870156660-7534030218-135086563-1193",
+        "solution": [
+            "A suspicious process launched PowerShell, entity field ProcessId__CreatedTimeUtc__CommandLine having value `8604__2024-06-26t12:00:39.2886108z__\"powershell.exe\" -w movedn -exec bypass -command ... ;schtasks /run /tn yrei`, which writes a backdoor executable to disk and schedules it to run.",
+            "The encoded-command/download activity was executed in the context of the user whose entity field Sid is `S-1-5-21-1870156660-7534030218-135086563-1193`, indicating that this account may be compromised."
+        ],
+        "start_alert": 3,
+        "end_alert": 22,
+        "start_entities": [
+            1,
+            2,
+            4,
+            6,
+            7,
+            8,
+            9
+        ],
+        "end_entities": [
+            5
+        ],
+        "shortest_alert_path": [
+            3,
+            7,
+            22
+        ]
+    },
+    {
+        "context": "During an ongoing investigation, Microsoft Defender raised an alert called \"Suspicious PowerShell download or encoded command execution\" on a workstation (host name withheld). The alert showed that Word (winword.exe) had launched PowerShell with a potentially malicious command, likely used to pull down or run additional payloads in memory. Just seconds earlier, another alert titled \"Suspicious PowerShell command line\" was triggered on the same device, indicating that a specific executable file was involved in the activity.",
+        "question": "According to the \"Suspicious PowerShell command line\" alert, what is the name of the executable file that was identified as part of the suspicious activity?",
+        "answer": "winatp-intro-backdoor.exe",
+        "solution": [
+            "A suspicious PowerShell command attempted to execute the file (Field: Name, Value: `winatp-intro-backdoor.exe`).",
+            "The activity occurred on the host (Field: HostName, Value: `vnevado-win10e`), where PowerShell was used for a possible malicious download or encoded command execution."
+        ],
+        "start_alert": 26,
+        "end_alert": 10,
+        "start_entities": [
+            1,
+            11,
+            5,
+            6,
+            4,
+            12,
+            8,
+            2,
+            9
+        ],
+        "end_entities": [
+            16
+        ],
+        "shortest_alert_path": [
+            26,
+            1,
+            10
+        ]
+    },
+    {
+        "context": "During an investigation, we observed a connection from the external IP address 72.5.72.208 to one of our hosts. Shortly after, that same host generated an alert titled \u201cAnomaly detected in ASEP registry,\u201d indicating a suspicious command or file was registered to persist across reboots.",
+        "question": "Minutes after the ASEP registry modification, Microsoft Defender raised another alert stating that PowerShell had dropped and executed a suspicious file on the machine. What is the exact name of the file that was dropped?",
+        "answer": "winatp-intro-backdoor.exe",
+        "solution": [
+            "A suspicious command was registered in the ASEP registry on host HostName=`vnevado-win10e`.",
+            "Powershell then dropped and executed a suspicious file Name=`winatp-intro-backdoor.exe` on the machine."
+        ],
+        "start_alert": 17,
+        "end_alert": 25,
+        "start_entities": [
+            18
+        ],
+        "end_entities": [
+            16
+        ],
+        "shortest_alert_path": [
+            17,
+            1,
+            25
+        ]
+    }
+]

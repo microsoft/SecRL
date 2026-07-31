@@ -1,0 +1,94 @@
+[
+    {
+        "context": "A security incident involving a suspicious process injection was observed on 2024-07-04. An abnormal code was injected into another process and as a result, unexpected code might be running in the targeted process memory. One of the involved processes was `notepad.exe` with a Process ID `8932__2024-06-26t15:49:51.3043595z`. This might lead to abnormal behaviors. A URL linked with this event is `https://wcdstaticfilesprdeus.blob.core.windows.net/wcdstaticfiles/winatp-intro-fileless.txt`.",
+        "question": "During the investigation of this incident, another alert indicated the use of a known tool or technique for gathering information on the device. Can you provide the command line used to launch the `powershell.exe` process associated with this suspicious activity?",
+        "answer": "7472__2024-06-26t15:49:15.7860486z__powershell.exe",
+        "solution": [
+            "There was a suspicious process injection observed on the host `vnevado-win11a`.",
+            "A suspicious application window discovery was conducted using the command line `powershell.exe` with Process ID `7472` at `2024-06-26T15:49:15.7860486Z`."
+        ],
+        "start_alert": 10,
+        "end_alert": 0,
+        "start_entities": [
+            11,
+            12,
+            13
+        ],
+        "end_entities": [
+            5
+        ],
+        "shortest_alert_path": [
+            10,
+            8,
+            0
+        ]
+    },
+    {
+        "context": "An unexpected behavior was observed for the process `notepad.exe` with the Process ID `8932` and IP address `202.183.149.174`. This process ran with no command line arguments on the 4th of July, 2024. The legitimate process by this name does not normally exhibit this behavior when ran with no command line arguments and may contain injected extraneous code or be a malicious executable masquerading as legitimate. It is part of a broader security incident which also includes suspicious application window discovery where attackers might be gathering information about a target device or network.",
+        "question": "What is the Process ID and created time of the suspicious powershell.exe process used in the application window discovery alert?",
+        "answer": "Process ID: 7472, Created Time: 2024-06-26t15:49:15.7860486z",
+        "solution": [
+            "Unexpected behavior was observed on the host `vnevado-win11a`, indicating potential code injection or a malicious executable masquerading as a legitimate one.",
+            "A suspicious application window discovery was performed using the process `powershell.exe` with Process ID `7472`, created at `2024-06-26t15:49:15.7860486z`."
+        ],
+        "start_alert": 15,
+        "end_alert": 0,
+        "start_entities": [
+            11,
+            12,
+            16
+        ],
+        "end_entities": [
+            5
+        ],
+        "shortest_alert_path": [
+            15,
+            8,
+            0
+        ]
+    },
+    {
+        "context": "A security incident involved gathering information on a device using a known tool or technique. This was detected when a process with ID 7472 and the command line `powershell.exe` was executed at `2024-06-26T15:49:15.7860486Z`. This is an indication that attackers might be attempting to collect information about the target device or network for future attacks.",
+        "question": "As part of this incident, suspicious process injection was also observed. Can you find the URL associated with this process injection?",
+        "answer": "https://wcdstaticfilesprdeus.blob.core.windows.net/wcdstaticfiles/winatp-intro-fileless.txt",
+        "solution": [
+            "The account with AadUserId `12185914-91dd-4fb9-94f9-3252203b0426` was involved in a suspicious application window discovery activity.",
+            "A suspicious process injection was observed involving the URL `https://wcdstaticfilesprdeus.blob.core.windows.net/wcdstaticfiles/winatp-intro-fileless.txt`."
+        ],
+        "start_alert": 0,
+        "end_alert": 14,
+        "start_entities": [
+            5
+        ],
+        "end_entities": [
+            13
+        ],
+        "shortest_alert_path": [
+            0,
+            3,
+            14
+        ]
+    },
+    {
+        "context": "A security incident involving a suspicious process injection was detected on 2024-07-04, where a URL `https://wcdstaticfilesprdeus.blob.core.windows.net/wcdstaticfiles/winatp-intro-fileless.txt` was accessed. This incident could result in abnormal behaviors like opening a listening port or connecting to a command and control server.",
+        "question": "Following the suspicious code injection, an unexpected behavior was observed in a process without command line arguments. Identify the IP address connected by this process.",
+        "answer": "202.183.149.174",
+        "solution": [
+            "There was a suspicious process injection observed on host `vnevado-win11a`.",
+            "An unexpected behavior was observed from a process without command line arguments, exhibiting unusual communication with the IP address `202.183.149.174`."
+        ],
+        "start_alert": 10,
+        "end_alert": 15,
+        "start_entities": [
+            13
+        ],
+        "end_entities": [
+            16
+        ],
+        "shortest_alert_path": [
+            10,
+            8,
+            15
+        ]
+    }
+]

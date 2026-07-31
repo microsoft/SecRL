@@ -1,0 +1,101 @@
+[
+    {
+        "context": "On host vnevado-win11a, user nathans (AadUserId 12185914-91dd-4fb9-94f9-3252203b0426) executed several PowerShell commands\u2014including a long base-64 encoded script\u2014around 2024-06-26 15:49 UTC. This activity was flagged under the alert \u201cSuspicious Application Window Discovery,\u201d indicating possible reconnaissance on the device.",
+        "question": "During the later stages of this incident, investigators mapped the same user account to its Windows Security Identifier (SID). What is the SID that was assigned to this account?",
+        "answer": "S-1-5-21-1240151660-3534038288-105586567-4122",
+        "solution": [
+            "Suspicious Application Window Discovery was executed by an account with Sid `S-1-5-21-1240151660-3534038288-105586567-4122`."
+        ],
+        "start_alert": 0,
+        "end_alert": 0,
+        "start_entities": [
+            8,
+            1,
+            5,
+            4,
+            7,
+            6,
+            3,
+            9
+        ],
+        "end_entities": [
+            2
+        ],
+        "shortest_alert_path": [
+            0
+        ]
+    },
+    {
+        "context": "During an investigation into a suspicious process-injection event, we observed that the process \"notepad.exe\" (PID 8932, started at 2024-06-26T15:49:51Z) was running under user \"nathans\" on host \"vnevado-win11a.\" This host was flagged after abnormal code was injected into another process, indicating that adversaries might be trying to hide malicious activity or establish command-and-control. We are now looking at subsequent network activity originating from this same machine.",
+        "question": "To which external IP address did the compromised host \"vnevado-win11a\" attempt to communicate after the suspicious process injection?",
+        "answer": "72.5.72.208",
+        "solution": [
+            "Suspicious process injection observed: The injected process communicated with external IP (Field: Address, Value: `72.5.72.208`)."
+        ],
+        "start_alert": 10,
+        "end_alert": 10,
+        "start_entities": [
+            11,
+            12,
+            13,
+            1,
+            3,
+            9,
+            8,
+            2
+        ],
+        "end_entities": [
+            4
+        ],
+        "shortest_alert_path": [
+            10
+        ]
+    },
+    {
+        "context": "On July 4, 2024, a process that originated from the external IP address 202.183.149.174 ran on one of our hosts without any command-line arguments\u2014behaviour that is unusual for that program and often associated with code-injection or masquerading attempts. Seconds earlier, security telemetry reported that code had been injected into another process, and the injected code subsequently tried to download a text file hosted in Azure Blob Storage.",
+        "question": "Provide the exact URL of the text file that the injected process attempted to access on Azure Blob Storage.",
+        "answer": "https://wcdstaticfilesprdeus.blob.core.windows.net/wcdstaticfiles/winatp-intro-fileless.txt",
+        "explanation": "The end alert ('Suspicious process injection observed') includes a single URL entity representing the resource contacted by the injected code, so that URL constitutes the correct answer.",
+        "solution": [
+            "A process named notepad.exe (ExtractedFileName = `notepad.exe`) was observed running with no command-line arguments but exhibiting unexpected behavior, suggesting possible code injection or masquerading.",
+            "Prior to that, a suspicious process injection alert referenced the URL (Url = `https://wcdstaticfilesprdeus.blob.core.windows.net/wcdstaticfiles/winatp-intro-fileless.txt`), indicating that malicious code hosted at this address may have been injected into notepad.exe."
+        ],
+        "start_alert": 15,
+        "end_alert": 10,
+        "start_entities": [
+            16
+        ],
+        "end_entities": [
+            13
+        ],
+        "shortest_alert_path": [
+            15,
+            12,
+            10
+        ]
+    },
+    {
+        "context": "During an investigation, a \"Suspicious Application Window Discovery\" alert was triggered on July 4, 2024 at 22:35 UTC. The alert showed that PowerShell (powershell.exe) was executed twice in quick succession\u2014once as a simple launch, and again 26 seconds later with a long base-64\u2013encoded command and the ExecutionPolicy bypass flag. This activity suggests an attacker might be running discovery commands on the host right before another alert\u2014\"Unexpected behavior observed by a process run with no command-line arguments\"\u2014was raised a second later. Analysts now need to understand what network location that second process interacted with.",
+        "question": "What is the IP address that was involved in the \"Unexpected behavior observed by a process ran with no command line arguments\" alert which followed the suspicious PowerShell activity?",
+        "answer": "202.183.149.174",
+        "solution": [
+            "At 2024-07-04T22:35:00.593840Z, the account (Field: Name, Value: `nathans`) was observed running a tool that triggered the 'Suspicious Application Window Discovery' alert.",
+            "One second later, a process with no command-line arguments showed unexpected behavior, which was linked to the IP address (Field: Address, Value: `202.183.149.174`)."
+        ],
+        "start_alert": 0,
+        "end_alert": 15,
+        "start_entities": [
+            5,
+            6,
+            7
+        ],
+        "end_entities": [
+            16
+        ],
+        "shortest_alert_path": [
+            0,
+            1,
+            15
+        ]
+    }
+]

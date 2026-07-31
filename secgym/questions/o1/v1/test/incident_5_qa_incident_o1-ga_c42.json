@@ -1,0 +1,2657 @@
+[
+    {
+        "context": "A command and control behavior was blocked on host `vnevado-win10r`, which indicated an active infection by malware that could replicate and receive commands from remote attackers. This malware was active, and precautionary measures should be taken to check for residual signs of infection. The process involved had the ID 1332 and ran the command `curl http://vectorsandarrows.com`.",
+        "question": "What is the IP address associated with the Manatee Tempest activity group detected in this security incident?",
+        "answer": "198.43.121.209",
+        "solution": [
+            "The account with SID `S-1-5-21-1840191660-8534830288-125585561-1522` was involved in a Command and Control behavior that was blocked.",
+            "The cybercriminal group known as Manatee Tempest, which is associated with the IP address `198.43.121.209`, was active during the incident."
+        ],
+        "start_alert": 137,
+        "end_alert": 136,
+        "start_entities": [
+            61,
+            64,
+            65,
+            74
+        ],
+        "end_entities": [
+            5
+        ],
+        "shortest_alert_path": [
+            137,
+            2,
+            136
+        ]
+    },
+    {
+        "context": "An incident involving a ransomware payload remotely launched on device `vnevado-win11u` with AadDeviceId `bc00e484-d0e5-4da4-9472-95568cccc07e` and IP address `99.83.111.100` has been detected. The attackers might be attempting to encrypt content on this device. Additionally, there is a notable change in typical user behavior that may indicate a compromise.",
+        "question": "What is the command line of the suspicious process involved in the user behavior change on device `vnevado-win11u`?",
+        "answer": "88__2024-06-20t09:29:42.3927529z__curl http://vectorsandarrows.com",
+        "solution": [
+            "A ransomware payload was remotely launched by the user with SID `S-1-5-21-1840191660-8534830288-125585561-1522` at `2024-07-04 22:35:03.038773+00:00`.",
+            "Suspicious hands on keyboard user behavior was detected on this device, involving a process with Process ID `88` launched with the command line `curl http://vectorsandarrows.com` at `2024-06-20t09:29:42.3927529z`."
+        ],
+        "start_alert": 139,
+        "end_alert": 66,
+        "start_entities": [
+            7,
+            8,
+            42
+        ],
+        "end_entities": [
+            67
+        ],
+        "shortest_alert_path": [
+            139,
+            2,
+            66
+        ]
+    },
+    {
+        "context": "A Mimikatz credential theft tool was detected on a device at 2024-07-04 22:35:03.797541+00:00. Mimikatz is a tool used to harvest plaintext passwords, password hashes, smartcard PINs, and Kerberos tickets. The attacker might be leveraging this tool to harvest credentials to log into this or other devices on the network by impersonating a valid user. Several command line executions involving `mimikatz.exe` were observed, along with connected mimikatz-related files like `mimidrv.sys`, `mimispool.dll`, and `mimilove.exe`. More information can be found in the Mimikatz tool profile Threat Analytics report and the Actor profile: Storm-0875 Threat Analytics report provided by Microsoft.",
+        "question": "Can you identify the IP address involved in the malicious credential theft tool execution detected?",
+        "answer": "107.224.99.179",
+        "solution": [
+            "The Mimikatz credential theft tool was detected on the device with IP address `107.224.99.179`.",
+            "A malicious credential theft tool execution was detected on the same device with IP address `107.224.99.179`."
+        ],
+        "start_alert": 151,
+        "end_alert": 161,
+        "start_entities": [
+            19,
+            23,
+            32,
+            33,
+            92,
+            111,
+            152,
+            153,
+            154
+        ],
+        "end_entities": [
+            20
+        ],
+        "shortest_alert_path": [
+            151,
+            20,
+            161
+        ]
+    },
+    {
+        "context": "On July 4, 2024, a security incident involving malware behavior named 'GenRansom' was detected on host `vnevado-win11t`. This malware was identified as active on the machine, and immediate precautionary measures were recommended. This incident is part of a broader malicious activity linked to the Manatee Tempest activity group. Manatee Tempest is a Russia-based cybercriminal group known for engaging in various sophisticated cyberattacks targeting numerous industries.",
+        "question": "What is the URL associated with the Manatee Tempest activity group in this incident?",
+        "answer": "vectorsandarrows.com",
+        "solution": [
+            "Suspicious 'GenRansom' behavior was detected on the host with AadDeviceId `e5799261-6720-4297-961e-bd9ca4275033`.",
+            "The Manatee Tempest activity group, a Russia-based cybercriminal group, has potential malicious activity related to the URL `vectorsandarrows.com`."
+        ],
+        "start_alert": 148,
+        "end_alert": 75,
+        "start_entities": [
+            68,
+            69
+        ],
+        "end_entities": [
+            4
+        ],
+        "shortest_alert_path": [
+            148,
+            69,
+            75
+        ]
+    },
+    {
+        "context": "During a recent investigation involving potentially compromised assets exhibiting ransomware-like behavior, it was observed that an attacker might be using the specified user account, IP, or device to move laterally across the network. Some of the files involved are `syncretic.7z.lockbit`, `earlap.doc`, `ponceau.7z`, and `unstreaming.xlsx.lockbit`. The suspicious activities were noted on the host `vnevado-win11u`, with associated account SID `S-0-6-5`. Automated remediation actions might be taken to disable the account or device being used by the attacker.",
+        "question": "Can you identify the hostname of the device where system recovery setting tampering was observed?",
+        "answer": "vnevado-win10s",
+        "solution": [
+            "The user with SID `S-1-5-21-1840191660-8534830288-125585561-1522` is potentially compromised and exhibiting ransomware-like behavior, affecting multiple devices.",
+            "System recovery settings have been tampered with on the device with hostname `vnevado-win10s`, which could indicate an attempt by adversaries to disable system recovery features and prevent system recovery."
+        ],
+        "start_alert": 100,
+        "end_alert": 96,
+        "start_entities": [
+            42,
+            46,
+            45,
+            51,
+            8,
+            49,
+            7,
+            54,
+            48,
+            47
+        ],
+        "end_entities": [
+            12
+        ],
+        "shortest_alert_path": [
+            100,
+            2,
+            96
+        ]
+    },
+    {
+        "context": "On 2024-07-04, a suspicious WMI process creation was observed on the machine named `vnevado-win10r`. Various processes including `vssblatemp.exe` and `get-userprttoken.ps1` were executed. This type of behavior is often associated with malware using WMI to spawn new processes, breaking process trees and further infecting a machine.",
+        "question": "As per the recent observation, what is the IP address identified in connection with the Manatee Tempest activity group?",
+        "answer": "198.43.121.209",
+        "solution": [
+            "Suspicious WMI process creation was observed on the machine by an account with SID `S-1-5-21-1840191660-8534830288-125585561-1522`.",
+            "Manatee Tempest, a Russia-based cybercriminal group, conducted suspicious activities. One of the IP addresses used by the group is `198.43.121.209`."
+        ],
+        "start_alert": 155,
+        "end_alert": 136,
+        "start_entities": [
+            11,
+            58,
+            59,
+            60,
+            61,
+            62,
+            63,
+            64,
+            65
+        ],
+        "end_entities": [
+            5
+        ],
+        "shortest_alert_path": [
+            155,
+            2,
+            136
+        ]
+    },
+    {
+        "context": "A recent security incident involved the tampering of system recovery settings on the device `vnevado-win10r`. The process `vssblatemp.exe` was executed with the command `vssblatemp.exe delete shadows /all`, indicating an attempt to delete or remove built-in operating system data and turn off recovery services to prevent recovering a corrupted system. This may include deleting all volume shadow copies to impede system restoration.",
+        "question": "Alongside the usage of `vssblatemp.exe`, another process was used to disable recovery features. What was the command and process ID of the other process involved?",
+        "answer": "Command: bcdedit /set recoveryenabled no, Process ID: 4312",
+        "solution": [
+            "System recovery setting tampering has been detected on this device.",
+            "The adversary used the command `bcdedit /set recoveryenabled no` with Process ID `4312` on `2024-06-20t09:10:48.0676225z` to disable automatic Windows recovery features."
+        ],
+        "start_alert": 120,
+        "end_alert": 120,
+        "start_entities": [
+            60,
+            1,
+            2,
+            65,
+            11,
+            3,
+            64
+        ],
+        "end_entities": [
+            63
+        ],
+        "shortest_alert_path": [
+            120
+        ]
+    },
+    {
+        "context": "A security incident involving system recovery setting tampering was observed on a device. Adversaries might be attempting to delete or remove built-in operating system data and turn off recovery services to prevent recovering a corrupted system. This may deny access to available backups and recovery options. The process `vssblatemp.exe` was executed with the command to delete all volume shadow copies, and the process `bcdedit` was used to disable automatic Windows recovery features.",
+        "question": "What is the host name of the device involved in this tampering incident?",
+        "answer": "vnevado-win10s",
+        "solution": [
+            "Potential tampering of system recovery settings observed on host `vnevado-win10s`. Adversaries might use utilities like vssblatemp.exe, wmic, wbblatemp.exe, or bcdedit.exe to disable or delete system recovery features."
+        ],
+        "start_alert": 96,
+        "end_alert": 96,
+        "start_entities": [
+            13,
+            3,
+            11,
+            2,
+            10,
+            97,
+            1
+        ],
+        "end_entities": [
+            12
+        ],
+        "shortest_alert_path": [
+            96
+        ]
+    },
+    {
+        "context": "A possible attempt to access Primary Refresh Token (PRT) was detected on the host `vnevado-win10s` involving user with username `dp5hn`. The PRT is a key artifact of Azure AD authentication used to enable single sign-on (SSO) across applications on supported devices, and attackers attempting to access this resource could be aiming for lateral movement or credential theft. The attempt was carried out by the process `browsercore.exe` as observed from the process ID `2676`.",
+        "question": "Related to this alert, there was an active malware detected subsequently. Can you identify the name of the malware file detected on the machine?",
+        "answer": "mimikatz.exe",
+        "solution": [
+            "There was a possible attempt to access Primary Refresh Token (PRT) through the process `browsercore.exe` detected on 2024-07-04.",
+            "Another possible attempt to access Primary Refresh Token (PRT) was detected involving the account with SID `S-5-7-21-1843151660-3234030288-105586167-1422`.",
+            "Active unknown malware, specifically `mimikatz.exe`, was detected and running on the machine."
+        ],
+        "start_alert": 113,
+        "end_alert": 150,
+        "start_entities": [
+            1,
+            2,
+            3,
+            12,
+            13,
+            114
+        ],
+        "end_entities": [
+            19
+        ],
+        "shortest_alert_path": [
+            113,
+            40,
+            36,
+            17,
+            150
+        ]
+    },
+    {
+        "context": "A ransomware payload was remotely launched on a host named `vnevado-win11t` with AadDeviceId `e5799261-6720-4297-961e-bd9ca4275033`. Attackers might be attempting to encrypt content on this device, rendering it unusable to users. For more information, refer to the Threat Analytics report, Threat overview: Human-operated ransomware: https://security.microsoft.com/threatanalytics3/05658b6c-dc62-496d-ad3c-c6a795a33c27/analystreport. Soon after, potentially compromised assets began exhibiting ransomware-like behavior, impacting multiple devices.",
+        "question": "What is the name of the file associated with the ransomware-like behavior identified in the potentially compromised assets?",
+        "answer": "syncretic.7z.lockbit",
+        "solution": [
+            "A ransomware payload was remotely launched by the user with AadUserId `731adb71-b11c-4bbf-850b-57989b350e96`.",
+            "Potentially compromised assets are exhibiting ransomware-like behavior involving the file `syncretic.7z.lockbit`."
+        ],
+        "start_alert": 134,
+        "end_alert": 147,
+        "start_entities": [
+            68,
+            69
+        ],
+        "end_entities": [
+            46
+        ],
+        "shortest_alert_path": [
+            134,
+            3,
+            147
+        ]
+    },
+    {
+        "context": "A recent security incident was flagged due to the execution of a known credential theft tool, which was used to dump user's credentials. This was detected on an account from a specific IP address.",
+        "question": "A related alert indicates the presence of a file associated with Mimikatz. Can you identify the name of this file that was detected?",
+        "answer": "mimilib.dll",
+        "solution": [
+            "A known credential theft tool execution command line was detected on the host with AadDeviceId `4d8d23e9-a77d-4e33-9435-b8c457e57ca1`.",
+            "The Mimikatz credential theft tool, particularly the file `mimilib.dll`, was detected on this device."
+        ],
+        "start_alert": 161,
+        "end_alert": 55,
+        "start_entities": [
+            16,
+            17,
+            18,
+            20,
+            24,
+            29,
+            30,
+            31
+        ],
+        "end_entities": [
+            56
+        ],
+        "shortest_alert_path": [
+            161,
+            35,
+            55
+        ]
+    },
+    {
+        "context": "The context implies that the suspicious activity involved multiple process creations and communications that were likely related to malware. The specific URL that was blocked as part of this command and control activity can provide pivotal information for further investigation into the attack vectors.",
+        "question": "Can you identify the malicious URL that was associated with the command and control behavior blocked during the incident on 2024-07-04?",
+        "answer": "http://vectorsandarrows.com/",
+        "solution": [
+            "There is a suspicious WMI process creation by an account with SID `S-1-5-21-1840191660-8534830288-125585561-1522`.",
+            "The Command and Control behavior was blocked, originating from the URL `http://vectorsandarrows.com/`."
+        ],
+        "start_alert": 145,
+        "end_alert": 73,
+        "start_entities": [
+            11,
+            59,
+            67,
+            68,
+            69,
+            80,
+            81,
+            108,
+            109
+        ],
+        "end_entities": [
+            74
+        ],
+        "shortest_alert_path": [
+            145,
+            2,
+            73
+        ]
+    },
+    {
+        "context": "On 2024-07-04, a ransomware payload was remotely launched on a device, which might have aimed to encrypt content and render it unusable. This malicious activity originated from the IP address `99.83.111.100`. Thereafter, 'CommandAndControl' malware was identified on the device, suggesting an attempted lateral movement by the attacker.",
+        "question": "What is the command line of the process that was executed when the 'CommandAndControl' malware was detected during lateral movement?",
+        "answer": "curl http://vectorsandarrows.com",
+        "solution": [
+            "The ransomware payload was remotely launched on the account `dp5hn` at `2024-07-04 22:35:01.951341+00:00`.",
+            "The 'CommandAndControl' malware was detected during lateral movement. The attacker's command line was `curl http://vectorsandarrows.com` and it was executed with Process ID `5572` on `2024-06-20t09:32:04.8002759z`."
+        ],
+        "start_alert": 112,
+        "end_alert": 128,
+        "start_entities": [
+            42
+        ],
+        "end_entities": [
+            6
+        ],
+        "shortest_alert_path": [
+            112,
+            1,
+            128
+        ]
+    },
+    {
+        "context": "There was a detection of unknown malware being active in the environment, which was stopped by Windows Defender but it is recommended to further check the machine for signs of infection. Following that, there were multiple alerts indicating possible attempts to access Primary Refresh Token (PRT) which is a key artifact used for Azure AD authentication. Additionally, we observed an alert where system recovery settings were tampered with, indicating that adversaries might be attempting to delete or disable built-in operating system data and recovery services. This could prevent recovery of a corrupted system and denie access to backups and recovery options. Various built-in Windows utilities can be exploited to disable or delete system recovery features, posing a risk to system integrity.",
+        "question": "What is the name of the account involved in the system recovery setting tampering incident?",
+        "answer": "dp5hn",
+        "solution": [
+            "An unknown malware was detected and was active on the host with AadDeviceId `4d8d23e9-a77d-4e33-9435-b8c457e57ca1`.",
+            "There was a possible attempt to access the Primary Refresh Token (PRT) involving the process `browsercore.exe`.",
+            "The user with SID `S-1-5-21-1840191660-8534830288-125585561-1522` was involved in a potential attempt to access the Primary Refresh Token (PRT).",
+            "System recovery setting tampering was observed on the account named `dp5hn`."
+        ],
+        "start_alert": 110,
+        "end_alert": 79,
+        "start_entities": [
+            92,
+            23,
+            24,
+            33,
+            111,
+            19,
+            30,
+            56,
+            32,
+            29
+        ],
+        "end_entities": [
+            1
+        ],
+        "shortest_alert_path": [
+            110,
+            35,
+            36,
+            40,
+            113,
+            2,
+            79
+        ]
+    },
+    {
+        "context": "An alert indicated that 'CommandAndControl' malware was detected, suggesting an attempt to move laterally between devices.",
+        "question": "What is the hostname of the target device in the 'CommandAndControl' malware attempt?",
+        "answer": "vnevado-win11u",
+        "solution": [
+            "The 'CommandAndControl' malware was detected on the device associated with the account with SID `S-1-5-21-1840191660-8534830288-125585561-1522`.",
+            "The 'CommandAndControl' malware was detected on the host `vnevado-win11u` during an attempted lateral movement."
+        ],
+        "start_alert": 127,
+        "end_alert": 128,
+        "start_entities": [
+            67,
+            68,
+            69
+        ],
+        "end_entities": [
+            7
+        ],
+        "shortest_alert_path": [
+            127,
+            2,
+            128
+        ]
+    },
+    {
+        "context": "A security incident involving the Manatee Tempest activity group was flagged, where the actor Manatee Tempest, known for its early malware campaigns like the Dridex banking trojan, has been active since June 2014. The group utilizes tactics such as drive-by downloads and FakeUpdates infections, facilitated by Mustard Tempest to gain initial access. Later, they use the BLISTER loader to deliver Cobalt Strike beacons for lateral movement and ransomware deployment. One of the events related to this incident involved a process running on the host `vnevado-win11t` using the command `curl http://vectorsandarrows.com`. The Process ID was 88.",
+        "question": "There was another instance of a similar process being run on the same host in this incident. Can you identify the Process ID and the command line of this process?",
+        "answer": "Process Id: 1332, Command Line: `curl http://vectorsandarrows.com`",
+        "solution": [
+            "A user with AadUserId `731adb71-b11c-4bbf-850b-57989b350e96` was associated with suspicious activity linked to the Manatee Tempest cybercriminal group.",
+            "A process with Process ID `1332` used the command line `curl http://vectorsandarrows.com` on `2024-06-20t09:10:52.7298237z`, indicating possible interaction with a malicious domain associated with Manatee Tempest."
+        ],
+        "start_alert": 75,
+        "end_alert": 135,
+        "start_entities": [
+            67,
+            68,
+            69
+        ],
+        "end_entities": [
+            61
+        ],
+        "shortest_alert_path": [
+            75,
+            3,
+            135
+        ]
+    },
+    {
+        "context": "A suspicious WMI process creation was observed on the machine `vnevado-win11t`. Malware frequently uses WMI to spawn new processes, breaking process trees and further infecting a machine. On 2024-07-04, several commands were executed on the machine, including disabling recovery, deleting shadows, and using PowerShell to run a script. The investigation revealed some suspicious process creations.",
+        "question": "What is the Azure Active Directory (AAD) Device ID of the host involved in this suspicious WMI process creation event?",
+        "answer": "bc00e484-d0e5-4da4-9472-95568cccc07e",
+        "solution": [
+            "There was a suspicious WMI process creation on a machine with AadDeviceId `bc00e484-d0e5-4da4-9472-95568cccc07e`.",
+            "The WMI process creation was associated with an account having SID `S-1-5-21-1840191660-8534830288-125585561-1522`."
+        ],
+        "start_alert": 145,
+        "end_alert": 117,
+        "start_entities": [
+            67,
+            68,
+            69,
+            80,
+            81,
+            108,
+            109
+        ],
+        "end_entities": [
+            8
+        ],
+        "shortest_alert_path": [
+            145,
+            2,
+            117
+        ]
+    },
+    {
+        "context": "A ransomware payload was remotely launched on the host `vnevado-win11u` (AadDeviceId: bc00e484-d0e5-4da4-9472-95568cccc07e). Attackers might be attempting to encrypt content on this device, rendering it unusable to users. This was part of a larger security incident that involved suspicious remote activity on the same machine, including attempts to initiate interactive sessions, modify files, pass WMI commands, create scheduled tasks, and other potentially malicious activities.",
+        "question": "Can you identify the SID of the account which was involved in the suspicious remote activity?",
+        "answer": "S-0-6-5",
+        "solution": [
+            "A ransomware payload was launched remotely on the device using the account `dp5hn`.",
+            "Suspicious remote activity was observed involving the user with SID `S-0-6-5`."
+        ],
+        "start_alert": 139,
+        "end_alert": 107,
+        "start_entities": [
+            7,
+            8
+        ],
+        "end_entities": [
+            47
+        ],
+        "shortest_alert_path": [
+            139,
+            1,
+            107
+        ]
+    },
+    {
+        "context": "On July 4th, 2024, a ransomware payload was remotely launched on device 'vnevado-win11t' with IP address '99.83.111.100'. Attackers might be attempting to encrypt content on this device, rendering it unusable to users. For more information, refer to the Threat Analytics report: Threat overview: Human-operated ransomware.",
+        "question": "Related to this alert, there was a possible attempt to access the Primary Refresh Token (PRT). What is the file name of the process that was used in this attempt?",
+        "answer": "browsercore.exe",
+        "solution": [
+            "A ransomware payload was remotely launched on an account with the name `dp5hn`.",
+            "A possible attempt to access the Primary Refresh Token (PRT) was detected, involving the process with the filename `browsercore.exe`."
+        ],
+        "start_alert": 143,
+        "end_alert": 71,
+        "start_entities": [
+            42,
+            68,
+            69
+        ],
+        "end_entities": [
+            40
+        ],
+        "shortest_alert_path": [
+            143,
+            1,
+            71
+        ]
+    },
+    {
+        "context": "A recent security incident indicated a possible attempt to access the Primary Refresh Token (PRT) on host `vnevado-win10v` using the file `powershell.exe`. The possible incident occurred on July 4th, 2024, and was detected as a Primary Refresh Token (PRT) is critical for Azure AD authentication. This anomaly suggests an attacker might be trying to move laterally or perform credential theft. Another related observation was a suspicious network event indicating possible lateral movement to another device.",
+        "question": "As part of this investigation, could you identify the IP address of the device that the attacker possibly moved to laterally?",
+        "answer": "38.142.109.10",
+        "solution": [
+            "There is a possible attempt to access the Primary Refresh Token (PRT) using the process `browsercore.exe`.",
+            "The attempt to access the PRT originated from the host `vnevado-win11u`.",
+            "There is a possibility of lateral movement originating from the IP address `38.142.109.10` in close time proximity to the suspicious PRT access attempt."
+        ],
+        "start_alert": 36,
+        "end_alert": 101,
+        "start_entities": [
+            16,
+            17,
+            18,
+            20,
+            34,
+            35,
+            37,
+            38,
+            39
+        ],
+        "end_entities": [
+            102
+        ],
+        "shortest_alert_path": [
+            36,
+            40,
+            118,
+            7,
+            101
+        ]
+    },
+    {
+        "context": "A ransomware payload was remotely launched on the device `vnevado-win11u`. Attackers might be attempting to encrypt content on this device, rendering it unusable to users. Related to this incident, lateral movement activities have been detected on `Vnevado-jump` server using PSExec.",
+        "question": "What is the name of the executable file used in the PSExec activity on `Vnevado-jump` server?",
+        "answer": "notepad.exe",
+        "solution": [
+            "A ransomware payload was remotely launched from IP address `99.83.111.100`.",
+            "PSExec was used to move laterally to the jump server `Vnevado-jump` with the file `notepad.exe`."
+        ],
+        "start_alert": 139,
+        "end_alert": 174,
+        "start_entities": [
+            1,
+            2,
+            3,
+            7,
+            8
+        ],
+        "end_entities": [
+            176
+        ],
+        "shortest_alert_path": [
+            139,
+            42,
+            174
+        ]
+    },
+    {
+        "context": "The identified suspicious activity on host `vnevado-win10r` involved attempts to access a Primary Refresh Token (PRT) tied to Azure AD authentication. The incident's timeline saw a triggering alert for a possible PRT access attempt using the process `browsercore.exe`.",
+        "question": "What is the command line of the process that modified the LSASS process memory?",
+        "answer": "2020__2024-06-20t09:03:47.538167z__\"mimikatz.exe\" privilege::debug \"sekurlsa::pth /user:fk8mq /ntlm:96def1a633fc6790124d5f8fe21cc72b /domain:vnevado.alpineskihouse.co /run:..\\notepad.exe //vnevado-jump cmd.exe\"",
+        "solution": [
+            "There was a possible attempt to access the Primary Refresh Token (PRT) using the process `browsercore.exe`.",
+            "The user with AadUserId `1d94aaf6-efe6-4e76-ad56-ffd7d1257bc1` was involved in a possible attempt to access the Primary Refresh Token (PRT).",
+            "The LSASS process memory was modified using the command line `mimikatz.exe privilege::debug sekurlsa::pth /user:fk8mq /ntlm:96def1a633fc6790124d5f8fe21cc72b /domain:vnevado.alpineskihouse.co /run:..\notepad.exe //vnevado-jump cmd.exe` at `2024-06-20t09:03:47.538167z`, with Process ID `2020`."
+        ],
+        "start_alert": 71,
+        "end_alert": 115,
+        "start_entities": [
+            1,
+            2,
+            3,
+            64,
+            65,
+            72
+        ],
+        "end_entities": [
+            32
+        ],
+        "shortest_alert_path": [
+            71,
+            40,
+            36,
+            18,
+            115
+        ]
+    },
+    {
+        "context": "A security incident involving multiple alerts reported by various entities. One of the alerts indicates the detection of active unknown malware that poses a significant threat as it can perform harmful actions and has persistence mechanisms in place.",
+        "question": "What was the URL associated with the command and control behavior that was blocked?",
+        "answer": "http://vectorsandarrows.com/",
+        "solution": [
+            "Active unknown malware was detected on the host with AadDeviceId `4d8d23e9-a77d-4e33-9435-b8c457e57ca1`.",
+            "Lateral movement to the jump server was conducted using PSExec to IP address `99.83.111.100`.",
+            "Potentially compromised assets with SID `S-1-5-21-1840191660-8534830288-125585561-1522` exhibited ransomware-like behavior, impacting several devices.",
+            "A malicious command and control behavior directed to the URL `http://vectorsandarrows.com/` was blocked."
+        ],
+        "start_alert": 150,
+        "end_alert": 73,
+        "start_entities": [
+            23,
+            24,
+            19,
+            111,
+            33,
+            29,
+            30,
+            92,
+            31,
+            32
+        ],
+        "end_entities": [
+            74
+        ],
+        "shortest_alert_path": [
+            150,
+            35,
+            174,
+            42,
+            147,
+            2,
+            73
+        ]
+    },
+    {
+        "context": "A security incident was reported involving Command and Control behavior being blocked, suggesting that malware was found running or had persistence mechanisms on the machine `vnevado-win10r`. The process id `1332` was observed running the command `curl http://vectorsandarrows.com` on this host with AadDeviceId `9d4887ba-0b69-47d6-89bc-9b32787f379e`. This malware was designated as active, requiring precautionary measures to be taken to check for residual infection signs.",
+        "question": "Can you identify the SID of the account associated with the suspicious remote activity observed on this machine?",
+        "answer": "S-0-6-5",
+        "solution": [
+            "A command and control behavior was blocked for the account with SID `S-1-5-21-1840191660-8534830288-125585561-1522`.",
+            "Suspicious remote activity was observed for the account with SID `S-0-6-5`."
+        ],
+        "start_alert": 137,
+        "end_alert": 140,
+        "start_entities": [
+            61,
+            64,
+            65,
+            74
+        ],
+        "end_entities": [
+            47
+        ],
+        "shortest_alert_path": [
+            137,
+            2,
+            140
+        ]
+    },
+    {
+        "context": "A security incident involved a possible compromised user account delivering ransomware-related files across multiple devices. Among these, ransomware-related files named `ponceau.7z`, `unstreaming.xlsx.lockbit`, `syncretic.7z.lockbit`, and others were observed on the device with host name `vnevado-win11u`. The device also had its unique Azure Active Directory ID `bc00e484-d0e5-4da4-9472-95568cccc07e`. Shortly after this, suspicious remote activity was detected. This type of activity might include attempts to initiate sessions, modify files, and more.",
+        "question": "What is the host name of the machine where suspicious 'GenRansom' behavior was detected, indicating the machine is actively running malware?",
+        "answer": "vnevado-win11t",
+        "solution": [
+            "A user account from IP address `99.83.111.100` was observed delivering ransomware-related files on several devices.",
+            "Suspicious remote activity was initiated on the host `vnevado-win11t`.",
+            "Suspicious 'GenRansom' behavior was detected on the host `vnevado-win11t`."
+        ],
+        "start_alert": 41,
+        "end_alert": 148,
+        "start_entities": [
+            49,
+            54,
+            8,
+            50,
+            44,
+            53,
+            43,
+            46,
+            7,
+            45
+        ],
+        "end_entities": [
+            68
+        ],
+        "shortest_alert_path": [
+            41,
+            42,
+            107,
+            68,
+            148
+        ]
+    },
+    {
+        "context": "To further investigate the incident, 'CommandAndControl' malware was detected on the targeted device. An attacker might be attempting to move laterally from another device on the network.",
+        "question": "Can you identify the AadUserId of the account related to the CommandAndControl malware that was detected during lateral movement?",
+        "answer": "731adb71-b11c-4bbf-850b-57989b350e96",
+        "solution": [
+            "Active malware was detected running or with persistence mechanisms on the machine associated with account `tgs2z` on `2024-07-04`.",
+            "Lateral movement detected using PSExec to the jump server at IP address `99.83.111.100` on `2024-07-10`.",
+            "Potential compromise and ransomware-like behavior detected on host with AadDeviceId `e5799261-6720-4297-961e-bd9ca4275033` on `2024-07-04`.",
+            "Command and control malware detected during lateral movement involving user with AadUserId `731adb71-b11c-4bbf-850b-57989b350e96` on `2024-07-04`."
+        ],
+        "start_alert": 150,
+        "end_alert": 127,
+        "start_entities": [
+            30,
+            19,
+            23,
+            111,
+            31,
+            29,
+            33,
+            24,
+            32,
+            92
+        ],
+        "end_entities": [
+            3
+        ],
+        "shortest_alert_path": [
+            150,
+            16,
+            174,
+            42,
+            157,
+            69,
+            127
+        ]
+    },
+    {
+        "context": "The Manatee Tempest activity tracked by Microsoft is a notorious Russia-based cybercriminal group that has been active since June 2014, and involved in various malicious activities such as drive-by downloads and ransomware deployment. A recent incident associated with this group involved a suspicious HTTP request to `vectorsandarrows.com` from the IP address `198.43.121.209` using the command line: `curl http://vectorsandarrows.com`, with process ID 6460. Additionally, system recovery setting tampering with the command `bcdedit /set recoveryenabled no` was observed, likely to hinder recovery options in case of system corruption.",
+        "question": "What is the process ID and the exact time when the `bcdedit /set recoveryenabled no` command was executed as part of the system recovery setting tampering?",
+        "answer": "8136__2024-06-20t09:10:48.0438707z",
+        "solution": [
+            "The account `dp5hn` is associated with activity from the Manatee Tempest cybercriminal group known for using tactics such as drive-by downloads, malvertising, and FakeUpdates to gain initial access.",
+            "A system recovery setting tampering attempt was detected with the command `bcdedit /set recoveryenabled no` executed by process ID `8136` on `2024-06-20t09:10:48.0438707z`, which might indicate an attempt to disable system recovery features on the device."
+        ],
+        "start_alert": 136,
+        "end_alert": 96,
+        "start_entities": [
+            4,
+            5,
+            99
+        ],
+        "end_entities": [
+            97
+        ],
+        "shortest_alert_path": [
+            136,
+            1,
+            96
+        ]
+    },
+    {
+        "context": "A significant security incident involved potentially compromised assets exhibiting ransomware-like behavior. This impacted several devices where an attacker might be operating using a specific user account, IP, or device to move laterally across the network and infect as many devices as possible with ransomware. The automated remediation action might be taken to disable the account or device used by the attacker. One of the detected entities was IP address `99.83.111.100`, associated with the script `get-userprttoken.ps1` on the host `vnevado-win11t`.",
+        "question": "Can you identify the URL associated with the blocked command and control behavior related to the malware infection?",
+        "answer": "http://vectorsandarrows.com/",
+        "solution": [
+            "There are potentially compromised assets exhibiting ransomware-like behavior associated with the user account having SID `S-1-5-21-1840191660-8534830288-125585561-1522`.",
+            "Command and Control (C2) behavior was blocked, linked to the URL `http://vectorsandarrows.com/`."
+        ],
+        "start_alert": 138,
+        "end_alert": 137,
+        "start_entities": [
+            42,
+            47,
+            48,
+            68,
+            69,
+            94,
+            95
+        ],
+        "end_entities": [
+            74
+        ],
+        "shortest_alert_path": [
+            138,
+            2,
+            137
+        ]
+    },
+    {
+        "context": "A security incident raised flags due to suspicious WMI process creation observed on a machine, which is indicative of possible malware activity. This was connected to a chain of processes including `get-userprttoken.ps1` and `curl` attempts. WMI is often utilized by malware to spawn new processes, breaking process trees and further infecting a machine.",
+        "question": "In relation to the attempt to access Primary Refresh Token (PRT), can you identify the name of the process involved in this activity?",
+        "answer": "browsercore.exe",
+        "solution": [
+            "There was a suspicious WMI process creation by the user with SID `S-1-5-21-1840191660-8534830288-125585561-1522`.",
+            "There was a possible attempt to access Primary Refresh Token (PRT) by a process with the extracted file name `browsercore.exe`."
+        ],
+        "start_alert": 117,
+        "end_alert": 118,
+        "start_entities": [
+            6,
+            11,
+            59,
+            77,
+            78,
+            89,
+            90
+        ],
+        "end_entities": [
+            40
+        ],
+        "shortest_alert_path": [
+            117,
+            2,
+            118
+        ]
+    },
+    {
+        "context": "On July 4, 2024, at 22:35:01, a security incident involving system recovery setting tampering was observed. The device `vnevado-win11t` with AadDeviceId `e5799261-6720-4297-961e-bd9ca4275033` was targeted. Command lines `vssblatemp.exe delete shadows /all` and `bcdedit /set recoveryenabled no` were executed, which may indicate that adversaries attempted to stop or delete system recovery features to prevent recovering a corrupted system.",
+        "question": "What is the IP address associated with the suspicious remote activity observed on this machine?",
+        "answer": "99.83.111.100",
+        "solution": [
+            "The user account `dp5hn` was observed tampering with system recovery settings, possibly attempting to delete or disable recovery features.",
+            "Suspicious remote activity was detected from IP address `99.83.111.100`, which could indicate attempts to initiate interactive sessions, modify files, pass WMI commands, create scheduled tasks, or other malicious activities."
+        ],
+        "start_alert": 79,
+        "end_alert": 140,
+        "start_entities": [
+            68,
+            69,
+            80,
+            81
+        ],
+        "end_entities": [
+            42
+        ],
+        "shortest_alert_path": [
+            79,
+            1,
+            140
+        ]
+    },
+    {
+        "context": "A recent security incident involved multiple attempts to access a Primary Refresh Token (PRT) which is a key artifact of Azure AD authentication on various devices. During the investigation, it was observed that a suspicious activity attempted to access PRT from the account associated with the user `tgs2z`, possibly moving laterally within the organization. The IP address involved in this incident was `107.224.99.179`, and one of the processes noted was `powershell.exe`. This investigation further revealed a Command and Control (C2) behavior that was blocked.",
+        "question": "What was the URL blocked due to Command and Control (C2) behavior in this incident?",
+        "answer": "http://vectorsandarrows.com/",
+        "solution": [
+            "There was a possible attempt to access the Primary Refresh Token (PRT) using the process `browsercore.exe`.",
+            "The account `dp5hn` was associated with a possible attempt to access the Primary Refresh Token (PRT).",
+            "Command and Control behavior was detected and blocked for the URL `http://vectorsandarrows.com/`."
+        ],
+        "start_alert": 36,
+        "end_alert": 137,
+        "start_entities": [
+            16,
+            17,
+            18,
+            20,
+            34,
+            35,
+            37,
+            38,
+            39
+        ],
+        "end_entities": [
+            74
+        ],
+        "shortest_alert_path": [
+            36,
+            40,
+            71,
+            1,
+            137
+        ]
+    },
+    {
+        "context": "A possible attempt to access the Primary Refresh Token (PRT) was detected on the host `vnevado-win11u` with AadDeviceId `bc00e484-d0e5-4da4-9472-95568cccc07e`. The process involved in this attempt was `browsercore.exe` (ProcessId: 1640), launched at `2024-06-20T09:32:12.1031042Z`. PRT is a key artifact of Azure AD authentication used for single sign-on across applications, and attackers may target it to move laterally or perform credential theft. For more information, read the Activity profile: Midnight Blizzard credential attacks Threat Analytics report on the Microsoft Security website.",
+        "question": "Can you provide the command line of the process that was created using WMI on the host?",
+        "answer": "vssblatemp.exe delete shadows /all",
+        "solution": [
+            "There was a possible attempt to access the Primary Refresh Token (PRT) associated with the Azure AD user with AadUserId `731adb71-b11c-4bbf-850b-57989b350e96`.",
+            "There was a suspicious WMI process creation observed with the process command line `vssblatemp.exe delete shadows /all` at `2024-06-20t09:29:40.8785892z` with Process ID `1900`."
+        ],
+        "start_alert": 118,
+        "end_alert": 145,
+        "start_entities": [
+            7,
+            8,
+            40,
+            119
+        ],
+        "end_entities": [
+            80
+        ],
+        "shortest_alert_path": [
+            118,
+            3,
+            145
+        ]
+    },
+    {
+        "context": "A security incident involving 'CommandAndControl' malware detected during lateral movement flagged a potential attacker trying to move laterally to the device `vnevado-win10r` from another network device. The malware was detected via the command line process `curl http://vectorsandarrows.com`, initiated by the account `dp5hn` with Sid `S-1-5-21-1840191660-8534830288-125585561-1522`.",
+        "question": "Can you identify the SID of the account involved in the suspicious remote activity on 2024-07-04 at 22:35:00.896765+00:00?",
+        "answer": "S-0-6-5",
+        "solution": [
+            "The user account with AadUserId `731adb71-b11c-4bbf-850b-57989b350e96` was involved in a lateral movement where 'CommandAndControl' malware was detected.",
+            "Suspicious remote activities were observed initiated by the user with SID `S-0-6-5`."
+        ],
+        "start_alert": 158,
+        "end_alert": 57,
+        "start_entities": [
+            1,
+            2,
+            3,
+            61,
+            64,
+            65
+        ],
+        "end_entities": [
+            47
+        ],
+        "shortest_alert_path": [
+            158,
+            3,
+            57
+        ]
+    },
+    {
+        "context": "During an investigation of a security incident, it was observed that 'CommandAndControl' malware was detected on the host `vnevado-win10r`, which might be an indication of an attacker attempting to move laterally from another network device. The process was initiated via the command `curl http://vectorsandarrows.com` with Process ID 1332. The incident is part of a larger campaign by the Manatee Tempest activity group, which is known for various cyber-attacks including the use of Cobalt Strike beacons for lateral movement and ransomware deployment.",
+        "question": "As part of the Manatee Tempest activity group, what is the IP address associated with their activity in this incident?",
+        "answer": "198.43.121.209",
+        "solution": [
+            "The 'CommandAndControl' malware was detected on a device. An attacker might be attempting to move laterally to this device from another device on the network. The associated user account has the SID `S-1-5-21-1840191660-8534830288-125585561-1522`.",
+            "Manatee Tempest, a Russia-based cybercriminal group active since June 2014, was identified. This group was responsible for the Dridex banking trojan and various other malvertising and infection methods. They have been observed partnering with Mustard Tempest to facilitate initial access. They use the IP address `198.43.121.209` for their activities."
+        ],
+        "start_alert": 158,
+        "end_alert": 0,
+        "start_entities": [
+            61,
+            64,
+            65
+        ],
+        "end_entities": [
+            5
+        ],
+        "shortest_alert_path": [
+            158,
+            2,
+            0
+        ]
+    },
+    {
+        "context": "An active unknown malware was detected, which assigned higher severity ratings due to its active state and potential persistence mechanisms. This malware was running on an unspecified host and included processes involving mimikatz.exe and cmd.exe, indicating credential theft activities. Following this malware detection, a possible attempt to access Primary Refresh Token (PRT) was identified, signifying that attackers could be trying to acquire this Azure AD authentication artifact to perform lateral movements or credential theft.",
+        "question": "Can you identify the AadUserId associated with the possible attempt to access the Primary Refresh Token (PRT)?",
+        "answer": "731adb71-b11c-4bbf-850b-57989b350e96",
+        "solution": [
+            "Active malware was detected on the host `vnevado-win10v`.",
+            "There was a possible attempt to access a Primary Refresh Token (PRT) using the process `browsercore.exe`.",
+            "The account with AadUserId `731adb71-b11c-4bbf-850b-57989b350e96` was associated with a possible attempt to access a Primary Refresh Token (PRT)."
+        ],
+        "start_alert": 150,
+        "end_alert": 82,
+        "start_entities": [
+            23,
+            111,
+            24,
+            31,
+            29,
+            92,
+            19,
+            32,
+            30,
+            33
+        ],
+        "end_entities": [
+            3
+        ],
+        "shortest_alert_path": [
+            150,
+            34,
+            36,
+            40,
+            82
+        ]
+    },
+    {
+        "context": "A security incident involving system recovery setting tampering was observed on the device with name `vnevado-win10r`. The incident involved processes `vssblatemp.exe` and `bcdedit.exe` being executed on the host `vnevado-win10r` to potentially disrupt recovery options. Additionally, suspicious hands-on keyboard user behavior was detected around the same time, which might indicate that the user has been compromised.",
+        "question": "Following these activities, there was an indication of ransomware behavior detected in the file system on a device. Can you determine the AadDeviceId of the host where this ransomware activity was detected?",
+        "answer": "e5799261-6720-4297-961e-bd9ca4275033",
+        "solution": [
+            "The account `dp5hn` was responsible for tampering with system recovery settings.",
+            "The same host device with AadDeviceId `e5799261-6720-4297-961e-bd9ca4275033` exhibited suspicious hands-on keyboard behavior, indicating a potential user compromise.",
+            "Ransomware behavior was detected on the host with AadDeviceId `e5799261-6720-4297-961e-bd9ca4275033`, indicating potential mass encryption of files by ransomware."
+        ],
+        "start_alert": 120,
+        "end_alert": 105,
+        "start_entities": [
+            60,
+            63,
+            64,
+            65
+        ],
+        "end_entities": [
+            69
+        ],
+        "shortest_alert_path": [
+            120,
+            1,
+            66,
+            69,
+            105
+        ]
+    },
+    {
+        "context": "An alert reported that the LSASS process memory was modified, potentially to bypass security measures. During this incident, a suspicious process `notepad.exe` was observed running on host `vnevado-win10v` with specific command line arguments. Another alert was subsequently triggered indicating that a Windows Sysinternals tool was renamed and executed.",
+        "question": "From the subsequent alert, what was the name of the Windows Sysinternals tool that was renamed before it was launched?",
+        "answer": "mimikatz.exe",
+        "solution": [
+            "The LSASS process memory was modified from IP address `107.224.99.179`.",
+            "A Windows Sysinternals tool was renamed to `mimikatz.exe` and then launched, which might indicate malicious activity."
+        ],
+        "start_alert": 115,
+        "end_alert": 122,
+        "start_entities": [
+            35,
+            34,
+            17,
+            20,
+            16,
+            18,
+            30,
+            32,
+            31
+        ],
+        "end_entities": [
+            19
+        ],
+        "shortest_alert_path": [
+            115,
+            20,
+            122
+        ]
+    },
+    {
+        "context": "In this investigation, there is a possible attempt to access Primary Refresh Token (PRT) that was detected as part of this incident. This is related to Azure AD authentication security threats.",
+        "question": "What is the Azure Active Directory (AAD) device ID of the host where the possible attempt to access the Primary Refresh Token (PRT) was detected?",
+        "answer": "bc00e484-d0e5-4da4-9472-95568cccc07e",
+        "solution": [
+            "All file snapshots and shadow copies have been deleted via WMI or VSSAdmin using the account with SID `S-1-5-21-1840191660-8534830288-125585561-1522`, which is a common tactic during Ransomware infection.",
+            "A possible attempt to access Primary Refresh Token (PRT) has been detected on the host with AadDeviceId `bc00e484-d0e5-4da4-9472-95568cccc07e`."
+        ],
+        "start_alert": 70,
+        "end_alert": 118,
+        "start_entities": [
+            11,
+            60,
+            64,
+            65
+        ],
+        "end_entities": [
+            8
+        ],
+        "shortest_alert_path": [
+            70,
+            2,
+            118
+        ]
+    },
+    {
+        "context": "A security incident involving multiple malicious activities was detected. It started with a known credential theft tool, `mimikatz.exe`, being executed at two different times, indicating an attempt to dump users' credentials. This activity led to lateral movement attempts to the jump server and suspicious remote activities on the machine. Subsequent analysis revealed command and control behavior of malware which was blocked.",
+        "question": "What was the URL associated with the command and control behavior detected in the end alert?",
+        "answer": "http://vectorsandarrows.com/",
+        "solution": [
+            "A known credential theft tool execution was detected on the host with AadDeviceId `4d8d23e9-a77d-4e33-9435-b8c457e57ca1`.",
+            "There was lateral movement to the jump server from the IP address `99.83.111.100` using PSExec.",
+            "Suspicious remote activity was observed on the account `dp5hn`.",
+            "Command and Control behavior was blocked for the URL `http://vectorsandarrows.com/`."
+        ],
+        "start_alert": 91,
+        "end_alert": 73,
+        "start_entities": [
+            23,
+            24,
+            92
+        ],
+        "end_entities": [
+            74
+        ],
+        "shortest_alert_path": [
+            91,
+            35,
+            174,
+            42,
+            107,
+            1,
+            73
+        ]
+    },
+    {
+        "context": "A potential security incident involving a possible attempt to access a Primary Refresh Token (PRT) was detected. A file `browsercore.exe` was launched on the host `vnevado-win11t` by an account with the name `dp5hn` and SID `S-1-5-21-1840191660-8534830288-125585561-1522`. The process ID for this event was `7036`. This activity may have been an attempt by attackers to access the PRT to move laterally within the organization or perform credential theft. The Primary Refresh Token is a key artifact of Azure AD authentication on various platforms and is essential for single sign-on (SSO) across applications.",
+        "question": "Can you identify the AadDeviceId related to this alert?",
+        "answer": "e5799261-6720-4297-961e-bd9ca4275033",
+        "solution": [
+            "A possible attempt to access the Primary Refresh Token (PRT) was detected on the host with AadDeviceId `e5799261-6720-4297-961e-bd9ca4275033`."
+        ],
+        "start_alert": 82,
+        "end_alert": 82,
+        "start_entities": [
+            1,
+            2,
+            40,
+            3,
+            68,
+            83
+        ],
+        "end_entities": [
+            69
+        ],
+        "shortest_alert_path": [
+            82
+        ]
+    },
+    {
+        "context": "During a recent security investigation, it was found that a malicious credential theft tool `mimikatz.exe` was executed with the process ID 4464 on 2024-06-20 at 09:03:04.6442161, originating from IP address `107.224.99.179`. The command line included attempts to leverage credentials from the domain `vnevado.alpineskihouse.co`. This execution was flagged on 2024-07-04 at 22:35:03.869406+00:00 for its intent to dump user credentials. Subsequently, there was a lateral movement attempt to the jump server `Vnevado-jump` on 2024-07-10 at 11:24:45.260113+00:00.",
+        "question": "During this investigation, a potentially compromised user account was identified. Can you provide the SID of the user account that may be operating with ransomware-like behavior?",
+        "answer": "S-1-5-21-1840191660-8534830288-125585561-1522",
+        "solution": [
+            "A known credential theft tool execution command was detected on the account with the name `tgs2z`.",
+            "Lateral movement to the jump server `Vnevado-jump` was performed from the IP address `99.83.111.100`.",
+            "The account with SID `S-1-5-21-1840191660-8534830288-125585561-1522` was exhibiting ransomware-like behavior, impacting several devices."
+        ],
+        "start_alert": 156,
+        "end_alert": 138,
+        "start_entities": [
+            20,
+            24,
+            30,
+            31,
+            111
+        ],
+        "end_entities": [
+            2
+        ],
+        "shortest_alert_path": [
+            156,
+            16,
+            174,
+            42,
+            138
+        ]
+    },
+    {
+        "context": "A security incident involving an attempt to access a Primary Refresh Token (PRT) was detected. The PRT is a key artifact of Azure AD authentication on various devices, including Windows 10. The incident involved a device with HostName `vnevado-win10s` and AadDeviceId `f5b847aa-8712-4bf6-b4f7-ed6cd89e1505`, where the process `browsercore.exe` (ProcessId `2676` created at `2024-06-20T09:10:59.867384Z`) was running. Attackers may use this to move laterally within the organization.",
+        "question": "Following this incident, 'CommandAndControl' malware was detected on another device during lateral movement. What is the AadDeviceId of this affected device?",
+        "answer": "bc00e484-d0e5-4da4-9472-95568cccc07e",
+        "solution": [
+            "A possible attempt to access Primary Refresh Token (PRT) has been detected for the user with AadUserId `731adb71-b11c-4bbf-850b-57989b350e96`.",
+            "'CommandAndControl' malware was detected on the device with AadDeviceId `bc00e484-d0e5-4da4-9472-95568cccc07e`, indicating an attempt of lateral movement."
+        ],
+        "start_alert": 113,
+        "end_alert": 128,
+        "start_entities": [
+            12,
+            13,
+            40,
+            114
+        ],
+        "end_entities": [
+            8
+        ],
+        "shortest_alert_path": [
+            113,
+            3,
+            128
+        ]
+    },
+    {
+        "context": "A security incident was detected involving suspicious 'GenRansom' behavior on the host 'vnevado-win11t'. This malware can perform harmful actions and spread across machines. The active malware was found running or having persistence mechanisms in place, necessitating urgent precautionary measures. Following this, a system recovery setting tampering alert was observed on the device, where adversaries might be disabling recovery features using native Windows utilities.",
+        "question": "There was suspicious remote activity involving this malware incident. Can you identify the AadDeviceId of the host involved in this suspicious remote activity?",
+        "answer": "bc00e484-d0e5-4da4-9472-95568cccc07e",
+        "solution": [
+            "Suspicious 'GenRansom' behavior was detected on device with AadDeviceId `e5799261-6720-4297-961e-bd9ca4275033`.",
+            "System recovery setting tampering was observed with the process `vssblatemp.exe`.",
+            "Suspicious remote activity was detected on device with AadDeviceId `bc00e484-d0e5-4da4-9472-95568cccc07e`."
+        ],
+        "start_alert": 148,
+        "end_alert": 88,
+        "start_entities": [
+            68,
+            69
+        ],
+        "end_entities": [
+            8
+        ],
+        "shortest_alert_path": [
+            148,
+            69,
+            79,
+            11,
+            88
+        ]
+    },
+    {
+        "context": "A security incident regarding System recovery setting tampering and possible attempts to access Primary Refresh Token (PRT) was reported. Specifically, there was an attempt to disable system recovery features using `vssblatemp.exe` and `bcdedit` on the host `vnevado-win11u` with a user account having the SID `S-1-5-21-1840191660-8534830288-125585561-1522`. Notably, it included a potential access of PRTs, as mentioned in the Midnight Blizzard credential attacks Threat Analytics report.",
+        "question": "In relation to the malicious credential theft tool execution detected in this multi-stage incident, can you identify the file name of the tool that was executed?",
+        "answer": "mimikatz.exe",
+        "solution": [
+            "The system recovery settings tampering was attempted by the user with AadUserId `731adb71-b11c-4bbf-850b-57989b350e96`.",
+            "An attempt to access Primary Refresh Token (PRT) was detected, associated with the process `browsercore.exe`.",
+            "Another attempt to access Primary Refresh Token (PRT) was detected, originating from the IP address `107.224.99.179`.",
+            "A malicious credential theft tool `mimikatz.exe` was executed."
+        ],
+        "start_alert": 76,
+        "end_alert": 156,
+        "start_entities": [
+            1,
+            2,
+            3,
+            7,
+            8,
+            11,
+            77,
+            78
+        ],
+        "end_entities": [
+            24
+        ],
+        "shortest_alert_path": [
+            76,
+            3,
+            113,
+            40,
+            36,
+            20,
+            156
+        ]
+    },
+    {
+        "context": "A security incident involving the Manatee Tempest activity group was reported. This Russia-based cybercriminal group, which has been active since June 2014, is known for malware campaigns including the Dridex banking trojan. They often gain initial access through methods such as drive-by downloads and malvertising, facilitated by their partnership with Mustard Tempest. As part of this security incident, a suspicious WMI process creation was observed on the machine `vnevado-win10r`, which might be an indicator of malware using WMI to spawn new processes and further infect the machine.",
+        "question": "Can you provide the command line details of the suspicious WMI process observed on the machine?",
+        "answer": "7332__2024-06-20t09:32:01.3894288z__bcdedit /set bootstatuspolicy ignoreallfailures",
+        "solution": [
+            "The Russia-based cybercriminal group Manatee Tempest is involved in an activity targeting an account with SID `S-1-5-21-1840191660-8534830288-125585561-1522`.",
+            "A suspicious WMI process creation was observed with Process ID `7332` at `2024-06-20t09:32:01.3894288z` using the command line `bcdedit /set bootstatuspolicy ignoreallfailures`."
+        ],
+        "start_alert": 135,
+        "end_alert": 117,
+        "start_entities": [
+            4,
+            5,
+            61,
+            64,
+            65
+        ],
+        "end_entities": [
+            89
+        ],
+        "shortest_alert_path": [
+            135,
+            2,
+            117
+        ]
+    },
+    {
+        "context": "A recent security incident involved the modification of the LSASS process memory. This process enforces security policy by verifying user logons and password changes. Attackers might modify LSASS memory to bypass security mechanisms or circumvent legitimate checks. In the same incident, the device `vnevado-win10v` showed signs of the Mimikatz hacktool being detected.",
+        "question": "What is the name of the credential theft tool detected on the device `vnevado-win10v`?",
+        "answer": "mimikatz.exe",
+        "solution": [
+            "The LSASS process memory was modified on host `vnevado-win10v`.",
+            "The Mimikatz credential theft tool, known as mimikatz.exe, was detected on the same host `vnevado-win10v`."
+        ],
+        "start_alert": 115,
+        "end_alert": 151,
+        "start_entities": [
+            24,
+            32,
+            34,
+            31,
+            35,
+            30,
+            17,
+            18,
+            20
+        ],
+        "end_entities": [
+            19
+        ],
+        "shortest_alert_path": [
+            115,
+            34,
+            151
+        ]
+    },
+    {
+        "context": "A security incident involving system recovery setting tampering has been observed where a file `vssblatemp.exe` was launched on host `vnevado-win10s`, indicating potential adversary tampering to delete or remove built-in operating system data and turn off recovery services. Another file `bcdedit.exe` was also executed as part of this activity.",
+        "question": "Following this alert regarding system tampering, there was also a command and control behavior blocked. Can you identify the URL associated with the blocked behavior?",
+        "answer": "http://vectorsandarrows.com/",
+        "solution": [
+            "The system recovery setting tampering was attempted by the account `dp5hn`.",
+            "A Command and Control behavior from the URL `http://vectorsandarrows.com/` was detected and blocked."
+        ],
+        "start_alert": 96,
+        "end_alert": 149,
+        "start_entities": [
+            10,
+            11,
+            12,
+            13,
+            97
+        ],
+        "end_entities": [
+            74
+        ],
+        "shortest_alert_path": [
+            96,
+            1,
+            149
+        ]
+    },
+    {
+        "context": "On 2024-07-04 at 22:35:03.423858, a possible ransomware activity based on a known malicious extension was detected. Numerous file system changes were observed on the device `vnevado-win11u`. These changes involved appending file extensions such as `ponceau.7z.lockbit`, `kiters.7z.lockbit`, and `unstreaming.xlsx.lockbit`. This activity might indicate mass encryption of files by ransomware.",
+        "question": "What is the AadDeviceId of the host where 'CommandAndControl' malware was detected during lateral movement at 2024-07-04 22:35:03.912589?",
+        "answer": "9d4887ba-0b69-47d6-89bc-9b32787f379e",
+        "solution": [
+            "There is possible ransomware activity detected on an account with AadUserId `731adb71-b11c-4bbf-850b-57989b350e96`, involving file system changes indicative of mass encryption of files.",
+            "'CommandAndControl' malware was detected on the device with AadDeviceId `9d4887ba-0b69-47d6-89bc-9b32787f379e`, suggesting that an attacker might be attempting lateral movement to this device from another device on the network."
+        ],
+        "start_alert": 146,
+        "end_alert": 158,
+        "start_entities": [
+            49,
+            44,
+            50,
+            43,
+            46,
+            7,
+            8,
+            54,
+            48,
+            51
+        ],
+        "end_entities": [
+            65
+        ],
+        "shortest_alert_path": [
+            146,
+            3,
+            158
+        ]
+    },
+    {
+        "context": "A recent security incident involved potentially compromised assets exhibiting ransomware-like behavior impacting multiple devices. The attacker might have been using various user accounts, IP addresses, or devices to spread ransomware across the network, and automated remediation actions may have been activated to address the affected entities. One of the devices involved in this incident is identified with the hostname `vnevado-win11u`.",
+        "question": "During this incident, there was also a detected attempt to access the Primary Refresh Token (PRT). What is the AadDeviceId of the host involved in this attempt?",
+        "answer": "9d4887ba-0b69-47d6-89bc-9b32787f379e",
+        "solution": [
+            "The user account with SID `S-1-5-21-1840191660-8534830288-125585561-1522` is potentially compromised and exhibiting ransomware-like behavior, affecting multiple devices.",
+            "There was a possible attempt to access a Primary Refresh Token (PRT) from the device with AadDeviceId `9d4887ba-0b69-47d6-89bc-9b32787f379e`."
+        ],
+        "start_alert": 100,
+        "end_alert": 71,
+        "start_entities": [
+            42,
+            49,
+            8,
+            44,
+            47,
+            48,
+            52,
+            51,
+            45,
+            7
+        ],
+        "end_entities": [
+            65
+        ],
+        "shortest_alert_path": [
+            100,
+            2,
+            71
+        ]
+    },
+    {
+        "context": "On 2024-07-04, there was a security incident involving suspicious WMI process creation on a machine. Malware often uses WMI to spawn new processes, breaking process trees and further infecting a machine. During this incident, various commands and scripts were executed, including `vssblatemp.exe delete shadows /all`, `bcdedit /set bootstatuspolicy ignoreallfailures`, and a PowerShell script `get-userprttoken.ps1`. This activity might be connected to a ransomware attack.",
+        "question": "What is the IP address from which the ransomware payload was remotely launched?",
+        "answer": "99.83.111.100",
+        "solution": [
+            "A suspicious WMI process creation was observed on the machine by the user with SID `S-1-5-21-1840191660-8534830288-125585561-1522`.",
+            "A ransomware payload was remotely launched from IP address `99.83.111.100`."
+        ],
+        "start_alert": 117,
+        "end_alert": 139,
+        "start_entities": [
+            6,
+            11,
+            59,
+            77,
+            78,
+            89,
+            90
+        ],
+        "end_entities": [
+            42
+        ],
+        "shortest_alert_path": [
+            117,
+            2,
+            139
+        ]
+    },
+    {
+        "context": "A security incident involving suspected tampering with system recovery settings using various commands and processes, including `vssblatemp.exe` to delete all volume shadow copies, was observed on device `vnevado-win11t` (AAD Device ID: `e5799261-6720-4297-961e-bd9ca4275033`). During the incident, the process `vssblatemp.exe` was executed with command: `vssblatemp.exe delete shadows /all`. This is part of an adversarial attempt to prevent the recovery of corrupted systems by deleting built-in operating system data or turning off recovery services. The incident was detected on 2024-07-04. This tampering could deny access to available backups and recovery options, augmenting the effects of data destruction or data encryption.",
+        "question": "Can you identify the executable file name of the process that attempted to access the Primary Refresh Token (PRT) as part of the related alerts?",
+        "answer": "browsercore.exe",
+        "solution": [
+            "There was system recovery setting tampering by the Azure AD user with AadUserId `731adb71-b11c-4bbf-850b-57989b350e96`.",
+            "There was a possible attempt to access the Primary Refresh Token (PRT) involving the process `browsercore.exe`."
+        ],
+        "start_alert": 79,
+        "end_alert": 118,
+        "start_entities": [
+            11,
+            68,
+            69,
+            80,
+            81
+        ],
+        "end_entities": [
+            40
+        ],
+        "shortest_alert_path": [
+            79,
+            3,
+            118
+        ]
+    },
+    {
+        "context": "A Mimikatz credential theft tool was detected on a device. Mimikatz is a credential theft tool that can harvest plaintext passwords, password hashes, smartcard PINs, and Kerberos tickets. Attackers may use this tool to harvest credentials to log into this or other devices on the network by impersonating a valid user. The detection of Mimikatz is part of a broader security investigation. Additionally, there was later evidence of lateral movement to the jump server `Vnevado-jump` using PSExec.",
+        "question": "A related alert indicated a possible compromised user account dropping ransomware-related files. Can you identify the name of the specific file associated with the ransomware activity?",
+        "answer": "get-userprttoken.ps1",
+        "solution": [
+            "The Mimikatz credential theft tool was detected on the device with AadDeviceId `4d8d23e9-a77d-4e33-9435-b8c457e57ca1`.",
+            "Lateral movement to the jump server occurred using PSExec to IP address `99.83.111.100`.",
+            "A compromised user account was observed dropping a ransomware-related file named `get-userprttoken.ps1` on several devices."
+        ],
+        "start_alert": 151,
+        "end_alert": 93,
+        "start_entities": [
+            153,
+            23,
+            32,
+            19,
+            154,
+            111,
+            24,
+            29,
+            20,
+            30
+        ],
+        "end_entities": [
+            48
+        ],
+        "shortest_alert_path": [
+            151,
+            35,
+            174,
+            42,
+            93
+        ]
+    },
+    {
+        "context": "A security incident involving suspicious 'GenRansom' behavior was detected on the host `vnevado-win11t` with AadDeviceId `e5799261-6720-4297-961e-bd9ca4275033`. Malware activity was found, necessitating precautionary measures. Additionally, there was an alert about system recovery setting tampering, where adversaries might be attempting to delete or remove built-in operating system data and turn off recovery services to prevent recovering a corrupted system.",
+        "question": "During this incident, what specific command line was observed that could indicate system recovery setting tampering on the device?",
+        "answer": "4312__2024-06-20t09:10:48.0676225z__bcdedit /set recoveryenabled no",
+        "solution": [
+            "There was suspicious 'GenRansom' behavior detected on the device with AadDeviceId `e5799261-6720-4297-961e-bd9ca4275033`.",
+            "Lateral movement using SMB remote file access was blocked for the user with SID `S-1-5-21-1840191660-8534830288-125585561-1522`.",
+            "System recovery setting tampering was observed with the process having ProcessId `4312`, created at `2024-06-20t09:10:48.0676225z`, and the command line `bcdedit /set recoveryenabled no`."
+        ],
+        "start_alert": 148,
+        "end_alert": 120,
+        "start_entities": [
+            68,
+            69
+        ],
+        "end_entities": [
+            63
+        ],
+        "shortest_alert_path": [
+            148,
+            69,
+            171,
+            2,
+            120
+        ]
+    },
+    {
+        "context": "There was a possible attempt to access the Primary Refresh Token (PRT) on a device via the process `browsercore.exe` with the Process ID 1640, which occurred on 2024-06-20 at 09:32:12 UTC. This security incident might have been part of a larger effort to move laterally within the organization or perform credential theft using Azure AD authentication tokens across Windows 10, Windows Server 2016, iOS, and Android devices. There is also evidence of tampering with system recovery settings on the device, indicating adversaries were attempting to disable or remove recovery options to prevent system recovery, potentially augmenting the effects of data destruction or encryption for impact.",
+        "question": "What is the command line used by the process that tampered with the system recovery settings?",
+        "answer": "bcdedit /set recoveryenabled no",
+        "solution": [
+            "A possible attempt to access Primary Refresh Token (PRT) was detected for the Azure AD user with the AadUserId `731adb71-b11c-4bbf-850b-57989b350e96`.",
+            "System recovery setting tampering was observed with the command `bcdedit /set recoveryenabled no` executed by process with Process ID `4828` on `2024-06-20T09:31:59.6743318Z`."
+        ],
+        "start_alert": 118,
+        "end_alert": 76,
+        "start_entities": [
+            40,
+            119
+        ],
+        "end_entities": [
+            78
+        ],
+        "shortest_alert_path": [
+            118,
+            3,
+            76
+        ]
+    },
+    {
+        "context": "A recent malware incident was detected and blocked which exhibited Command and Control behavior. The malware ran a `curl` command to fetch content from a URL `http://vectorsandarrows.com/` on the host `vnevado-win10r`. This malware is considered active, thus precautionary measures should be taken to check for any signs of infection.",
+        "question": "As part of this incident, a ransomware payload was also remotely launched. Can you identify the IP address involved in the ransomware activity?",
+        "answer": "99.83.111.100",
+        "solution": [
+            "A command and control behavior associated with malware was blocked on the account with SID `S-1-5-21-1840191660-8534830288-125585561-1522`.",
+            "A ransomware payload was remotely launched from IP address `99.83.111.100`, potentially attempting to encrypt content on the device."
+        ],
+        "start_alert": 137,
+        "end_alert": 139,
+        "start_entities": [
+            61,
+            64,
+            65,
+            74
+        ],
+        "end_entities": [
+            42
+        ],
+        "shortest_alert_path": [
+            137,
+            2,
+            139
+        ]
+    },
+    {
+        "context": "A security incident indicates that a possible compromised user account was observed delivering ransomware-related files like `ponceau.7z`, `ponceau.7z.lockbit`, `earlap.doc`, and `earlap.doc.lockbit` on several devices. An attacker may have used this compromised account to move laterally across the network and infect devices with ransomware. Automated remediation actions may be taken to disable the compromised account.",
+        "question": "As per the recent alert, what is the name of the file that shows the potentially compromised assets exhibiting ransomware-like behavior?",
+        "answer": "unstreaming.xlsx",
+        "solution": [
+            "A user account was observed dropping a ransomware-related file `syncretic.7z.lockbit` on several devices.",
+            "Potentially compromised assets are exhibiting ransomware-like behavior with a file named `unstreaming.xlsx`, impacting several devices."
+        ],
+        "start_alert": 41,
+        "end_alert": 147,
+        "start_entities": [
+            49,
+            50,
+            51,
+            52
+        ],
+        "end_entities": [
+            53
+        ],
+        "shortest_alert_path": [
+            41,
+            46,
+            147
+        ]
+    },
+    {
+        "context": "The security incident involves suspicious WMI process creation, which is a common tactic used by malware to break process trees and infect a machine. We observed several processes on the `vnevado-win10s` host, including suspicious commands such as `vssblatemp.exe delete shadows /all`, `bcdedit /set recoveryenabled no`, `curl http://vectorsandarrows.com`, and `powershell -file c:\\scripts\\get-userprttoken.ps1`. These commands were executed around the same time frame, raising concerns about potential malicious activities.",
+        "question": "Can you identify the command line details for the process that reflects the suspicious WMI process creation on the same machine `vnevado-win10s`?",
+        "answer": "4828__2024-06-20t09:31:59.6743318z__bcdedit /set recoveryenabled no",
+        "solution": [
+            "A suspicious WMI process creation was observed involving the execution of the PowerShell script `get-userprttoken.ps1`.",
+            "A suspicious WMI process creation was observed with the command line `bcdedit /set recoveryenabled no` at `2024-06-20t09:31:59.6743318z` with Process ID `4828`."
+        ],
+        "start_alert": 144,
+        "end_alert": 117,
+        "start_entities": [
+            10,
+            12,
+            13,
+            97,
+            99,
+            141,
+            142
+        ],
+        "end_entities": [
+            78
+        ],
+        "shortest_alert_path": [
+            144,
+            59,
+            117
+        ]
+    },
+    {
+        "context": "As part of a multi-stage ransomware incident detection, suspicious file system changes were observed on the host `vnevado-win11t`, indicating potential ransomware activity that suggests mass file encryption. This finding aligns with the insights provided in relevant Threat Analytics reports on ransomware behavior.",
+        "question": "A related alert indicates possible ransomware activity involving a known malicious file extension. Can you identify the file involved in this activity?",
+        "answer": "get-userprttoken.ps1",
+        "solution": [
+            "Suspicious file system changes indicating potential ransomware activity were detected on host `vnevado-win11t`.",
+            "Possible ransomware activity was identified based on the malicious file `get-userprttoken.ps1` with known malicious extensions."
+        ],
+        "start_alert": 105,
+        "end_alert": 159,
+        "start_entities": [
+            68,
+            69
+        ],
+        "end_entities": [
+            48
+        ],
+        "shortest_alert_path": [
+            105,
+            68,
+            159
+        ]
+    },
+    {
+        "context": "A security incident involving a possible attempt to access Primary Refresh Token (PRT) was detected. The file `browsercore.exe` was launched with the command line `browsercore.exe` on process ID 1640 at 2024-06-20T09:32:12.1031042Z. The PRT is a key artifact of Azure AD authentication used to enable single sign-on (SSO) across devices. Attackers might attempt to access this token to move laterally within the organization or perform credential theft. For more information, check the Midnight Blizzard credential attacks Threat Analytics report.",
+        "question": "Can you identify the Security Identifier (Sid) associated with the suspicious remote activity observed in this incident?",
+        "answer": "S-0-6-5",
+        "solution": [
+            "There was a possible attempt to access Primary Refresh Token (PRT) for the user with AadUserId `731adb71-b11c-4bbf-850b-57989b350e96`.",
+            "Suspicious remote activity was detected involving the account with SID `S-0-6-5`."
+        ],
+        "start_alert": 118,
+        "end_alert": 88,
+        "start_entities": [
+            40,
+            119
+        ],
+        "end_entities": [
+            47
+        ],
+        "shortest_alert_path": [
+            118,
+            3,
+            88
+        ]
+    },
+    {
+        "context": "A security incident was detected involving 'CommandAndControl' malware which attempted lateral movement on the host `vnevado-win10s` with AadDeviceId `f5b847aa-8712-4bf6-b4f7-ed6cd89e1505`. Additionally, a process with ProcessId `6460` was observed running the command `curl http://vectorsandarrows.com`. Further investigation revealed another process with ProcessId 4828 that was executed.",
+        "question": "On the same host `vnevado-win10s`, there was a tampering activity observed. Can you identify the command that was executed to disable the automatic Windows recovery features?",
+        "answer": "bcdedit /set recoveryenabled no",
+        "solution": [
+            "The 'CommandAndControl' malware was detected on a device associated with the account `dp5hn`.",
+            "System recovery settings were tampered with using the `bcdedit` command line `bcdedit /set recoveryenabled no` at `2024-06-20T09:31:59.6743318Z`, with Process ID `4828`."
+        ],
+        "start_alert": 98,
+        "end_alert": 76,
+        "start_entities": [
+            12,
+            13,
+            99
+        ],
+        "end_entities": [
+            78
+        ],
+        "shortest_alert_path": [
+            98,
+            1,
+            76
+        ]
+    },
+    {
+        "context": "A possible ransomware activity based on a known malicious extension has been observed on a device where numerous file system changes involved appending a suspicious file extension. Files involved include `get-userprttoken.ps1`, `characterical.zip`, and `characterical.zip.lockbit`. The IP address associated with this activity is `99.83.111.100`, and the account SID is `S-0-6-5`. The activity is indicative of mass encryption of files by ransomware.",
+        "question": "Regarding the system recovery setting tampering, which process was used to delete all volume shadow copies on the system?",
+        "answer": "vssblatemp.exe",
+        "solution": [
+            "There is a possible ransomware activity on the host `vnevado-win11t` that involves mass encryption of files.",
+            "System recovery setting tampering by running the command `vssblatemp.exe delete shadows /all` was observed on the device at `2024-06-20t09:29:40.8785892z` with Process ID `1900`."
+        ],
+        "start_alert": 159,
+        "end_alert": 79,
+        "start_entities": [
+            42,
+            47,
+            48,
+            94,
+            95
+        ],
+        "end_entities": [
+            80
+        ],
+        "shortest_alert_path": [
+            159,
+            68,
+            79
+        ]
+    },
+    {
+        "context": "A security incident has been observed involving System recovery setting tampering on the device `vnevado-win11u` along with actions aimed at deleting built-in operating system data and disabling recovery services using `vssblatemp.exe` and `bcdedit.exe` commands. The incident indicates an attempt to prevent recovering a corrupted system, potentially associated with Data Destruction and Ransomware infection patterns.",
+        "question": "In the context of this security incident, can you provide the command line that was used to delete all file snapshots and shadow copies?",
+        "answer": "5512__2024-06-20t09:10:50.2899021z__vssblatemp.exe delete shadows /all",
+        "solution": [
+            "The account named `dp5hn` was involved in tampering with system recovery settings, potentially disabling or deleting system recovery features to prevent system recovery.",
+            "The process with ID `5512` was detected executing the command `vssblatemp.exe delete shadows /all` at `2024-06-20t09:10:50.2899021z`, indicating that all file snapshots and shadow copies were deleted, which is common during ransomware infection."
+        ],
+        "start_alert": 76,
+        "end_alert": 9,
+        "start_entities": [
+            7,
+            8,
+            77,
+            78
+        ],
+        "end_entities": [
+            10
+        ],
+        "shortest_alert_path": [
+            76,
+            1,
+            9
+        ]
+    },
+    {
+        "context": "During a potential ransomware incident, several suspicious file modifications were detected on a device. These modifications involved appending a known malicious extension, indicative of mass file encryption. The related files include `kiters.7z.lockbit`, `ponceau.7z.lockbit`, `unstreaming.xlsx.lockbit`, `earlap.doc.lockbit`, among others. Additionally, an IP address `99.83.111.100` and a host with an AadDeviceId `bc00e484-d0e5-4da4-9472-95568cccc07e` are associated with this alert.",
+        "question": "In connection to the potential ransomware activity, it was found that all file backups were deleted. Can you determine the name of the process that executed this deletion?",
+        "answer": "vssblatemp.exe",
+        "solution": [
+            "Possible ransomware activity has been detected involving the mass encryption of files indicated by a known malicious extension, associated with the account with SID `S-1-5-21-1840191660-8534830288-125585561-1522`.",
+            "File backups, such as file snapshots and shadow copies, were deleted via WMI or VSSAdmin using the process `vssblatemp.exe`, which is common during ransomware infections."
+        ],
+        "start_alert": 146,
+        "end_alert": 9,
+        "start_entities": [
+            44,
+            50,
+            45,
+            48,
+            49,
+            42,
+            51,
+            8,
+            54,
+            52
+        ],
+        "end_entities": [
+            11
+        ],
+        "shortest_alert_path": [
+            146,
+            2,
+            9
+        ]
+    },
+    {
+        "context": "A recent incident occurred where all file snapshots and shadow copies were deleted via WMI or VSSAdmin on the host `vnevado-win11u` using the file `vssblatemp.exe`. This is a common action performed during a ransomware infection. Additionally, in relation to this incident, there is a historical context that the Manatee Tempest group, a Russia-based cybercriminal group known for its Dridex banking trojan campaigns, was involved. They have been active since June 2014 and use sophisticated methods such as drive-by download attacks and the BLISTER loader to deliver Cobalt Strike beacons.",
+        "question": "What is the IP address associated with the malicious Manatee Tempest activity?",
+        "answer": "198.43.121.209",
+        "solution": [
+            "File backups were deleted via WMI or VSSAdmin by a user with SID `S-1-5-21-1840191660-8534830288-125585561-1522`, which is a common tactic during a ransomware infection.",
+            "A suspicious IP address `198.43.121.209` was associated with the Manatee Tempest activity group, known for malicious activities such as malware campaigns and ransomware deployment."
+        ],
+        "start_alert": 121,
+        "end_alert": 75,
+        "start_entities": [
+            7,
+            8,
+            11,
+            77
+        ],
+        "end_entities": [
+            5
+        ],
+        "shortest_alert_path": [
+            121,
+            2,
+            75
+        ]
+    },
+    {
+        "context": "A serious security incident involving the Mimikatz credential theft tool was detected on a device. Mimikatz is known for harvesting plaintext passwords, password hashes, smartcard PINs, and Kerberos tickets. An attacker might use this tool to obtain credentials to log into this or other devices on the network by impersonating a valid user. The tool was executed with several different command lines indicating privilege escalation and credential theft attempts.",
+        "question": "What was the command line of the process detected with the known credential theft tool execution?",
+        "answer": "7948__2024-06-20t08:59:42.8455252z__conhost.exe 0xffffffff -forcev1",
+        "solution": [
+            "The attacker launched `mimikatz.exe` with the command line `privilege::debug sekurlsa::pth /user:fk8mq /ntlm:96def1a633fc6790124d5f8fe21cc72b /domain:vnevado.alpineskihouse.co /run:..\\notepad.exe \\vnevado-jump cmd.exe` at `2024-06-20t09:05:15.5627318z`, with Process ID `6600`.",
+            "A malicious credential theft tool execution was detected with the command line `conhost.exe 0xffffffff -forcev1` at `2024-06-20t08:59:42.8455252z`, with Process ID `7948`."
+        ],
+        "start_alert": 151,
+        "end_alert": 131,
+        "start_entities": [
+            19,
+            23,
+            29,
+            32,
+            92,
+            111,
+            152,
+            153,
+            154
+        ],
+        "end_entities": [
+            132
+        ],
+        "shortest_alert_path": [
+            151,
+            33,
+            131
+        ]
+    },
+    {
+        "context": "A security incident was reported involving suspicious remote activity on a device named `vnevado-win11u` at IP address `99.83.111.100`. This incident includes multiple flagged processes, one of which involved running a script using PowerShell (`get-userprttoken.ps1`). One of the commands executed was `bcdedit /set recoveryenabled no`, which is commonly used to tamper with system recovery settings and disable automatic recovery features.",
+        "question": "Regarding the system recovery setting tampering observed on this device, what command line was executed by the process using `vssblatemp.exe` and what was the corresponding Process Id and creation time?",
+        "answer": "Process Id: 7236, creation time: 2024-06-20t09:10:51.2193152, command line: vssblatemp.exe delete shadows /all",
+        "solution": [
+            "Suspicious remote activity was detected associated with the executable `vssblatemp.exe`.",
+            "System recovery setting tampering was performed using `vssblatemp.exe` with command line `vssblatemp.exe delete shadows /all` at `2024-06-20t09:10:51.2193152z`, with Process ID `7236`."
+        ],
+        "start_alert": 88,
+        "end_alert": 120,
+        "start_entities": [
+            42,
+            8,
+            47,
+            89,
+            59,
+            90,
+            77,
+            6,
+            78,
+            7
+        ],
+        "end_entities": [
+            60
+        ],
+        "shortest_alert_path": [
+            88,
+            11,
+            120
+        ]
+    },
+    {
+        "context": "A possible attempt to access a Primary Refresh Token (PRT) was detected on host `vnevado-win11u`, which could be an indication of attackers attempting to gain further access or perform credential theft. The process involved was `browsercore.exe` with a ProcessId__CreatedTimeUtc__CommandLine of `1640__2024-06-20t09:32:12.1031042z__",
+        "question": "What IP address was involved in the ransomware payload that was remotely launched following the attempt to access the Primary Refresh Token (PRT)?",
+        "answer": "99.83.111.100",
+        "solution": [
+            "There was a possible attempt to access their Primary Refresh Token (PRT) by an account with AadUserId `731adb71-b11c-4bbf-850b-57989b350e96`.",
+            "A ransomware payload was remotely launched from IP address `99.83.111.100`."
+        ],
+        "start_alert": 118,
+        "end_alert": 143,
+        "start_entities": [
+            7,
+            8,
+            40,
+            119
+        ],
+        "end_entities": [
+            42
+        ],
+        "shortest_alert_path": [
+            118,
+            3,
+            143
+        ]
+    },
+    {
+        "context": "A security incident involving the Manatee Tempest activity group was detected. This group is known for using drive-by downloads and other methods to gain initial access, followed by using malware tools for lateral movement. The incident started with a suspicious activity involving a URL `http://vectorsandarrows.com`, accessed from host `vnevado-win10r` with IP address `198.43.121.209` via a curl command. The ProcessId__CreatedTimeUtc__CommandLine is `1332__2024-06-20t09:10:52.7298237z__curl http://vectorsandarrows.com`.",
+        "question": "What is the host name of the device where 'CommandAndControl' malware was detected during lateral movement?",
+        "answer": "vnevado-win10s",
+        "solution": [
+            "Manatee Tempest, a Russia-based cybercriminal group, was involved in the use of access broker Mustard Tempest to facilitate infections and lateral movement using BLISTER loader and Cobalt Strike beacons on various networks. The group used domain fronting for command-and-control of Cobalt Strike.",
+            "A suspicious account with SID `S-1-5-21-1840191660-8534830288-125585561-1522` was identified in the context of the Manatee Tempest group activities.",
+            "The 'CommandAndControl' malware was detected on the host `vnevado-win10s`, indicating an attempt at lateral movement within the network."
+        ],
+        "start_alert": 135,
+        "end_alert": 98,
+        "start_entities": [
+            4,
+            5,
+            61,
+            64,
+            65
+        ],
+        "end_entities": [
+            12
+        ],
+        "shortest_alert_path": [
+            135,
+            2,
+            98
+        ]
+    },
+    {
+        "context": "An incident occurred involving the potential compromise of devices showing ransomware-like behavior. An IP address associated with this is `99.83.111.100`, and files such as `get-userprttoken.ps1`, `characterical.zip`, and `characterical.zip.lockbit` were detected. Additionally, there was an incident of system recovery setting tampering. The tampering might involve adversaries deleting or removing system data and turning off recovery features to prevent system restoration.",
+        "question": "Can you identify the process command used that might have tampered with the system recovery settings?",
+        "answer": "vssblatemp.exe delete shadows /all",
+        "solution": [
+            "The device with AadDeviceId `e5799261-6720-4297-961e-bd9ca4275033` is potentially compromised and exhibiting ransomware-like behavior.",
+            "On 2024-06-20 at 09:29:40.8785892 UTC, the process vssblatemp.exe with Process ID `1900` was executed with the command line `vssblatemp.exe delete shadows /all` to tamper with system recovery settings by deleting volume shadow copies."
+        ],
+        "start_alert": 157,
+        "end_alert": 79,
+        "start_entities": [
+            42,
+            47,
+            48,
+            94,
+            95
+        ],
+        "end_entities": [
+            80
+        ],
+        "shortest_alert_path": [
+            157,
+            69,
+            79
+        ]
+    },
+    {
+        "context": "A security incident started with lateral movement detected from IP address `83.162.58.168`. The alert was flagged as 'Possible lateral movement' and indicated that an attacker might be trying to gather data or elevate privileges by moving across different devices. This alert was based on a Microsoft Defender for Endpoint alert. Shortly after, at 2024-07-04 22:35:03.652724+00:00, a 'Command and Control behavior' alert was triggered due to malware activities. This malware was active and necessitated precautionary measures. Finally, an alert flagged as 'Possible attempt to access Primary Refresh Token (PRT)' was observed, indicating an attempt to access Azure AD authentication resources which could facilitate lateral movement or credential theft.",
+        "question": "What is the hostname of the device where a possible attempt to access Primary Refresh Token (PRT) was detected?",
+        "answer": "vnevado-win10s",
+        "solution": [
+            "There was possible lateral movement observed on another device associated with AadDeviceId `e5799261-6720-4297-961e-bd9ca4275033`.",
+            "Command and control behavior related to malware was blocked, and the associated account name is `dp5hn`.",
+            "A possible attempt to access the Primary Refresh Token (PRT) was detected on the host `vnevado-win10s`."
+        ],
+        "start_alert": 103,
+        "end_alert": 113,
+        "start_entities": [
+            104
+        ],
+        "end_entities": [
+            12
+        ],
+        "shortest_alert_path": [
+            103,
+            69,
+            149,
+            1,
+            113
+        ]
+    },
+    {
+        "context": "A security incident was detected involving a possible attempt to access a Primary Refresh Token (PRT), which is an important artifact for Azure AD authentication. This event was associated with the process `browsercore.exe` running on the host `vnevado-win11t` with the AadDeviceId `e5799261-6720-4297-961e-bd9ca4275033`. PRTs enable Single Sign-On (SSO) and, if compromised, can allow an attacker to move laterally or perform credential theft.",
+        "question": "In this incident, potentially compromised assets are exhibiting ransomware-like behavior. Can you identify the name of the file that has been impacted by ransomware?",
+        "answer": "unstreaming.xlsx.lockbit",
+        "solution": [
+            "There was a possible attempt to access a Primary Refresh Token (PRT) by the user with AadUserId `731adb71-b11c-4bbf-850b-57989b350e96`.",
+            "Potentially compromised assets exhibiting ransomware-like behavior were detected, involving a file named `unstreaming.xlsx.lockbit`."
+        ],
+        "start_alert": 82,
+        "end_alert": 147,
+        "start_entities": [
+            40,
+            68,
+            69,
+            83
+        ],
+        "end_entities": [
+            54
+        ],
+        "shortest_alert_path": [
+            82,
+            3,
+            147
+        ]
+    },
+    {
+        "context": "A security incident related to the Manatee Tempest activity group was also identified. Manatee Tempest is known for using various methods such as drive-by download, including malvertising and FakeUpdates (SocGholish) infections, to obtain initial access, and they frequently use BLISTER loader to deliver Cobalt Strike beacons for lateral movement and ransomware deployment. The group also employs domain fronting for command-and-control channels.",
+        "question": "Can you identify the malicious IP address associated with the Manatee Tempest group activities?",
+        "answer": "198.43.121.209",
+        "solution": [
+            "All file snapshots and shadow copies on the account `dp5hn` were deleted which is common during a ransomware infection.",
+            "The cybercriminal group, Manatee Tempest, known for deploying ransomware and other malware, accessed using IP address `198.43.121.209`."
+        ],
+        "start_alert": 116,
+        "end_alert": 135,
+        "start_entities": [
+            11,
+            68,
+            69,
+            80
+        ],
+        "end_entities": [
+            5
+        ],
+        "shortest_alert_path": [
+            116,
+            1,
+            135
+        ]
+    },
+    {
+        "context": "As part of the process leading to the discovery of an unknown malware, we found that components such as `cmd.exe`, `mimikatz.exe`, and `notepad.exe` were executed to conduct unwanted malicious activities. While the investigation revealed that an alert was raised due to the detection of this malware, the machine should still be thoroughly examined to rule out any possible infection.",
+        "question": "Relating to this incident, a possible attempt to access the Primary Refresh Token (PRT) was detected. Can you identify the file name of the process involved in this attempt?",
+        "answer": "browsercore.exe",
+        "solution": [
+            "An unknown malware was detected with the IP address `107.224.99.179` and was active.",
+            "There was a possible attempt to access the Primary Refresh Token (PRT) via the process `browsercore.exe`."
+        ],
+        "start_alert": 110,
+        "end_alert": 36,
+        "start_entities": [
+            31,
+            33,
+            92,
+            30,
+            19,
+            111,
+            24,
+            56,
+            23,
+            29
+        ],
+        "end_entities": [
+            40
+        ],
+        "shortest_alert_path": [
+            110,
+            20,
+            36
+        ]
+    },
+    {
+        "context": "A security incident related to the Manatee Tempest activity group has been detected. This actor, tracked by Microsoft and known to be a Russia-based cybercriminal group, has been active since June 2014 and is notorious for its Dridex banking trojan campaigns. The group partners with Mustard Tempest to facilitate access to target networks via methods such as drive-by downloads, malvertising, and FakeUpdates infections. They use a BLISTER loader to deploy Cobalt Strike beacons for lateral movement and ransomware deployment. Recently, on host identified by `vnevado-win10s` with the AadDeviceId `f5b847aa-8712-4bf6-b4f7-ed6cd89e1505`, a process with ProcessId `6460` was initiated to execute a command to curl a suspicious URL (`http://vectorsandarrows.com`).",
+        "question": "What is the AadDeviceId of the host connected to the end alert which involves the same Manatee Tempest activity group?",
+        "answer": "e5799261-6720-4297-961e-bd9ca4275033",
+        "solution": [
+            "There is an activity by the Manatee Tempest group involving an account with AadUserId `731adb71-b11c-4bbf-850b-57989b350e96`.",
+            "There is an activity by the Manatee Tempest group targeting a host with AadDeviceId `e5799261-6720-4297-961e-bd9ca4275033`."
+        ],
+        "start_alert": 136,
+        "end_alert": 75,
+        "start_entities": [
+            12,
+            13,
+            99
+        ],
+        "end_entities": [
+            69
+        ],
+        "shortest_alert_path": [
+            136,
+            3,
+            75
+        ]
+    },
+    {
+        "context": "A security incident involving the deletion of all file snapshots and shadow copies via WMI or VSSAdmin, which is common during ransomware infection, was detected. The process `vssblatemp.exe` with process ID 1900 was used to perform the deletion. This incident might be part of a larger malicious campaign as described in the Activity Profile: Iranian MOIS operators opportunistically deploy limited-impact wiper in response to Israel-Hamas war.",
+        "question": "Following this alert, we also detected malicious command and control behavior. Can you provide the URL associated with this command and control behavior?",
+        "answer": "http://vectorsandarrows.com/",
+        "solution": [
+            "File backups were deleted on host `vnevado-win11u`, commonly associated with ransomware infection.",
+            "A command and control behavior originating from the URL `http://vectorsandarrows.com/` was blocked, indicating an active malware infection."
+        ],
+        "start_alert": 121,
+        "end_alert": 73,
+        "start_entities": [
+            11,
+            77
+        ],
+        "end_entities": [
+            74
+        ],
+        "shortest_alert_path": [
+            121,
+            7,
+            73
+        ]
+    },
+    {
+        "context": "A 'CommandAndControl' malware was detected on the device `vnevado-win11u` during a security incident on July 4, 2024. This detection suggests an attempt to move laterally within the network. During this investigation, a process with ID 5572 was initiated by the user account `dp5hn`, executing the `curl http://vectorsandarrows.com` command.",
+        "question": "Can you identify the command line of the suspicious WMI process that was observed?",
+        "answer": "powershell -file c:\\scripts\\get-userprttoken.ps1",
+        "solution": [
+            "The account `dp5hn` was tied to a 'CommandAndControl' malware detection during lateral movement on 2024-07-04 22:35:02.559990+00:00.",
+            "A suspicious WMI process creation was detected, where process with ID `5708` was created at `2024-06-20T09:32:06.0902858Z` using the command line `powershell -file c:\\scripts\\get-userprttoken.ps1`."
+        ],
+        "start_alert": 128,
+        "end_alert": 117,
+        "start_entities": [
+            1,
+            2,
+            3,
+            6,
+            7,
+            8
+        ],
+        "end_entities": [
+            90
+        ],
+        "shortest_alert_path": [
+            128,
+            1,
+            117
+        ]
+    },
+    {
+        "context": "A possible attempt to access Primary Refresh Token (PRT) was detected, indicating that attackers may be trying to move laterally within the organization or perform credential theft. The suspicious activity was identified on `browsercore.exe` with the process ID 2676 at UTC time 2024-06-20 09:10:59.867384. The PRT is crucial for Azure AD authentication and SSO across various devices.",
+        "question": "Immediately after this detection, another suspicious WMI process was created on the machine. Can you find the command line used by this newly created WMI process?",
+        "answer": "bcdedit /set bootstatuspolicy ignoreallfailures",
+        "solution": [
+            "There is a possible attempt to access the Primary Refresh Token (PRT) by a user with AadUserId `731adb71-b11c-4bbf-850b-57989b350e96`.",
+            "A suspicious WMI process creation was detected with command line `bcdedit /set bootstatuspolicy ignoreallfailures` at `2024-06-20t09:10:49.1654106z`, with Process ID `1868`."
+        ],
+        "start_alert": 113,
+        "end_alert": 144,
+        "start_entities": [
+            40,
+            114
+        ],
+        "end_entities": [
+            141
+        ],
+        "shortest_alert_path": [
+            113,
+            3,
+            144
+        ]
+    },
+    {
+        "context": "The Mimikatz credential theft tool was detected on this device, indicating a potential attempt to harvest credentials. Following this, we observed potential lateral movements and ransomware delivery. The incident concluded with a command and control behavior being blocked by our security measures. This signifies an active malware that attempted to establish communication with a remote attacker.",
+        "question": "Can you identify the URL that was associated with the command and control behavior which was blocked?",
+        "answer": "http://vectorsandarrows.com/",
+        "solution": [
+            "The Mimikatz credential theft tool was detected on host `vnevado-win10v` at `2024-07-04 22:35:00.846286+00:00`.",
+            "Lateral movement detected using PSExec to IP address `99.83.111.100` at `2024-07-10 11:24:45.260113+00:00`.",
+            "A possible compromised user account `dp5hn` was observed delivering ransomware-related files at `2024-07-04 22:35:01.491898+00:00`.",
+            "Command and Control behavior blocked; malware communicating with URL `http://vectorsandarrows.com/` at `2024-07-04 22:35:03.652724+00:00`."
+        ],
+        "start_alert": 55,
+        "end_alert": 149,
+        "start_entities": [
+            56
+        ],
+        "end_entities": [
+            74
+        ],
+        "shortest_alert_path": [
+            55,
+            34,
+            174,
+            42,
+            93,
+            1,
+            149
+        ]
+    },
+    {
+        "context": "A suspicious WMI process creation was observed on the machine. Malware frequently uses WMI to spawn new processes, breaking process trees and further infecting a machine. This activity occurred at 2024-07-04 22:35:03.378778+00:00. During the same incident, there was a possible attempt to access Primary Refresh Token (PRT) detected. A PRT is a key artifact of Azure AD authentication and is a JSON Web Token (JWT) issued to enable single sign-on (SSO) across applications used on devices such as Windows 10 and later versions, iOS, and Android. Attackers might attempt to access this token to move laterally or perform credential theft.",
+        "question": "The answer points to browsercore.exe running at the specified time. This should be further scrutinized to confirm the activity related to PRT access attempt mentioned.",
+        "answer": "7036__2024-06-20t09:29:49.304018z__\"browsercore.exe\"",
+        "solution": [
+            "There was a suspicious WMI process creation detected on the machine with AadDeviceId `e5799261-6720-4297-961e-bd9ca4275033`.",
+            "There was a possible attempt to access the Primary Refresh Token (PRT) through the process `browsercore.exe`, which was executed with Process ID `7036` at `2024-06-20t09:29:49.304018z`."
+        ],
+        "start_alert": 145,
+        "end_alert": 82,
+        "start_entities": [
+            11,
+            59,
+            67,
+            80,
+            81,
+            108,
+            109
+        ],
+        "end_entities": [
+            83
+        ],
+        "shortest_alert_path": [
+            145,
+            69,
+            82
+        ]
+    },
+    {
+        "context": "A security incident was detected on 2024-07-04 involving the execution of a known credential theft tool, indicated by a suspicious command line intended to access sensitive user credentials.",
+        "question": "After detecting the execution of this malicious tool, there was an event involving the renaming and launching of a Windows Sysinternals tool. What file name was used in this second alert?",
+        "answer": "mimikatz.exe",
+        "solution": [
+            "An account with Name `tgs2z` executed a known credential theft tool.",
+            "The renamed Windows Sysinternals tool `mimikatz.exe` was launched, potentially for malicious purposes."
+        ],
+        "start_alert": 91,
+        "end_alert": 122,
+        "start_entities": [
+            92
+        ],
+        "end_entities": [
+            19
+        ],
+        "shortest_alert_path": [
+            91,
+            16,
+            122
+        ]
+    },
+    {
+        "context": "A security incident involving a possible compromised user account was reported. The user account was observed dropping a ransomware-related file on several devices, including a file named `get-userprttoken.ps1` on the host `vnevado-win11t`. The compromised account is suspected to spread laterally across the network, delivering ransomware-related files. Automated actions might be taken to disable the compromised account.",
+        "question": "Which device was the ransomware payload remotely launched on as indicated by the end alert?",
+        "answer": "vnevado-win11u",
+        "solution": [
+            "A user account `dp5hn` appears to have been compromised and was observed dropping ransomware-related files on several devices.",
+            "A ransomware payload was remotely launched on the device with the host name `vnevado-win11u`."
+        ],
+        "start_alert": 93,
+        "end_alert": 112,
+        "start_entities": [
+            47,
+            48,
+            68,
+            69,
+            94,
+            95
+        ],
+        "end_entities": [
+            7
+        ],
+        "shortest_alert_path": [
+            93,
+            1,
+            112
+        ]
+    },
+    {
+        "context": "A recent security alert flagged a possible attempt to access Primary Refresh Token (PRT) on host `vnevado-win10r`, where the process `browsercore.exe` was involved. This scenario is often associated with attackers trying to move laterally within the organization or perform credential theft as PRT is a key artifact of Azure AD authentication.",
+        "question": "What is the file name of the process involved in the suspicious WMI process creation observed on the machine after the attempt to access PRT?",
+        "answer": "vssblatemp.exe",
+        "solution": [
+            "There was a detected attempt to access the Primary Refresh Token (PRT) associated with the Azure AD user with AadUserId `731adb71-b11c-4bbf-850b-57989b350e96`.",
+            "A suspicious WMI process `vssblatemp.exe` was created on the machine, indicating potential malware activity."
+        ],
+        "start_alert": 71,
+        "end_alert": 145,
+        "start_entities": [
+            40,
+            64,
+            65,
+            72
+        ],
+        "end_entities": [
+            11
+        ],
+        "shortest_alert_path": [
+            71,
+            3,
+            145
+        ]
+    },
+    {
+        "context": "As part of a Ransomware infection observed in our organization, file backups were deleted via WMI or VSSAdmin on the host `vnevado-win10r`. The process involved was identified with ProcessId__CreatedTimeUtc__CommandLine `7236__2024-06-20t09:10:51.2193152z__vssblatemp.exe delete shadows /all`. Further investigation identified that system recovery setting tampering was observed on the same host, where adversaries might be attempting to delete or remove built-in operating systems data and turn off recovery services to prevent recovering a corrupted system. This may deny access to available backups and recovery options.",
+        "question": "During the system recovery setting tampering, what process and command line was used to disable automatic Windows recovery features?",
+        "answer": "Process Id: 4828, Command Line: `bcdedit /set recoveryenabled no`",
+        "solution": [
+            "An attack was detected where file backups were deleted via `vssblatemp.exe`.",
+            "System recovery settings were tampered with using the process `bcdedit.exe` which was launched with the command line `bcdedit /set recoveryenabled no` at `2024-06-20t09:31:59.6743318z` with Process ID `4828`."
+        ],
+        "start_alert": 70,
+        "end_alert": 76,
+        "start_entities": [
+            60,
+            64,
+            65
+        ],
+        "end_entities": [
+            78
+        ],
+        "shortest_alert_path": [
+            70,
+            11,
+            76
+        ]
+    },
+    {
+        "context": "A suspicious remote activity was observed on a machine named `vnevado-win10s`. This alert flagged potentially malicious activities such as modifying files, passing WMI commands, and creating scheduled tasks from a remote machine. One of the processes involved had the ExtractedFileName `get-userprttoken.ps1`. The ProcessId__CreatedTimeUtc__CommandLine for this process was `6168__2024-06-20t09:10:53.0701359z__powershell -file c:\\scripts\\get-userprttoken.ps1`.",
+        "question": "What command line and process ID were used for the tampering of system recovery settings observed earlier?",
+        "answer": "Process Id: 1900, Command Line: vssblatemp.exe delete shadows /all",
+        "solution": [
+            "There was suspicious remote activity initiated on the machine with the process `vssblatemp.exe` detected at `2024-07-04 22:35:03.258229+00:00`.",
+            "System recovery setting tampering was observed using the process `vssblatemp.exe` deleting all volume shadow copies with Process ID `1900` at `2024-06-20t09:32:02.4640548z`."
+        ],
+        "start_alert": 140,
+        "end_alert": 76,
+        "start_entities": [
+            99,
+            142,
+            13,
+            10,
+            12,
+            47,
+            141,
+            59,
+            97,
+            42
+        ],
+        "end_entities": [
+            77
+        ],
+        "shortest_alert_path": [
+            140,
+            11,
+            76
+        ]
+    },
+    {
+        "context": "A recent security incident indicates a tampering of system recovery settings on device `vnevado-win11t`. Adversaries might have attempted to delete or remove built-in operating system data and turn off recovery services. The command lines used by adversaries to disable or delete system recovery features include using `vssblatemp.exe` to delete all volume shadow copies.",
+        "question": "In a related alert, there is evidence of system recovery settings being tampered with on the same device. Can you determine the command line used to delete all volume shadow copies on this system?",
+        "answer": "vssblatemp.exe delete shadows /all",
+        "solution": [
+            "A user with the SID `S-1-5-21-1840191660-8534830288-125585561-1522` exhibited suspicious behavior on their device indicating potential compromise.",
+            "System recovery settings on the same device were tampered with, suggesting an attempt to disable recovery features. This action was performed by a process with Process ID `1900` at `2024-06-20t09:32:02.4640548z` using the command line `vssblatemp.exe delete shadows /all`."
+        ],
+        "start_alert": 66,
+        "end_alert": 76,
+        "start_entities": [
+            67,
+            68,
+            69
+        ],
+        "end_entities": [
+            77
+        ],
+        "shortest_alert_path": [
+            66,
+            2,
+            76
+        ]
+    },
+    {
+        "context": "A suspicious and anomalous behavior was observed involving a user on device `vnevado-win11t`. This behavior suggested a potential compromise and a series of unusual activities might indicate that this device is involved in a possible human-operated attack by an advanced threat actor. During this investigation, an alert indicating activity from a Russia-based cybercriminal group, Manatee Tempest, was raised. Manatee Tempest is known for their partnership with Mustard Tempest, and they use techniques like drive-by download, malvertising, and FakeUpdates to gain initial access. They proceed with BLISTER loader to deliver Cobalt Strike for lateral movement and ransomware deployment, often using domain fronting for command-and-control.",
+        "question": "What is the URL associated with the activity from Manatee Tempest?",
+        "answer": "vectorsandarrows.com",
+        "solution": [
+            "The user account `dp5hn` has exhibited suspicious and anomalous behavior on their device.",
+            "The URL `vectorsandarrows.com` is associated with the cybercriminal group Manatee Tempest, which uses drive-by downloads and other methods to gain access to target networks."
+        ],
+        "start_alert": 66,
+        "end_alert": 75,
+        "start_entities": [
+            1,
+            2,
+            3,
+            68,
+            69
+        ],
+        "end_entities": [
+            4
+        ],
+        "shortest_alert_path": [
+            66,
+            1,
+            75
+        ]
+    },
+    {
+        "context": "For more information, read the Activity Profile: Iranian MOIS operators opportunistically deploy limited-impact wiper in response to Israel-Hamas war Threat Analytics report: https://security.microsoft.com/threatanalytics3/c6674205-df28-453a-9e42-0010b7979bdd/overview?tid4b2462a4-bbee-495a-a0e1-f23ae524cc9c.",
+        "question": "Related to this alert, there was also an incident where file backups were deleted. Can you identify the command used in the process that deleted the file snapshots and shadow copies?",
+        "answer": "vssblatemp.exe delete shadows /all",
+        "solution": [
+            "A possible attempt to access Primary Refresh Token (PRT) was detected for the AadUserId `731adb71-b11c-4bbf-850b-57989b350e96`.",
+            "File backups, including all snapshots and shadow copies, were deleted using process `7236` at `2024-06-20t09:10:51.2193152z` with the command line `vssblatemp.exe delete shadows /all`."
+        ],
+        "start_alert": 82,
+        "end_alert": 70,
+        "start_entities": [
+            40,
+            68,
+            69,
+            83
+        ],
+        "end_entities": [
+            60
+        ],
+        "shortest_alert_path": [
+            82,
+            3,
+            70
+        ]
+    },
+    {
+        "context": "A security incident was triggered due to a known credential theft tool execution command line. The process mimikatz.exe was used, showing an intent to dump user credentials. In relation to this, there was suspicious access to the LSASS service involving a specific file.",
+        "question": "What is the name of the file involved in the suspicious access to the LSASS service?",
+        "answer": "cryptdll.dll",
+        "solution": [
+            "A known credential theft tool named `mimikatz.exe` was executed.",
+            "Suspicious access to the LSASS service, potentially attempting to decrypt user passwords using the file `cryptdll.dll`, was detected."
+        ],
+        "start_alert": 156,
+        "end_alert": 15,
+        "start_entities": [
+            111
+        ],
+        "end_entities": [
+            25
+        ],
+        "shortest_alert_path": [
+            156,
+            24,
+            15
+        ]
+    },
+    {
+        "context": "A suspicious 'GenRansom' behavior was detected on host `vnevado-win11u` which is identified by its AadDeviceId `bc00e484-d0e5-4da4-9472-95568cccc07e`. This kind of malware can perform annoying, disruptive, or harmful actions on affected machines, and it may replicate and spread to other machines. The malware was active and requires immediate attention to prevent further infection.",
+        "question": "Can you identify the SID of the account that was possibly compromised and observed delivering ransomware-related files?",
+        "answer": "S-1-5-21-1840191660-8534830288-125585561-1522",
+        "solution": [
+            "Suspicious 'GenRansom' behavior was detected on host `vnevado-win11u`.",
+            "A possible compromised user account with SID `S-1-5-21-1840191660-8534830288-125585561-1522` was observed delivering ransomware-related files."
+        ],
+        "start_alert": 14,
+        "end_alert": 41,
+        "start_entities": [
+            7,
+            8
+        ],
+        "end_entities": [
+            2
+        ],
+        "shortest_alert_path": [
+            14,
+            7,
+            41
+        ]
+    },
+    {
+        "context": "A ransomware payload was remotely launched on a device from the IP address `99.83.111.100`. Attackers might be attempting to encrypt content on this device, rendering it unusable to users. This alert links to suspicious hands-on keyboard user behavior observed on the same device. Suspicious and anomalous user behavior might indicate that a user has been compromised. The end alert indicates that unusual activities, such as changes to the frequency and usage pattern of tools or applications, or the user performing a series of unusual activities, were noticed.",
+        "question": "What was the Process ID and command line observed during the suspicious hands-on keyboard user behavior?",
+        "answer": "Process Id: 88, Command Line: curl http://vectorsandarrows.com",
+        "solution": [
+            "The account `dp5hn` remotely launched a ransomware payload.",
+            "There was suspicious hands-on keyboard behavior detected where a process with ID `88` executed the `curl http://vectorsandarrows.com` command on `2024-06-20t09:29:42.3927529z`."
+        ],
+        "start_alert": 134,
+        "end_alert": 66,
+        "start_entities": [
+            42
+        ],
+        "end_entities": [
+            67
+        ],
+        "shortest_alert_path": [
+            134,
+            1,
+            66
+        ]
+    },
+    {
+        "context": "A ransomware payload was remotely launched on the device with hostname `vnevado-win11u` and IP address `99.83.111.100`. The attackers might be attempting to encrypt content on this device, rendering it unusable to users. It is crucial to note that this is indicative of a potential ransomware attack, and further information can be found in the Threat Analytics report provided.",
+        "question": "During the ransomware attack incident on `vnevado-win11u`, a process was used to delete all file snapshots and shadow copies via WMI or VSSAdmin. Can you identify the name of this process?",
+        "answer": "vssblatemp.exe",
+        "solution": [
+            "The ransomware payload was remotely launched for the account `dp5hn`.",
+            "File backups were deleted by the process `vssblatemp.exe` which is common during a ransomware infection."
+        ],
+        "start_alert": 112,
+        "end_alert": 70,
+        "start_entities": [
+            7,
+            8,
+            42
+        ],
+        "end_entities": [
+            11
+        ],
+        "shortest_alert_path": [
+            112,
+            1,
+            70
+        ]
+    },
+    {
+        "context": "In continuation, a suspicious activity indicated that a user account might have been compromised to deliver ransomware-related files across multiple devices. Remedial action might be necessary to disable the compromised user account.",
+        "question": "Can you identify the name of the possibly compromised user account that was dropping ransomware-related files on several devices?",
+        "answer": "dp5hn",
+        "solution": [
+            "A known credential theft tool execution was detected with the user account SID `S-5-7-21-1843151660-3234030288-105586167-1422`.",
+            "Lateral movement using PSExec was detected to the IP address `99.83.111.100` associated with the host `vnevado-jump`.",
+            "A possible compromised user account `dp5hn` was observed delivering ransomware-related files on several devices."
+        ],
+        "start_alert": 129,
+        "end_alert": 93,
+        "start_entities": [
+            20,
+            24,
+            30,
+            31,
+            33
+        ],
+        "end_entities": [
+            1
+        ],
+        "shortest_alert_path": [
+            129,
+            17,
+            174,
+            42,
+            93
+        ]
+    },
+    {
+        "context": "A security incident involving ransomware-like behavior impacting several devices has been observed. Initial detection included the use of PsExec to launch a command on a remote device, suggesting lateral movement using this tool. This was followed by suspicious activities leading to compromised assets exhibiting ransomware-like behavior. The attacker might be using the specified user account, IP, or device to infect multiple devices with ransomware. Automated remediation actions were considered to address the threat.",
+        "question": "What is the name of the file that is associated with the ransomware-like behavior?",
+        "answer": "ponceau.7z",
+        "solution": [
+            "An attacker used the account `tgs2z` to launch a command on a remote device via PsExec.",
+            "There was a lateral movement to the jump server with IP address `99.83.111.100` using PsExec.",
+            "A file named `ponceau.7z` is associated with ransomware-like behavior, indicating potentially compromised assets."
+        ],
+        "start_alert": 84,
+        "end_alert": 100,
+        "start_entities": [
+            20,
+            30,
+            31,
+            85,
+            86,
+            87
+        ],
+        "end_entities": [
+            49
+        ],
+        "shortest_alert_path": [
+            84,
+            16,
+            174,
+            42,
+            100
+        ]
+    },
+    {
+        "context": "As part of a security incident involving the Manatee Tempest activity group, a URL `vectorsandarrows.com` was accessed from the host `vnevado-win11u` using the command `curl http://vectorsandarrows.com`, initiated by process ID 5572 associated with IP address `198.43.121.209`. The actor Manatee Tempest is known for utilizing various methods like drive-by downloads and domain fronting to establish command-and-control channels, and is linked with ransomware deployments facilitated by Mustard Tempest.",
+        "question": "During this investigation, it was also noted that a user account was dropping a ransomware-related file on several devices. Can you identify the name of the ransomware-related file?",
+        "answer": "characterical.zip.lockbit",
+        "solution": [
+            "The user account with AadUserId `731adb71-b11c-4bbf-850b-57989b350e96` is associated with activity from the Manatee Tempest group, known for its cybercriminal activities and partnerships.",
+            "A possible compromised user account is observed dropping a ransomware-related file named `characterical.zip.lockbit` on several devices, indicating potential lateral movement and infection attempts across the network."
+        ],
+        "start_alert": 0,
+        "end_alert": 93,
+        "start_entities": [
+            4,
+            5,
+            6,
+            7,
+            8
+        ],
+        "end_entities": [
+            95
+        ],
+        "shortest_alert_path": [
+            0,
+            3,
+            93
+        ]
+    },
+    {
+        "context": "On 2024-07-10, at 11:24:45.260113+00:00, a security incident was detected involving lateral movement to the jump server `vnevado-jump` from host `vnevado-win10v` with associated account `tgs2z` (email: `tgs2z@vnevado.alpineskihouse.co`). The source IP address involved in this activity was `141.216.110.153`. During this incident, there have been numerous file system changes indicating possible ransomware activity.",
+        "question": "Can you determine the destination IP address where potential lateral movement was observed following the suspicious network event?",
+        "answer": "83.162.58.168",
+        "solution": [
+            "Lateral movement to the jump server `Vnevado-jump` was observed from IP address `99.83.111.100`.",
+            "A possible ransomware activity involving a known malicious extension was detected on host `vnevado-win11t`.",
+            "Possible lateral movement from IP address `83.162.58.168` was detected in close time proximity to a suspicious network event on the device."
+        ],
+        "start_alert": 174,
+        "end_alert": 103,
+        "start_entities": [
+            16,
+            17,
+            18,
+            34,
+            35,
+            175,
+            176,
+            177
+        ],
+        "end_entities": [
+            104
+        ],
+        "shortest_alert_path": [
+            174,
+            42,
+            159,
+            68,
+            103
+        ]
+    },
+    {
+        "context": "A security incident involving potentially compromised assets exhibiting ransomware-like behavior was detected, with the malicious presence identified through specific files `get-userprttoken.ps1`, `characterical.zip`, and `characterical.zip.lockbit` from IP address `99.83.111.100` and user account `S-0-6-5`. This activity may allow attackers to move laterally across the network and infect multiple devices with ransomware. Automated remediation action might be taken to disable the account or device the attacker used related to this incident. There is also an indication of a possible attempt to access a Primary Refresh Token (PRT) reported.",
+        "question": "What is the process ID and command line of the process that was used in the possible attempt to access the Primary Refresh Token (PRT)?",
+        "answer": "Process Id: 7036, Command Line: \"browsercore.exe\"",
+        "solution": [
+            "There is ransomware-like behavior detected on the host `vnevado-win11t`.",
+            "There was a possible attempt to access a Primary Refresh Token using the process `browsercore.exe` with the command line `browsercore.exe` at `2024-06-20t09:29:49.304018z`, with Process ID `7036`."
+        ],
+        "start_alert": 138,
+        "end_alert": 82,
+        "start_entities": [
+            42,
+            47,
+            48,
+            94,
+            95
+        ],
+        "end_entities": [
+            83
+        ],
+        "shortest_alert_path": [
+            138,
+            68,
+            82
+        ]
+    },
+    {
+        "context": "Start Alert: File backups were deleted, performed by `vssblatemp.exe` with Process ID 1900 and command line `vssblatemp.exe delete shadows /all`. The incident also involves a blocked Command and Control behavior alert. The blocked action is related to active malware, which can receive remote commands to conduct cyber attacks.",
+        "question": "What is the URL involved in the Command and Control behavior that was blocked?",
+        "answer": "http://vectorsandarrows.com/",
+        "solution": [
+            "All file snapshots and shadow copies have been deleted via WMI or VSSAdmin by the user with AadUserId `731adb71-b11c-4bbf-850b-57989b350e96`.",
+            "Command and Control (C2) behavior was blocked from the URL `http://vectorsandarrows.com/`."
+        ],
+        "start_alert": 116,
+        "end_alert": 149,
+        "start_entities": [
+            11,
+            80
+        ],
+        "end_entities": [
+            74
+        ],
+        "shortest_alert_path": [
+            116,
+            3,
+            149
+        ]
+    },
+    {
+        "context": "A malicious credential theft tool was detected on a host with potential involvement of an account bearing the Sid `S-5-7-21-1843151660-3234030288-105586167-1422` and originating from an IP address. The alert indicates the execution of a known tool intended to compromise users' credentials and other sensitive information.",
+        "question": "What file name indicates the active malware that was found during this incident?",
+        "answer": "mimikatz.exe",
+        "solution": [
+            "A malicious credential theft tool execution was detected from the IP address `107.224.99.179`.",
+            "Active malware named `mimikatz.exe` was detected running on the machine."
+        ],
+        "start_alert": 156,
+        "end_alert": 150,
+        "start_entities": [
+            34,
+            16,
+            30,
+            31,
+            18,
+            20,
+            24,
+            35,
+            17
+        ],
+        "end_entities": [
+            19
+        ],
+        "shortest_alert_path": [
+            156,
+            20,
+            150
+        ]
+    }
+]
