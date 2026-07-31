@@ -1,0 +1,105 @@
+{
+  "description": "Fabricated account emails synthesized as <DisplayName>@<UPNSuffix> by the pre-fix process_entity_identifiers(), mapped to the real UPN.",
+  "source": "excytin incident MySQL databases (SecurityAlert.Entities)",
+  "count": 14,
+  "mappings": {
+    "BDAdmin@vnevado.alpineskihouse.co": {
+      "correct_upn": "bdblatemp@vnevado.alpineskihouse.co",
+      "display_name": "BDAdmin",
+      "account_name": "BDAdmin",
+      "upn_suffix": "vnevado.alpineskihouse.co",
+      "incident": "55"
+    },
+    "Daniel Morgan@vnevado.alpineskihouse.co": {
+      "correct_upn": "connord@vnevado.alpineskihouse.co",
+      "display_name": "Daniel Morgan",
+      "account_name": "connord",
+      "upn_suffix": "vnevado.alpineskihouse.co",
+      "incident": "55"
+    },
+    "Derek Lee@vnevado.alpineskihouse.co": {
+      "correct_upn": "4qs6v9m@vnevado.alpineskihouse.co",
+      "display_name": "Derek Lee",
+      "account_name": "4qs6v9m",
+      "upn_suffix": "vnevado.alpineskihouse.co",
+      "incident": "5"
+    },
+    "Emma Clark@vnevado.alpineskihouse.co": {
+      "correct_upn": "fk8mq@vnevado.alpineskihouse.co",
+      "display_name": "Emma Clark",
+      "account_name": "fk8mq",
+      "upn_suffix": "vnevado.alpineskihouse.co",
+      "incident": "55"
+    },
+    "Ethan Brooks@vnevado.alpineskihouse.co": {
+      "correct_upn": "tgs2z@vnevado.alpineskihouse.co",
+      "display_name": "Ethan Brooks",
+      "account_name": "tgs2z",
+      "upn_suffix": "vnevado.alpineskihouse.co",
+      "incident": "55"
+    },
+    "Grace Chen@vnevado.alpineskihouse.co": {
+      "correct_upn": "dp5hn@vnevado.alpineskihouse.co",
+      "display_name": "Grace Chen",
+      "account_name": "dp5hn",
+      "upn_suffix": "vnevado.alpineskihouse.co",
+      "incident": "55"
+    },
+    "Hailey Johnson@vnevado.alpineskihouse.co": {
+      "correct_upn": "alyssat@vnevado.alpineskihouse.co",
+      "display_name": "Hailey Johnson",
+      "account_name": "alyssat",
+      "upn_suffix": "vnevado.alpineskihouse.co",
+      "incident": "322"
+    },
+    "Jordan P@vnevado.alpineskihouse.co": {
+      "correct_upn": "laylaw@vnevado.alpineskihouse.co",
+      "display_name": "Jordan P",
+      "account_name": "laylaw",
+      "upn_suffix": "vnevado.alpineskihouse.co",
+      "incident": "166"
+    },
+    "Julian Burke@vnevado.alpineskihouse.co": {
+      "correct_upn": "lucasb@vnevado.alpineskihouse.co",
+      "display_name": "Julian Burke",
+      "account_name": "lucasb",
+      "upn_suffix": "vnevado.alpineskihouse.co",
+      "incident": "55"
+    },
+    "Lucas Grey@niseko.alpineskihouse.co": {
+      "correct_upn": "bjenkins@niseko.alpineskihouse.co",
+      "display_name": "Lucas Grey",
+      "account_name": "bjenkins",
+      "upn_suffix": "niseko.alpineskihouse.co",
+      "incident": "55"
+    },
+    "Luciano Herrera@niseko.alpineskihouse.co": {
+      "correct_upn": "pwilson@niseko.alpineskihouse.co",
+      "display_name": "Luciano Herrera",
+      "account_name": "pwilson",
+      "upn_suffix": "niseko.alpineskihouse.co",
+      "incident": "55"
+    },
+    "Nina Park@vnevado.alpineskihouse.co": {
+      "correct_upn": "raphaelt@vnevado.alpineskihouse.co",
+      "display_name": "Nina Park",
+      "account_name": "raphaelt",
+      "upn_suffix": "vnevado.alpineskihouse.co",
+      "incident": "134"
+    },
+    "Nina Sullivan@vnevado.alpineskihouse.co": {
+      "correct_upn": "santiago@vnevado.alpineskihouse.co",
+      "display_name": "Nina Sullivan",
+      "account_name": "santiago",
+      "upn_suffix": "vnevado.alpineskihouse.co",
+      "incident": "55"
+    },
+    "Ryan Luis@vnevado.alpineskihouse.co": {
+      "correct_upn": "k1pt7ez@vnevado.alpineskihouse.co",
+      "display_name": "Ryan Luis",
+      "account_name": "k1pt7ez",
+      "upn_suffix": "vnevado.alpineskihouse.co",
+      "incident": "55"
+    }
+  }
+}

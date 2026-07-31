@@ -93,7 +93,22 @@ def process_entity_identifiers(entities_json_string):
 
                 if "Name" in entity_dict and entity_dict["Name"] not in ["root", "system", "guest", "admin", "administrator", "user"] and "UPNSuffix" in entity_dict:
                     node_attributes['identifier_fields'] = "Email"
-                    final_entities_list.append([type_value, "Email", entity_dict["Name"] + "@"  + entity_dict['UPNSuffix'], json.dumps(node_attributes.copy())])
+                    # Use the authoritative email/UPN rather than synthesizing it from the
+                    # display name. The Sentinel Account entity `Name` field is provider
+                    # dependent and frequently holds the display name (e.g. "Jordan P"),
+                    # which would yield an address that does not exist in the logs. Prefer
+                    # the real UserPrincipalName, then AccountName@Domain, and only fall
+                    # back to Name@UPNSuffix when neither is available.
+                    upn = entity_dict.get("UserPrincipalName")
+                    account_name = entity_dict.get("AccountName")
+                    domain = entity_dict.get("DomainName") or entity_dict.get("UPNSuffix")
+                    if upn:
+                        email_value = upn
+                    elif account_name and domain:
+                        email_value = f"{account_name}@{domain}"
+                    else:
+                        email_value = entity_dict["Name"] + "@" + entity_dict['UPNSuffix']
+                    final_entities_list.append([type_value, "Email", email_value, json.dumps(node_attributes.copy())])
                 
                 if "Sid" in entity_dict:
                     if entity_dict["Sid"] in ['S-1-5-18']: continue

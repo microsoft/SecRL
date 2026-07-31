@@ -60,13 +60,13 @@ Time: 8/14/2024, 10:37:13.064 PM
 Name: Suspicious Azure Resource Management activities by a risky user
 Description: Suspicious cloud Azure Resource Management (ARM) activities were performed by a user account that signed in to a risky session. This alert was triggered based on a Microsoft Defender for Cloud alert related to ARM and Microsoft Entra ID Protection risk scores.
 Entities from this alert:
-Type: account, Field: Email, Value: `Megan Bower@vnevado.alpineskihouse.co`
+Type: account, Field: Email, Value: `meganb@vnevado.alpineskihouse.co`
 ##############
 Your response:
 {
     "context": "A Multi-stage security incident involving Execution & Discovery on one endpoint was reported by Microsoft Defender Advanced Threat Protection along with 11 flagged alerts. As part of investigating this incident, we observed a file `ntdsutil.exe` was launched with this command line: `ntdsutil.exe ac i ntds ifm create full c:\temp q q`. The Process ID was 6748. This process might be an indicator of an attacker dumping NTDS.dit in order to obtain user's credentials which are stored in the domain controller.",
     "question: "Related to this alert, there is also a suspicious Azure Resource Management (ARM) activities, which is likely from the same user. Can you get the email of the user who performed the suspicious ARM activities?",
-    "answer": "Megan Bower@vnevado.alpineskihouse.co",
+    "answer": "meganb@vnevado.alpineskihouse.co",
 }
 ##############
 ##############
@@ -148,13 +148,13 @@ Time: 8/14/2024, 10:37:13.064 PM
 Name: Suspicious Azure Resource Management activities by a risky user
 Description: Suspicious cloud Azure Resource Management (ARM) activities were performed by a user account that signed in to a risky session. This alert was triggered based on a Microsoft Defender for Cloud alert related to ARM and Microsoft Entra ID Protection risk scores.
 Entities from this alert:
-Type: account, Field: Email, Value: `Megan Bower@vnevado.alpineskihouse.co`
+Type: account, Field: Email, Value: `meganb@vnevado.alpineskihouse.co`
 ##############
 Your response:
 {
     "context": "A file `ntdsutil.exe` was launched with this command line: `ntdsutil.exe ac i ntds ifm create full c:\temp q q`. The Process ID was 6748. This process might be an indicator of an attacker dumping NTDS.dit in order to obtain user's credentials which are stored in the domain controller.",
     "question: "Related to this alert, there is also a suspicious Azure Resource Management (ARM) activities, which is likely from the same user. Can you get the email of the user who performed the suspicious ARM activities?",
-    "answer": "Megan Bower@vnevado.alpineskihouse.co",
+    "answer": "meganb@vnevado.alpineskihouse.co",
 }
 ##############
 ##############
