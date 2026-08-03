@@ -1,9 +1,35 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-from azure.identity import get_bearer_token_provider, AzureCliCredential
-from azure.ai.inference import ChatCompletionsClient
-from azure.core.credentials import AzureKeyCredential
+import os
+
+try:
+    from azure.identity import get_bearer_token_provider, AzureCliCredential
+    from azure.ai.inference import ChatCompletionsClient
+    from azure.core.credentials import AzureKeyCredential
+except Exception:  # azure deps are optional (only needed for Azure model configs)
+    get_bearer_token_provider = AzureCliCredential = None
+    ChatCompletionsClient = AzureKeyCredential = None
+
+
+def _load_anthropic_key():
+    """Resolve the Anthropic API key.
+
+    Order: ANTHROPIC_API_KEY env var -> $SABER_ENV_FILE -> oss_saber/.env.
+    """
+    key = os.environ.get("ANTHROPIC_API_KEY")
+    if key:
+        return key
+    candidates = [os.environ.get("SABER_ENV_FILE"),
+                  os.path.expanduser("~/repos/oss_saber/.env")]
+    for path in candidates:
+        if path and os.path.exists(path):
+            for line in open(path):
+                line = line.strip()
+                if line.startswith("ANTHROPIC_API_KEY="):
+                    return line.split("=", 1)[1].strip().strip('"').strip("'")
+    return None
+
 
 # token_provider = get_bearer_token_provider(
 #     AzureCliCredential(), "https://cognitiveservices.azure.com/.default"
@@ -42,6 +68,16 @@ CONFIG_LIST = [
   #   "tags": ["gpt-4.1-nano"],
   #   "azure_ad_token_provider": token_provider
   # },
+
+  # Anthropic Claude / Opus (used for the entity-parsing-bug QA regeneration).
+  # Key is resolved from ANTHROPIC_API_KEY / $SABER_ENV_FILE / oss_saber/.env.
+  *([{
+      "model": "claude-opus-5",
+      "api_key": _load_anthropic_key(),
+      "api_type": "anthropic",
+      "tags": ["opus5"],
+      "max_tokens": 8192,
+  }] if _load_anthropic_key() else []),
 ]
 
 if len(CONFIG_LIST) == 0:

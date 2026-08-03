@@ -23,6 +23,34 @@ def get_full_question(question_dict, add_hint=False):
 
 
 def LLM_call(instruction: str, task: str, config_list: list, return_cost:bool = False, retry = 10, is_o1=False, **args) -> str:
+    # Anthropic (Claude / Opus) models: call the SDK directly. autogen's OpenAI
+    # wrapper does not reliably support newer reasoning models (pricing/params),
+    # so we bypass it when the target config is an Anthropic endpoint.
+    anthropic_cfg = next((c for c in config_list if c.get("api_type") == "anthropic"), None)
+    if anthropic_cfg is not None:
+        import anthropic as _anthropic
+        _client = _anthropic.Anthropic(api_key=anthropic_cfg["api_key"])
+        max_tokens = anthropic_cfg.get("max_tokens", 8192)
+        content = ""
+        for r in range(retry):
+            try:
+                resp = _client.messages.create(
+                    model=anthropic_cfg["model"],
+                    max_tokens=max_tokens,
+                    system=instruction,
+                    messages=[{"role": "user", "content": task}],
+                )
+                content = "".join(
+                    b.text for b in resp.content if getattr(b, "type", None) == "text"
+                )
+                break
+            except Exception:
+                if r == retry - 1:
+                    raise
+                continue
+        print(content)
+        return (content, 0.0) if return_cost else content
+
     client = autogen.OpenAIWrapper(
         config_list=config_list,
         **args
