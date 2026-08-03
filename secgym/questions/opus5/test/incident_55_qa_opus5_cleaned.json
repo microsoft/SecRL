@@ -1,0 +1,2910 @@
+[
+  {
+    "context": "During this multi-stage intrusion, an alert was raised for suspicious service creation: the account `gsmith@niseko.alpineskihouse.co` created a service named `DDLOXJDSQSNGMUKKFUXQ` in order to execute potentially malicious commands on the host `MB-ADFS`. Following this activity, the attacker chain continued with Impacket-based hands-on-keyboard execution and a suspicious sequence of exploration commands, ultimately leading to a suspected DCSync attack in which a replication request for directory services was sent from the device `MB-WINCLIENT` to the domain controller `MB-DC1`.",
+    "question": "For the suspected DCSync (directory services replication) alert, which user account was identified as the one that issued the replication request?",
+    "answer": "Luciano Herrera (CIO)",
+    "solution": [
+      "The account `gsmith` created a suspicious service named `DDLOXJDSQSNGMUKKFUXQ` to execute potentially malicious commands on the host MB-ADFS.",
+      "An ongoing hands-on-keyboard attack via the Impacket toolkit was observed, executing the process `powershell.exe` to explore network shares and move laterally.",
+      "The account with SID `S-1-5-21-551436448-9871687716-9837441745-1903` performed a suspicious sequence of exploration activities, running a set of Windows commands used to identify valuable assets and coordinate lateral movement.",
+      "The account `Luciano Herrera` on MB-WINCLIENT performed a suspected DCSync attack by sending a replication request to the domain controller MB-DC1."
+    ],
+    "start_alert": 101,
+    "end_alert": 98,
+    "start_entities": [
+      102,
+      103
+    ],
+    "end_entities": [
+      81
+    ],
+    "shortest_alert_path": [
+      101,
+      18,
+      16,
+      8,
+      57,
+      10,
+      98
+    ]
+  },
+  {
+    "context": "During an investigation of an incident, an alert titled 'Suspicious service creation' was raised, indicating that the account `gsmith@niseko.alpineskihouse.co` created a service named DDLOXJDSQSNGMUKKFUXQ in order to execute potentially malicious commands on the host `MB-ADFS`. This activity is linked, through a shared user account SID, to earlier reconnaissance activity in the same incident.",
+    "question": "An earlier related alert reported a suspicious sequence of exploration activities, where a process invoked a set of Windows commands often used to identify valuable assets and plan lateral movement. What was the command line of the process launched in that alert, along with its process ID and creation time?",
+    "answer": "Command line: `\"whoami.exe\"`, Process ID: 3468, Created Time (UTC): 2024-07-04T00:00:02.3476619Z",
+    "solution": [
+      "The account with SID `S-2-5-21-571436798-3864380397-1837441745-3206` (gsmith) created a suspicious service named `DDLOXJDSQSNGMUKKFUXQ` to execute potentially malicious commands on the host MB-ADFS.",
+      "From that compromised context, a process ran a sequence of exploration commands, including the process with Process ID `3468` created at `2024-07-04t00:00:02.3476619z` with command line `\"whoami.exe\"`, used to identify assets of value and coordinate lateral movement."
+    ],
+    "start_alert": 101,
+    "end_alert": 52,
+    "start_entities": [
+      102,
+      103
+    ],
+    "end_entities": [
+      56
+    ],
+    "shortest_alert_path": [
+      101,
+      19,
+      52
+    ]
+  },
+  {
+    "context": "During this multi-stage intrusion, a \"Suspicious Task Scheduler activity\" alert fired on 2024-07-04. A process involved in earlier malicious activity launched `powershell.exe` with an encoded command (PID 6808), and then used `schtasks.exe` to create and immediately run a scheduled task named `run-exportadfstokensignincert.2024-07-02_09_48_23` (PIDs 4304 and 6892), which executed a hidden-window, encoded PowerShell payload \u2014 a likely attempt to establish persistence and automatically launch malicious code.",
+    "question": "A related alert in the same incident reports an attempt to hide the use of a dual-purpose tool by running it under an unexpected filename. Which user account name was associated with that alert?",
+    "answer": "gsmith",
+    "solution": [
+      "A process with the file name `iy2orr1e.rrg.exe` used Task Scheduler to create, modify, or delete a scheduled task in an attempt to establish persistence.",
+      "The account `gsmith` was observed running a known dual-purpose public tool under an unexpected filename, attempting to hide its malicious use."
+    ],
+    "start_alert": 33,
+    "end_alert": 68,
+    "start_entities": [
+      8,
+      25,
+      34,
+      35,
+      36
+    ],
+    "end_entities": [
+      18
+    ],
+    "shortest_alert_path": [
+      33,
+      29,
+      68
+    ]
+  },
+  {
+    "context": "During an investigation, an alert was raised indicating that the domain controller host `MB-DC1` read the DKM key of an AD FS object (id 4cac49d3-29d3-407e-8c9b-b7ebb21541b2), a technique often associated with AD FS token-signing certificate theft. Following the chain of related alerts, the activity leads to a suspicious service named DDLOXJDSQSNGMUKKFUXQ being created on the host MB-ADFS to execute potentially malicious commands.",
+    "question": "For the related alert about the suspicious service creation on MB-ADFS, what is the email address of the account that created that service?",
+    "answer": "gsmith@niseko.alpineskihouse.co",
+    "solution": [
+      "The host `MB-DC1` was observed reading the AD FS DKM key of ADFS object id 4cac49d3-29d3-407e-8c9b-b7ebb21541b2, indicating a suspected AD FS DKM key read.",
+      "The user account with AadUserId `2de70991-2799-4a95-b734-8e3df3a50118` (Luciano Herrera, CIO) on MB-WINCLIENT sent a replication request to MB-DC1, indicating a suspected DCSync attack.",
+      "A process `powershell.exe` executed a suspicious sequence of exploration commands used to identify assets of value and coordinate lateral movement.",
+      "The account `gsmith` was used to execute commands via the Impacket toolkit, indicating an ongoing hands-on-keyboard lateral movement attack.",
+      "The account with email `gsmith@niseko.alpineskihouse.co` created the suspicious service `DDLOXJDSQSNGMUKKFUXQ` to execute potentially malicious commands on MB-ADFS."
+    ],
+    "start_alert": 105,
+    "end_alert": 101,
+    "start_entities": [
+      99
+    ],
+    "end_entities": [
+      103
+    ],
+    "shortest_alert_path": [
+      105,
+      99,
+      98,
+      11,
+      57,
+      8,
+      16,
+      18,
+      101
+    ]
+  },
+  {
+    "context": "During a credential theft incident, an alert for 'Suspicious access to LSASS service' was raised, where a process loaded credential-related libraries such as `cryptdll.dll`, `hid.dll`, `winscard.dll`, and `vaultcli.dll` in an attempt to decrypt user passwords from LSASS memory. Shortly afterwards, a related alert titled 'Sensitive credential memory read' was triggered, indicating a process scanned or dumped memory from lsass.exe to extract authentication hashes or passwords.",
+    "question": "Which user account was associated with the follow-up 'Sensitive credential memory read' alert?",
+    "answer": "bjenkins",
+    "solution": [
+      "A suspicious access to the LSASS service was detected under the account `bjenkins`, indicating an attempt to decrypt and obtain clear-text credentials from LSASS memory.",
+      "Following that, a sensitive credential memory read was detected for the same account `bjenkins`, where a process scanned or dumped memory from lsass.exe to extract authentication hashes or passwords."
+    ],
+    "start_alert": 45,
+    "end_alert": 67,
+    "start_entities": [
+      46,
+      47,
+      48,
+      49
+    ],
+    "end_entities": [
+      1
+    ],
+    "shortest_alert_path": [
+      45,
+      1,
+      67
+    ]
+  },
+  {
+    "context": "During an investigation, an alert was raised indicating that the account `gsmith@niseko.alpineskihouse.co` read the DKM key of an AD FS object (id 4cac49d3-29d3-407e-8c9b-b7ebb21541b2). Pivoting on the account's SID, this activity is linked to a chain of reconnaissance behavior on the same machine, where a process invoked a series of Windows commands typically used to identify valuable assets and plan lateral movement, and ultimately to an alert about a suspicious LDAP query used to enumerate the domain controller for privileged users, groups and interesting assets.",
+    "question": "For the alert about the suspicious LDAP query performed as part of this reconnaissance activity, what is the Azure AD (Entra ID) user ID of the account involved?",
+    "answer": "2de70991-2799-4a95-b734-8e3df3a50118",
+    "solution": [
+      "The account with SID `S-2-5-21-571436798-3864380397-1837441745-3206` (user gsmith) read the AD FS DKM key of the ADFS object id `4cac49d3-29d3-407e-8c9b-b7ebb21541b2`.",
+      "A suspicious sequence of exploration activities was performed via the process `powershell.exe`, which called a set of windows commands used to identify assets of value and coordinate lateral movement.",
+      "The account with AadUserId `2de70991-2799-4a95-b734-8e3df3a50118` executed a suspicious LDAP query against the domain controller, indicating reconnaissance activity."
+    ],
+    "start_alert": 106,
+    "end_alert": 64,
+    "start_entities": [
+      103
+    ],
+    "end_entities": [
+      11
+    ],
+    "shortest_alert_path": [
+      106,
+      19,
+      52,
+      8,
+      64
+    ]
+  },
+  {
+    "context": "During an investigation, an alert fired indicating that a process was injected with potentially malicious code, hiding malicious execution inside a trusted process. The alert involved `powershell.exe` running the command line `\"powershell.exe\" -noexit -command set-location -literalpath 'c:\\users\\bjenkins\\downloads\\midnight14'` (Process ID 12412), a script named `contosoadfsblatempcreds.ps1`, the IP address `72.5.72.208`, and accounts including `pwilson`. A few days later, on the same device, another alert was raised reporting that a malicious URL was clicked.",
+    "question": "What was the full malicious URL that was clicked on that device?",
+    "answer": "https://ym018491661.wittytree-b6f239d6.northeurope.azurecontainerapps.io/",
+    "solution": [
+      "A process on the host `mb-winclient` was injected with potentially malicious code, indicating suspicious code running within a trusted process memory.",
+      "From that same device, a malicious URL `https://ym018491661.wittytree-b6f239d6.northeurope.azurecontainerapps.io/` was clicked, likely leading to command and control communication."
+    ],
+    "start_alert": 41,
+    "end_alert": 107,
+    "start_entities": [
+      10,
+      42,
+      2,
+      8,
+      4,
+      13,
+      11,
+      7,
+      3,
+      9
+    ],
+    "end_entities": [
+      97
+    ],
+    "shortest_alert_path": [
+      41,
+      14,
+      107
+    ]
+  },
+  {
+    "context": "During this multi-stage incident, an internal phishing campaign alert was raised after a user was observed sending phishing email from a device to recipients inside the organization, suggesting a compromised account being used for lateral movement. The alert (raised on 2024-07-07) involved accounts such as `Nina Sullivan` (santiago@vnevado.alpineskihouse.co) and `Lucas Grey` (bjenkins@niseko.alpineskihouse.co), along with the URL `http://ym018491661.wittytree-b6f239d6.northeurope.azurecontainerapps.io/`. Following this thread of activity, other related alerts were triggered on the same environment, including credential theft attempts against LSASS and suspicious remote activity.",
+    "question": "One of the related alerts in this incident flagged a suspicious LDAP query indicating an attempt to extract Active Directory Federation Services (ADFS) private keys. What is the security identifier (SID) of the account associated with that ADFS private key extraction attempt alert?",
+    "answer": "S-2-5-21-571436798-3864380397-1837441745-3206",
+    "solution": [
+      "An internal phishing campaign was sent from this device by the user with AadUserId `a2d0f7c2-b0a0-43bd-bce0-27d8ae3be4d0`, indicating the account may have been compromised for lateral movement.",
+      "On the same device, a process scanned or dumped memory from `lsass.exe` (ExtractedFileName: `lsass.exe`), a sensitive credential memory read used to harvest authentication hashes or passwords.",
+      "Using the stolen credentials, suspicious remotely initiated activity was observed on the machine under the account with SID `S-2-5-21-571436798-3864380397-1837441745-3206`.",
+      "That same account with SID `S-2-5-21-571436798-3864380397-1837441745-3206` launched a suspicious LDAP query attempting to extract Active Directory Federation Service (ADFS) private keys for further lateral movement."
+    ],
+    "start_alert": 88,
+    "end_alert": 43,
+    "start_entities": [
+      75,
+      76,
+      77,
+      78,
+      89,
+      90,
+      91
+    ],
+    "end_entities": [
+      19
+    ],
+    "shortest_alert_path": [
+      88,
+      3,
+      67,
+      24,
+      37,
+      19,
+      43
+    ]
+  },
+  {
+    "context": "During a multi-stage intrusion, an alert was raised on the domain controller `MB-DC1` for a suspected AD FS DKM key read, where the host read the DKM key of the AD FS object with id 4cac49d3-29d3-407e-8c9b-b7ebb21541b2. This activity is typically part of a broader attack chain that includes earlier endpoint compromise.",
+    "question": "Earlier in this same incident chain, an alert fired for a process that was injected with potentially malicious code (code injected into another process to hide execution within a trusted process). Which user account name was associated with that process injection alert?",
+    "answer": "pwilson",
+    "solution": [
+      "The host `MB-DC1` was observed reading the DKM key of the AD FS object id 4cac49d3-29d3-407e-8c9b-b7ebb21541b2, indicating a suspected AD FS DKM key read.",
+      "The account with SID `S-1-5-21-551436448-9871687716-9837441745-1903` (Luciano Herrera, CIO) on MB-WINCLIENT sent a replication request to MB-DC1, indicating a suspected DCSync attack.",
+      "The account named `pwilson` was associated with a process that injected potentially malicious code into another process, hiding malicious execution within a trusted process."
+    ],
+    "start_alert": 105,
+    "end_alert": 41,
+    "start_entities": [
+      99
+    ],
+    "end_entities": [
+      9
+    ],
+    "shortest_alert_path": [
+      105,
+      99,
+      98,
+      10,
+      41
+    ]
+  },
+  {
+    "context": "During an investigation, an alert titled \"Attempt to hide use of dual-purpose tool\" was raised, where a known public tool that could also be used for malicious purposes was observed running under an unexpected filename. The process details were: ProcessId 5752, CreatedTimeUtc 2024-07-06T00:00:01.7155092Z, CommandLine `\"iy2orr1e.rrg.exe\" -windowstyle hidden -encodedcommand qwa6afwauwbjahiaaqbwahqacwbcaeuaeabwag8acgb0aeearabgafmavabvagsazqbuafmaaqbnag4aaqbuaemazqbyahqalgbwahmamqa=`. This activity is linked, through a shared user account, to earlier alerts on the same machine, including suspicious remote activity and a process that ran a sequence of Windows exploration commands typically used to identify valuable assets and plan lateral movement.",
+    "question": "For the alert reporting the suspicious sequence of exploration activities, what is the Microsoft Entra (Azure AD) user ID of the account associated with it?",
+    "answer": "a2d0f7c2-b0a0-43bd-bce0-27d8ae3be4d0",
+    "solution": [
+      "The account with SID `S-2-5-21-571436798-3864380397-1837441745-3206` attempted to hide the use of a dual-purpose tool by running a known public tool under an unexpected filename.",
+      "Suspicious remote activity was observed on the machine, involving the process `powershell.exe` initiated remotely.",
+      "The same session ran a suspicious sequence of exploration commands, attributed to the user with AadUserId `a2d0f7c2-b0a0-43bd-bce0-27d8ae3be4d0`."
+    ],
+    "start_alert": 68,
+    "end_alert": 57,
+    "start_entities": [
+      69
+    ],
+    "end_entities": [
+      3
+    ],
+    "shortest_alert_path": [
+      68,
+      19,
+      37,
+      8,
+      57
+    ]
+  },
+  {
+    "context": "During an investigation, a \"Suspicious Task Scheduler activity\" alert fired on host `mb-adfs`, where a process previously involved in malicious activity used `schtasks.exe` to create and run a scheduled task named `run-exportadfstokensignincert.2024-07-02_09_48_23`, executing `iy2orr1e.rrg.exe` with a hidden window and a base64 encoded command, using the credentials of `niseko\\adfsadmin`. Shortly afterwards, another alert titled \"Suspicious sequence of exploration activities\" was raised, where a process ran a set of Windows commands typically used to identify valuable assets and prepare lateral movement.",
+    "question": "For the follow-up alert about the suspicious sequence of exploration activities, which user account security identifier (SID) was observed running those discovery commands?",
+    "answer": "S-1-5-21-551436448-9871687716-9837441745-1903",
+    "solution": [
+      "A process involved in earlier malicious activity used Task Scheduler via `powershell.exe` to create, modify, or delete a scheduled task in order to launch malicious code automatically and establish persistence.",
+      "Following the persistence attempt, a suspicious sequence of exploration activities (a set of Windows discovery commands) was executed under the user account with SID `S-1-5-21-551436448-9871687716-9837441745-1903`, likely to identify valuable assets and prepare for lateral movement."
+    ],
+    "start_alert": 33,
+    "end_alert": 57,
+    "start_entities": [
+      25,
+      26,
+      29,
+      34,
+      35,
+      36
+    ],
+    "end_entities": [
+      10
+    ],
+    "shortest_alert_path": [
+      33,
+      8,
+      57
+    ]
+  },
+  {
+    "context": "During an investigation, an alert was raised for suspicious service creation, where the user `gsmith@niseko.alpineskihouse.co` created a service named DDLOXJDSQSNGMUKKFUXQ in order to execute potentially malicious commands on the host `MB-ADFS`. Pivoting from this activity, analysts traced the related activity chain and found it links to an email-based alert titled 'Email messages containing malicious URL removed after delivery' (-V62.34.26.163), where emails with a malicious URL were delivered and later removed.",
+    "question": "For the related alert about emails containing a malicious URL that were removed after delivery, which mailbox address was the recipient of those messages?",
+    "answer": "bjenkins@niseko.alpineskihouse.co",
+    "solution": [
+      "The account with SID `S-2-5-21-571436798-3864380397-1837441745-3206` (gsmith) created a suspicious service `DDLOXJDSQSNGMUKKFUXQ` to execute potentially malicious commands on host MB-ADFS.",
+      "A process executed `whoami.exe` as part of a suspicious sequence of exploration activities used to identify assets of value and coordinate lateral movement.",
+      "These exploration commands were run under the account with SID `S-1-5-21-561436748-3867387497-1732241745-3701`.",
+      "The mailbox recipient `bjenkins@niseko.alpineskihouse.co` received an email containing a malicious URL that was later removed after delivery."
+    ],
+    "start_alert": 101,
+    "end_alert": 92,
+    "start_entities": [
+      102,
+      103
+    ],
+    "end_entities": [
+      94
+    ],
+    "shortest_alert_path": [
+      101,
+      19,
+      52,
+      54,
+      57,
+      2,
+      92
+    ]
+  },
+  {
+    "context": "During this multi-stage intrusion, an alert for \"Suspicious service registration\" was raised when a system program was registered as a service \u2014 a technique often used to establish persistence or gain SYSTEM privileges. The process involved was `services.exe` with ProcessId__CreatedTimeUtc__CommandLine `764__2024-06-20t08:30:13.7925191z__services.exe`. Further investigation of this chain revealed follow-on activity including Impacket-based lateral movement, hardware/system discovery, a suspected DCSync (directory services replication) attempt, and finally an alert for a suspected AD FS DKM key read of the AD FS object id 4cac49d3-29d3-407e-8c9b-b7ebb21541b2.",
+    "question": "For the suspected AD FS DKM key read activity in this incident, which device (host name) performed the read of the AD FS DKM key?",
+    "answer": "MB-DC1",
+    "solution": [
+      "A system program was registered as a service on host `mb-adfs`, indicating an attempt to establish persistence or gain system privileges.",
+      "An ongoing hands-on-keyboard attack via the Impacket toolkit was observed, executing the process `powershell.exe` for lateral movement.",
+      "Suspicious system hardware discovery was performed by the account with SID `S-1-5-21-551436448-9871687716-9837441745-1903`, gathering information about the target device or network.",
+      "A suspected DCSync attack (replication of directory services) was detected, where a replication request was sent from MB-WINCLIENT to the domain controller host `MB-DC1`.",
+      "A suspected AD FS DKM key read was detected on host `MB-DC1`, which read the DKM key of the ADFS object id 4cac49d3-29d3-407e-8c9b-b7ebb21541b2."
+    ],
+    "start_alert": 61,
+    "end_alert": 105,
+    "start_entities": [
+      62,
+      63
+    ],
+    "end_entities": [
+      99
+    ],
+    "shortest_alert_path": [
+      61,
+      26,
+      16,
+      8,
+      0,
+      10,
+      98,
+      99,
+      105
+    ]
+  },
+  {
+    "context": "During the investigation of a multi-stage incident, an alert showed that a malicious URL `https://ym018491661.wittytree-b6f239d6.northeurope.azurecontainerapps.io/` was clicked on a device. Pivoting from that device led to a 'Suspicious sequence of exploration activities' alert, where a process ran a series of Windows discovery commands, and from the account SID involved there we reached a related identity alert about an unusual addition of a credential of type Password to the OAuth application 'SimulandApp'.",
+    "question": "In that related alert about the unusual credential addition to the OAuth app 'SimulandApp', the activity was performed by the account with email `pwilson@niseko.alpineskihouse.co`. What is the display name of this user account?",
+    "answer": "Luciano Herrera",
+    "solution": [
+      "A malicious URL was clicked on the device with HostName `mb-winclient`.",
+      "The account with SID `S-1-5-21-551436448-9871687716-9837441745-1903` ran a suspicious sequence of exploration/discovery commands on that device, likely to identify valuable assets and plan lateral movement.",
+      "The account `Luciano Herrera` (pwilson@niseko.alpineskihouse.co) then performed an unusual addition of a Password-type credential to the OAuth application `SimulandApp`, indicating the compromised account is being used to establish persistence and expand access."
+    ],
+    "start_alert": 107,
+    "end_alert": 80,
+    "start_entities": [
+      97
+    ],
+    "end_entities": [
+      81
+    ],
+    "shortest_alert_path": [
+      107,
+      14,
+      57,
+      10,
+      80
+    ]
+  },
+  {
+    "context": "During an investigation, an alert flagged that the user Luciano Herrera (pwilson@niseko.alpineskihouse.co) performed an unusual addition of a Password credential to the OAuth application SimulandApp (OAuthAppId `4d9476b8-6ae6-459b-a273-5837c15b5981`) in the Office 365 / Microsoft 365 cloud application, from IP address `36.193.21.220`. This usage pattern may indicate that an attacker has compromised the app, and is using it to spread phishing, exfiltrate data, or to gain access to other accounts and devices.",
+    "question": "Following this activity, a related alert reported an internal phishing campaign where a user sent phishing emails to recipients inside the organization from a compromised account. What is the email address of the account that sent those internal phishing emails?",
+    "answer": "santiago@vnevado.alpineskihouse.co",
+    "solution": [
+      "The user account with AadUserId `2de70991-2799-4a95-b734-8e3df3a50118` (Luciano Herrera, pwilson@niseko.alpineskihouse.co) performed an unusual addition of a Password credential to the OAuth application SimulandApp, indicating the app may have been compromised for phishing, data exfiltration, or access to other accounts and devices.",
+      "The account with SID `S-1-5-21-561436748-3867387497-1732241745-3701` ran a suspicious sequence of exploration activities, calling a set of Windows commands used to identify valuable assets and coordinate lateral movement after compromising the machine.",
+      "The compromised user account with email `santiago@vnevado.alpineskihouse.co` was observed sending internal phishing emails to recipients inside the organization, indicating the attacker used this account to move laterally within the organization."
+    ],
+    "start_alert": 80,
+    "end_alert": 88,
+    "start_entities": [
+      81,
+      82,
+      83,
+      84,
+      85,
+      86,
+      87
+    ],
+    "end_entities": [
+      76
+    ],
+    "shortest_alert_path": [
+      80,
+      11,
+      57,
+      2,
+      88
+    ]
+  },
+  {
+    "context": "During this incident, a 'Suspicious sequence of exploration activities' alert was raised after a process invoked a set of Windows commands often used by attackers to identify valuable assets and plan lateral movement. The observed activity included `powershell.exe` (PID 12412) setting its location to `c:\\users\\bjenkins\\downloads\\midnight14`, followed by `whoami.exe` (PID 13812) and `whoami.exe /user` (PID 1104), under the account `bjenkins` and involving IP address `72.5.72.208`. Additionally, a renamed Windows system executable was launched on the same host, and shortly afterwards a 'Suspicious service registration' alert fired, indicating a system program was registered as a service, which can signal an attempt to establish persistence or gain SYSTEM privileges.",
+    "question": "For the 'Suspicious service registration' alert in this incident, what is the file name of the process associated with registering the system program as a service?",
+    "answer": "services.exe",
+    "solution": [
+      "A process `powershell.exe` ran a suspicious sequence of Windows exploration commands, indicating reconnaissance for assets of value and lateral movement.",
+      "On host `mb-adfs`, a renamed Windows system executable was launched, suggesting the attacker was attempting to evade behavior-based detections.",
+      "A system program was then registered as a service through the process `services.exe`, indicating an attempt to establish persistence or gain SYSTEM privileges."
+    ],
+    "start_alert": 57,
+    "end_alert": 61,
+    "start_entities": [
+      5,
+      10,
+      2,
+      60,
+      1,
+      58,
+      4,
+      3,
+      7,
+      11
+    ],
+    "end_entities": [
+      63
+    ],
+    "shortest_alert_path": [
+      57,
+      8,
+      27,
+      26,
+      61
+    ]
+  },
+  {
+    "context": "During an investigation, a suspected DCSync attack (replication of directory services) was detected where the account `Luciano Herrera` (CIO), associated with the email `pwilson@niseko.alpineskihouse.co`, sent a replication request from the host `MB-WINCLIENT` to the domain controller `MB-DC1`. Following the alert-entity chain from this compromised account, we also see a 'Suspicious System Hardware Discovery' alert and an 'Internal phishing campaign' alert, where a user sent phishing emails to recipients inside the organization, indicating possible lateral movement by the attacker.",
+    "question": "For the internal phishing campaign alert linked to this same compromised account, what malicious URL was included in the phishing email?",
+    "answer": "http://ym018491661.wittytree-b6f239d6.northeurope.azurecontainerapps.io/",
+    "solution": [
+      "The compromised account with AadUserId `2de70991-2799-4a95-b734-8e3df3a50118` (Luciano Herrera, CIO) on MB-WINCLIENT sent a replication request to MB-DC1, indicating a suspected DCSync attack.",
+      "The account with AadUserId `a2d0f7c2-b0a0-43bd-bce0-27d8ae3be4d0` was used to run a known tool or technique performing suspicious system hardware discovery on the device.",
+      "From that device, an internal phishing campaign was launched, sending phishing emails to recipients inside the organization containing the malicious URL `http://ym018491661.wittytree-b6f239d6.northeurope.azurecontainerapps.io/`."
+    ],
+    "start_alert": 98,
+    "end_alert": 88,
+    "start_entities": [
+      81,
+      82,
+      99,
+      100
+    ],
+    "end_entities": [
+      91
+    ],
+    "shortest_alert_path": [
+      98,
+      11,
+      0,
+      3,
+      88
+    ]
+  },
+  {
+    "context": "During an investigation, a phishing email from sender `santiago@vnevado.alpineskihouse.co` (sender IP `119.36.50.193`) containing the malicious URL `https://ym018491661.wittytree-b6f239d6.northeurope.azurecontainerapps.io/` was delivered to the mailbox of Lucas Grey (`bjenkins@niseko.alpineskihouse.co`) and later removed. Following the trail from this compromised account, the activity chain led through a malicious PowerShell Cmdlet invocation and suspicious remote activity on a machine, ending with an alert for a suspicious LDAP query indicating a possible Active Directory Federation Service (ADFS) private key extraction attempt.",
+    "question": "For the ADFS private key extraction attempt alert at the end of this activity chain, what is the Microsoft Entra ID (AAD) user ID of the account associated with it?",
+    "answer": "ec3ec68b-fdeb-4fe4-9a29-acd445e1ccc5",
+    "solution": [
+      "The user account with SID `S-1-5-21-561436748-3867387497-1732241745-3701` received email messages containing a malicious URL, which were delivered and later removed.",
+      "A malicious PowerShell Cmdlet was invoked on the machine through the process with file name `powershell.exe`, potentially associated with credential theft, network reconnaissance, or code injection.",
+      "Suspicious remote activity was observed on the machine, initiated by the account with SID `S-2-5-21-571436798-3864380397-1837441745-3206`.",
+      "An ADFS private key extraction attempt was made through a suspicious LDAP query by the account with AadUserId `ec3ec68b-fdeb-4fe4-9a29-acd445e1ccc5`."
+    ],
+    "start_alert": 92,
+    "end_alert": 43,
+    "start_entities": [
+      89,
+      90,
+      93,
+      94,
+      95,
+      96,
+      97
+    ],
+    "end_entities": [
+      20
+    ],
+    "shortest_alert_path": [
+      92,
+      2,
+      51,
+      8,
+      37,
+      19,
+      43
+    ]
+  },
+  {
+    "context": "During an investigation of a multi-stage intrusion, an alert for a \"Suspicious sequence of exploration activities\" was raised on host `mb-adfs` under the account `gsmith` (SID `S-2-5-21-571436798-3864380397-1837441745-3206`). The activity involved a hidden, encoded-command process `iy2orr1e.rrg.exe` (PID 3116) spawning reconnaissance commands such as `whoami.exe`, along with an encoded `powershell.exe` execution \u2014 commands attackers commonly use to identify valuable assets and prepare for lateral movement. This chain is linked to other alerts in the same incident, including credential access attempts against LSASS and email-based activity affecting the same user.",
+    "question": "One of the related alerts in this incident concerns emails carrying a malicious URL that were delivered to mailboxes and later removed. From which source IP address were those malicious emails sent?",
+    "answer": "119.36.50.193",
+    "solution": [
+      "A process launched `powershell.exe` to run a suspicious sequence of Windows exploration commands used to identify valuable assets and plan lateral movement.",
+      "The user account with AadUserId `a2d0f7c2-b0a0-43bd-bce0-27d8ae3be4d0` was involved in suspicious access to the LSASS service, an attempt to dump clear-text credentials from memory.",
+      "Emails containing a malicious URL were delivered and later removed; these messages originated from the sender IP `119.36.50.193`."
+    ],
+    "start_alert": 52,
+    "end_alert": 92,
+    "start_entities": [
+      28,
+      55,
+      29,
+      56,
+      44,
+      25,
+      26,
+      20,
+      18,
+      19
+    ],
+    "end_entities": [
+      95
+    ],
+    "shortest_alert_path": [
+      52,
+      8,
+      45,
+      3,
+      92
+    ]
+  },
+  {
+    "context": "During an investigation, a suspicious service registration alert was raised when a system program was registered as a service \u2014 an activity that can indicate malicious intent to establish persistence or gain system privileges. The process involved was `services.exe` with Process ID 764, created at 2024-06-20T08:30:13.7925191Z.",
+    "question": "Shortly before this, on the same host, a related alert fired for a renamed Windows system executable being launched. Under which user account was that renamed executable launched?",
+    "answer": "SYSTEM",
+    "solution": [
+      "On host `mb-adfs`, a system program was registered as a service, indicating an attempt to establish persistence or gain system privileges (alert: Suspicious service registration).",
+      "On that same host, a renamed Windows system executable was launched under the account `SYSTEM`, suggesting the attacker used the elevated SYSTEM context to evade path/name-based detections."
+    ],
+    "start_alert": 61,
+    "end_alert": 27,
+    "start_entities": [
+      62,
+      63
+    ],
+    "end_entities": [
+      30
+    ],
+    "shortest_alert_path": [
+      61,
+      26,
+      27
+    ]
+  },
+  {
+    "context": "During this multi-stage incident, an alert for \"Suspicious remote activity\" was raised on host `mb-adfs`, where activity initiated remotely involved the account `gsmith` (SID `S-2-5-21-571436798-3864380397-1837441745-3206`) and the LocalSystem account. Observed processes included `cmd.exe /c \"powershell.exe -encodedcommand qwa6afwauwbjahiaaqbwahqacwbcafiazqbuageabqblafaabwb3aguacgbzaggazqbsagwalgbwahmamqa=\"` (PID 8896), the corresponding encoded `powershell.exe` command (PID 6808), and `lsass.exe` (PID 780). This activity chains onward to a process injection alert and, later in the incident, to a detection that one of your users clicked on a link found to be malicious.",
+    "question": "For the later alert in this incident where a potentially malicious URL click was detected, what is the primary email address of the mailbox belonging to the user who clicked the malicious link?",
+    "answer": "bjenkins@niseko.alpineskihouse.co",
+    "solution": [
+      "Suspicious remote activity was observed on the machine, involving the process `powershell.exe` initiated remotely.",
+      "A process was injected with potentially malicious code under the user account with SID `S-1-5-21-561436748-3867387497-1732241745-3701`.",
+      "A potentially malicious URL click was detected from the mailbox with primary address `bjenkins@niseko.alpineskihouse.co`."
+    ],
+    "start_alert": 37,
+    "end_alert": 104,
+    "start_entities": [
+      17,
+      39,
+      25,
+      26,
+      18,
+      19,
+      21,
+      23,
+      40,
+      38
+    ],
+    "end_entities": [
+      93
+    ],
+    "shortest_alert_path": [
+      37,
+      8,
+      41,
+      2,
+      104
+    ]
+  },
+  {
+    "context": "During this incident, an alert titled \"Attempt to hide use of dual-purpose tool\" fired on 2024-07-06, where a known public tool was observed running under an unexpected filename: the process `iy2orr1e.rrg.exe` was launched with process ID 5752 at 2024-07-06T00:00:01.7155092Z using the command line `\"iy2orr1e.rrg.exe\" -windowstyle hidden -encodedcommand qwa6afwauwbjahiaaqbwahqacwbcaeuaeabwag8acgb0aeearabgafmavabvagsazqbuafmaaqbnag4aaqbuaemazqbyahqalgbwahmamqa=`. This activity is linked, via a shared user account SID, to an earlier alert for a suspicious sequence of exploration activities, where a process called a set of Windows commands that attackers commonly use to identify valuable assets and plan lateral movement.",
+    "question": "For that earlier 'Suspicious sequence of exploration activities' alert, what was the process ID and creation time (UTC) of the process that executed the same hidden, encoded command line?",
+    "answer": "Process ID: 3116, Created Time UTC: 2024-07-02T09:48:23.9439954Z (command line: `\"iy2orr1e.rrg.exe\" -windowstyle hidden -encodedcommand qwa6afwauwbjahiaaqbwahqacwbcaeuaeabwag8acgb0aeearabgafmavabvagsazqbuafmaaqbnag4aaqbuaemazqbyahqalgbwahmamqa=`)",
+    "solution": [
+      "The account with SID `S-2-5-21-571436798-3864380397-1837441745-3206` was observed attempting to hide the use of a dual-purpose public tool by running it under an unexpected filename.",
+      "Under that account, a suspicious sequence of exploration activities was launched by the process with Process ID `3116`, created at `2024-07-02t09:48:23.9439954z`, with command line `\"iy2orr1e.rrg.exe\" -windowstyle hidden -encodedcommand qwa6afwauwbjahiaaqbwahqacwbcaeuaeabwag8acgb0aeearabgafmavabvagsazqbuafmaaqbnag4aaqbuaemazqbyahqalgbwahmamqa=`, which invoked a set of Windows commands used to identify valuable assets and coordinate lateral movement."
+    ],
+    "start_alert": 68,
+    "end_alert": 52,
+    "start_entities": [
+      69
+    ],
+    "end_entities": [
+      28
+    ],
+    "shortest_alert_path": [
+      68,
+      19,
+      52
+    ]
+  },
+  {
+    "context": "During this incident, an alert fired for an unusual addition of credentials to an OAuth application: the user Luciano Herrera (pwilson@niseko.alpineskihouse.co) added a Password-type credential to the application SimulandApp, from IP address `2801:e0a:1eb:dea0:642e:5bb6:d315:fbb3` on the Office 365 / Microsoft 365 cloud application (AppId 11161, OAuth app ID `4d9476b8-6ae6-459b-a273-5837c15b5981`). This pattern may indicate an attacker compromised the app to spread phishing, exfiltrate data, or gain access to other accounts and devices. Pivoting from this activity through a related alert about a malicious PowerShell Cmdlet invoked on a machine, the same account chain leads to an email-related alert where messages containing a malicious URL were delivered and later removed.",
+    "question": "For the alert about email messages containing a malicious URL that were removed after delivery, what is the display name of the account associated with it?",
+    "answer": "Lucas Grey",
+    "solution": [
+      "A user with SID `S-1-5-21-551436448-9871687716-9837441745-1903` (Luciano Herrera, pwilson@niseko.alpineskihouse.co) performed an unusual addition of a Password credential to the OAuth application SimulandApp, indicating the app may have been compromised.",
+      "A malicious PowerShell Cmdlet, potentially associated with credential theft, exploitation, network reconnaissance or code injection, was invoked on a machine by the account with SID `S-1-5-21-561436748-3867387497-1732241745-3701`.",
+      "The email account `Lucas Grey` received email messages containing a malicious URL, which were delivered and later removed."
+    ],
+    "start_alert": 108,
+    "end_alert": 92,
+    "start_entities": [
+      81,
+      82,
+      83,
+      84,
+      85,
+      86,
+      109
+    ],
+    "end_entities": [
+      89
+    ],
+    "shortest_alert_path": [
+      108,
+      10,
+      51,
+      2,
+      92
+    ]
+  },
+  {
+    "context": "During this multi-stage incident, a renamed Windows system executable `iy2orr1e.rrg.exe` was launched on host `mb-adfs` under the SYSTEM account (SID S-2-2-78) with a hidden window and an encoded PowerShell command, followed shortly after by a suspicious sequence of exploration commands. The attack chain later moved into the cloud, where the user Luciano Herrera (pwilson@niseko.alpineskihouse.co) performed an unusual addition of a Password-type credential to the application SimulandApp, which may indicate the app was compromised for phishing, data exfiltration, or gaining access to other accounts.",
+    "question": "For the alert about the unusual addition of credentials to the OAuth application, what is the application ID (OAuth App ID) of the affected app?",
+    "answer": "4d9476b8-6ae6-459b-a273-5837c15b5981",
+    "solution": [
+      "A renamed system executable, originally `powershell.exe`, was launched on the machine to evade path- and name-based detections.",
+      "The account with SID `S-1-5-21-551436448-9871687716-9837441745-1903` ran a suspicious sequence of Windows exploration commands to discover assets and prepare for lateral movement.",
+      "The compromised user then performed an unusual addition of a Password credential to the OAuth application with OAuthAppId `4d9476b8-6ae6-459b-a273-5837c15b5981` (SimulandApp), enabling persistent access through the app."
+    ],
+    "start_alert": 27,
+    "end_alert": 80,
+    "start_entities": [
+      25,
+      26,
+      28,
+      29,
+      30,
+      31
+    ],
+    "end_entities": [
+      85
+    ],
+    "shortest_alert_path": [
+      27,
+      8,
+      57,
+      10,
+      80
+    ]
+  },
+  {
+    "context": "During an ongoing hands-on-keyboard attack investigation, suspicious execution of commands via the Impacket toolkit was observed on the device `mb-adfs`. The activity involved `powershell.exe` running under the `LocalSystem` account (e.g., process ID 6808 executing `powershell.exe -encodedcommand qwa6afwauwbjahiaaqbwahqacwbcafiazqbuageabqblafaabwb3aguacgbzaggazqbsagwalgbwahmamqa=`), along with access to `lsass.exe` (process ID 780) and use of `%comspec%`. Impacket is often used by attackers to connect to other hosts, explore network shares, and execute commands for lateral movement, frequently preceding ransomware deployment.",
+    "question": "Shortly after this activity, a suspicious service named DDLOXJDSQSNGMUKKFUXQ was created on the same host to execute potentially malicious commands. What is the full email address of the user account associated with the creation of this service?",
+    "answer": "gsmith@niseko.alpineskihouse.co",
+    "solution": [
+      "An ongoing hands-on-keyboard attack via the Impacket toolkit was observed, executed under the compromised account with AadUserId `ec3ec68b-fdeb-4fe4-9a29-acd445e1ccc5`, which was used to connect to other hosts, explore network shares, and execute commands for lateral movement.",
+      "Using that lateral movement, the attacker leveraged the account with email `gsmith@niseko.alpineskihouse.co` to create a suspicious service named `DDLOXJDSQSNGMUKKFUXQ` on device `MB-ADFS` in order to execute potentially malicious commands."
+    ],
+    "start_alert": 16,
+    "end_alert": 101,
+    "start_entities": [
+      8,
+      17,
+      21,
+      22,
+      23,
+      24,
+      25,
+      26
+    ],
+    "end_entities": [
+      103
+    ],
+    "shortest_alert_path": [
+      16,
+      20,
+      101
+    ]
+  },
+  {
+    "context": "During an investigation, a Suspected AD FS DKM key read alert was raised where host `MB-DC1` read the DKM key of an AD FS object (id 4cac49d3-29d3-407e-8c9b-b7ebb21541b2). Following the chain of related alerts, this activity ties back to a suspected DCSync replication request, a suspicious LDAP query indicating reconnaissance, and ultimately to an earlier alert on 2024-07-04 for 'Suspicious remote activity', where activity initiated remotely was observed on a machine (such as interactive sessions, file modifications, WMI commands, or scheduled task creation).",
+    "question": "In the 'Suspicious remote activity' alert from 2024-07-04, what was the name of the file involved in the remotely initiated activity?",
+    "answer": "powershell.exe",
+    "solution": [
+      "The host `MB-DC1` was observed reading the AD FS DKM key of the ADFS object id 4cac49d3-29d3-407e-8c9b-b7ebb21541b2, indicating credential/key theft on the domain controller.",
+      "The account with SID `S-1-5-21-551436448-9871687716-9837441745-1903` (Luciano Herrera, CIO) on MB-WINCLIENT sent a directory replication request to MB-DC1, indicating a suspected DCSync attack.",
+      "The same compromised account executed a suspicious LDAP reconnaissance query using the process `powershell.exe` to enumerate domain users, groups, and assets.",
+      "The file `powershell.exe` was used for suspicious remotely initiated activity on the machine, such as launching interactive sessions, modifying files, or passing WMI/scheduled task commands from a remote host."
+    ],
+    "start_alert": 105,
+    "end_alert": 37,
+    "start_entities": [
+      99
+    ],
+    "end_entities": [
+      21
+    ],
+    "shortest_alert_path": [
+      105,
+      99,
+      98,
+      10,
+      64,
+      8,
+      37
+    ]
+  },
+  {
+    "context": "During a multi-stage incident, an email containing a malicious URL `https://ym018491661.wittytree-b6f239d6.northeurope.azurecontainerapps.io/` was delivered to the mailbox `bjenkins@niseko.alpineskihouse.co` (Lucas Grey) from sender `santiago@vnevado.alpineskihouse.co` with sender IP `119.36.50.193`, and was later removed after delivery.",
+    "question": "Pivoting from the compromised user identity involved in this email alert, a related alert shows a malicious PowerShell Cmdlet \u2014 potentially tied to credential theft, exploitation, network reconnaissance or code injection \u2014 was invoked on a machine. What is the account name under which that PowerShell Cmdlet was invoked?",
+    "answer": "pwilson",
+    "solution": [
+      "The user account with SID `S-1-5-21-561436748-3867387497-1732241745-3701` received email messages containing a malicious URL, which were later removed after delivery.",
+      "Following that, a malicious PowerShell Cmdlet \u2014 potentially associated with credential theft, exploitation, network reconnaissance, or code injection \u2014 was invoked on the machine under the account named `pwilson`."
+    ],
+    "start_alert": 92,
+    "end_alert": 51,
+    "start_entities": [
+      89,
+      90,
+      93,
+      94,
+      95,
+      96,
+      97
+    ],
+    "end_entities": [
+      9
+    ],
+    "shortest_alert_path": [
+      92,
+      2,
+      51
+    ]
+  },
+  {
+    "context": "During an investigation of a multi-stage intrusion in the niseko.alpineskihouse.co environment, an alert was raised for a suspicious service creation: the account `gsmith@niseko.alpineskihouse.co` created a service named DDLOXJDSQSNGMUKKFUXQ in order to execute potentially malicious commands on the host `MB-ADFS`. Follow-on activity in the same incident included Impacket-based lateral movement, suspicious LDAP reconnaissance queries, and cloud identity abuse.",
+    "question": "Later in this same incident, an unusual addition of a credential of type Password was made to the OAuth application 'SimulandApp'. What is the email address of the user account that performed this credential addition?",
+    "answer": "pwilson@niseko.alpineskihouse.co (displayed as user Luciano Herrera)",
+    "solution": [
+      "The account `gsmith` created a suspicious service named `DDLOXJDSQSNGMUKKFUXQ` on host MB-ADFS in order to execute potentially malicious commands.",
+      "An ongoing hands-on-keyboard attack via the Impacket toolkit was observed, executing the process `powershell.exe` to move laterally and run commands on remote hosts.",
+      "The account with AadUserId `2de70991-2799-4a95-b734-8e3df3a50118` executed a suspicious LDAP query against the domain controller, indicating reconnaissance of users, groups and assets.",
+      "The compromised user account with email `pwilson@niseko.alpineskihouse.co` (Luciano Herrera) performed an unusual addition of a Password credential to the OAuth application `SimulandApp`, which may be used to persist, spread phishing, or exfiltrate data."
+    ],
+    "start_alert": 101,
+    "end_alert": 80,
+    "start_entities": [
+      102,
+      103
+    ],
+    "end_entities": [
+      82
+    ],
+    "shortest_alert_path": [
+      101,
+      18,
+      16,
+      8,
+      64,
+      11,
+      80
+    ]
+  },
+  {
+    "context": "During this multi-stage incident, a \"Suspicious remote activity\" alert was raised on host `mb-adfs`, where activity initiated remotely was observed. The alert involved the accounts `LocalSystem` and `gsmith` (AAD user ID `ec3ec68b-fdeb-4fe4-9a29-acd445e1ccc5`), and processes such as `cmd.exe` (PID 8896, command line: `cmd.exe /c \"powershell.exe -encodedcommand qwa6afwauwbjahiaaqbwahqacwbcafiazqbuageabqblafaabwb3aguacgbzaggazqbsagwalgbwahmamqa=\"`), a spawned `powershell.exe` (PID 6808) with the same encoded command, and `lsass.exe`.",
+    "question": "Shortly after this remote activity, a suspicious LDAP query indicating potential Active Directory reconnaissance was detected. What is the security identifier (SID) of the account associated with that LDAP query alert?",
+    "answer": "S-1-5-21-551436448-9871687716-9837441745-1903",
+    "solution": [
+      "Suspicious remote activity was observed on the machine, where the process `powershell.exe` was initiated remotely to perform potentially malicious actions such as interactive sessions, file modification, or remote command execution.",
+      "Following the remote PowerShell activity, the account with SID `S-1-5-21-551436448-9871687716-9837441745-1903` executed a suspicious LDAP query against the domain controller, indicating reconnaissance activity to enumerate administrative users, groups, and valuable assets in the organization."
+    ],
+    "start_alert": 37,
+    "end_alert": 64,
+    "start_entities": [
+      17,
+      40,
+      20,
+      26,
+      18,
+      19,
+      38,
+      24,
+      39,
+      25
+    ],
+    "end_entities": [
+      10
+    ],
+    "shortest_alert_path": [
+      37,
+      8,
+      64
+    ]
+  },
+  {
+    "context": "During an investigation, an alert titled 'Suspicious sequence of exploration activities' was raised after a process invoked a set of Windows commands (such as `whoami.exe /user`, process IDs 14260 and 1104) that attackers commonly use to identify valuable assets and plan lateral movement. The activity was tied to user `bjenkins` (AadUserId `a2d0f7c2-b0a0-43bd-bce0-27d8ae3be4d0`), the IP address `72.5.72.208`, and PowerShell executions including `\"powershell.exe\" c:\\script\\contosoadfsblatempcreds.ps1` and `\"powershell.exe\" -noexit -command set-location -literalpath 'c:\\users\\bjenkins\\downloads\\midnight14'`.",
+    "question": "Almost simultaneously, a 'Suspicious remote activity' alert was triggered on the same machine, flagging activity initiated from a remote system. Under which account name was that remotely initiated activity executed?",
+    "answer": "LocalSystem",
+    "solution": [
+      "A process launched `powershell.exe` to run a suspicious sequence of Windows exploration commands, used to identify valuable assets and plan lateral movement.",
+      "The suspicious remote activity on the machine was initiated under the account `LocalSystem`, indicating remotely triggered execution such as interactive sessions, WMI commands, or scheduled tasks."
+    ],
+    "start_alert": 57,
+    "end_alert": 37,
+    "start_entities": [
+      1,
+      12,
+      5,
+      7,
+      59,
+      54,
+      60,
+      4,
+      58,
+      3
+    ],
+    "end_entities": [
+      17
+    ],
+    "shortest_alert_path": [
+      57,
+      8,
+      37
+    ]
+  },
+  {
+    "context": "During this incident, an alert was raised for a suspected AD FS DKM key read, where the domain controller `MB-DC1` read the DKM key of the AD FS object with id 4cac49d3-29d3-407e-8c9b-b7ebb21541b2. This activity was closely related to other domain-level credential and directory abuse alerts, including a suspected DCSync (directory services replication) attack against `MB-DC1` originating from the workstation `MB-WINCLIENT`.",
+    "question": "Earlier in this same incident, a suspicious LDAP query was executed indicating potential reconnaissance of the organization's directory structure. Which account name was associated with that suspicious LDAP query activity?",
+    "answer": "pwilson",
+    "solution": [
+      "The domain controller host `MB-DC1` was involved in a suspected AD FS DKM key read, where the DKM key of the ADFS object id `4cac49d3-29d3-407e-8c9b-b7ebb21541b2` was read.",
+      "The account with SID `S-1-5-21-551436448-9871687716-9837441745-1903` (Luciano Herrera, CIO) on MB-WINCLIENT sent a replication request to `MB-DC1`, indicating a suspected DCSync attack (replication of directory services).",
+      "The account with Name `pwilson` executed a suspicious LDAP query against the domain controller, indicating reconnaissance activity to enumerate administrative users, groups, and assets in the organization."
+    ],
+    "start_alert": 105,
+    "end_alert": 64,
+    "start_entities": [
+      99
+    ],
+    "end_entities": [
+      9
+    ],
+    "shortest_alert_path": [
+      105,
+      99,
+      98,
+      10,
+      64
+    ]
+  },
+  {
+    "context": "During this incident in the niseko.alpineskihouse.co tenant, an alert was raised for an unusual addition of credentials to an OAuth app: the user Luciano Herrera (pwilson@niseko.alpineskihouse.co) added a Password-type credential to the application SimulandApp (OAuth App ID `4d9476b8-6ae6-459b-a273-5837c15b5981`, Object ID `a66a4b44-d1f7-4563-95bf-a89d1b05b325`) within the Office 365 / Microsoft 365 cloud application (App ID 11161), from IP address `36.193.21.220`. This pattern may indicate an attacker compromised the app to spread phishing, exfiltrate data, or gain access to other accounts and devices. Related alerts in the same incident include a suspicious sequence of exploration activities and suspicious remote activity, which chain to a later alert where a service named `DDLOXJDSQSNGMUKKFUXQ` was created on the host `MB-ADFS` to execute potentially malicious commands.",
+    "question": "For the suspicious service creation alert involving the service `DDLOXJDSQSNGMUKKFUXQ` on `MB-ADFS`, what is the full email address (UPN) of the account that created that service?",
+    "answer": "gsmith@niseko.alpineskihouse.co",
+    "solution": [
+      "The account with SID `S-1-5-21-551436448-9871687716-9837441745-1903` (Luciano Herrera, pwilson@niseko.alpineskihouse.co) performed an unusual addition of a Password credential to the OAuth application SimulandApp.",
+      "The process `powershell.exe` was used to run a suspicious sequence of Windows exploration commands to discover valuable assets and prepare for lateral movement.",
+      "The account with AadUserId `ec3ec68b-fdeb-4fe4-9a29-acd445e1ccc5` was involved in suspicious remotely initiated activity on the machine.",
+      "The account with email `gsmith@niseko.alpineskihouse.co` created the suspicious service `DDLOXJDSQSNGMUKKFUXQ` to execute potentially malicious commands on the host MB-ADFS."
+    ],
+    "start_alert": 80,
+    "end_alert": 101,
+    "start_entities": [
+      81,
+      82,
+      83,
+      84,
+      85,
+      86,
+      87
+    ],
+    "end_entities": [
+      103
+    ],
+    "shortest_alert_path": [
+      80,
+      10,
+      57,
+      8,
+      37,
+      20,
+      101
+    ]
+  },
+  {
+    "context": "During a multi-stage incident, an alert titled \"System executable renamed and launched\" fired on host `mb-adfs`. A renamed Windows executable, `iy2orr1e.rrg.exe`, was launched under the `SYSTEM` account (SID `S-2-2-78`) with process ID 3116 at 2024-07-02T09:48:23.94Z, using the arguments `-windowstyle hidden -encodedcommand Qwa6AFwAUwBjAHIAaQBwAHQAcwBcAEUAeABwAG8AcgB0AEQARgBTAFQAbwBrAGUAbgBTAGkAZwBuAGkAbgBDAGUAcgB0AC4AcABzADEA`. Renaming a system binary is a common technique to evade path/name-based detections.",
+    "question": "Shortly before this renamed binary ran, a related PowerShell process with a Base64-encoded command was launched as part of the same activity. What was that process's ID, creation time, and full command line?",
+    "answer": "Process ID 6808, created at 2024-07-02T09:48:12.7628138Z, with the command line: `powershell.exe -encodedcommand qwa6afwauwbjahiaaqbwahqacwbcafiazqbuageabqblafaabwb3aguacgbzaggazqbsagwalgbwahmamqa=`",
+    "solution": [
+      "A Windows system executable was renamed and launched: the renamed PowerShell binary ran with command line `powershell.exe -encodedcommand qwa6afwauwbjahiaaqbwahqacwbcafiazqbuageabqblafaabwb3aguacgbzaggazqbsagwalgbwahmamqa=` (decoding to the script `C:\\Scripts\\RenamePowerShell.ps1`) at `2024-07-02t09:48:12.7628138z`, with Process ID `6808`."
+    ],
+    "start_alert": 27,
+    "end_alert": 27,
+    "start_entities": [
+      31,
+      28,
+      29,
+      26,
+      30
+    ],
+    "end_entities": [
+      25
+    ],
+    "shortest_alert_path": [
+      27
+    ]
+  },
+  {
+    "context": "During this incident, an alert fired for \"Email messages containing malicious URL removed after delivery\" \u2014 a message sent from `santiago@vnevado.alpineskihouse.co` (sender IP `119.36.50.193`) was delivered to the mailbox of Lucas Grey (`bjenkins@niseko.alpineskihouse.co`) and contained the malicious URL `https://ym018491661.wittytree-b6f239d6.northeurope.azurecontainerapps.io/` before being removed. This user account is also linked to later activity in the same incident.",
+    "question": "Following the account thread from this phishing email, another alert in the incident reported that a process scanned or dumped memory from the Local Security Authority Subsystem Service (lsass.exe) to harvest credentials. What IP address is associated with that sensitive credential memory read alert?",
+    "answer": "72.5.72.208",
+    "solution": [
+      "The user account with AadUserId `a2d0f7c2-b0a0-43bd-bce0-27d8ae3be4d0` received an email message containing a malicious URL, which was delivered and later removed.",
+      "Following the compromise, a process scanned or dumped credential memory from the Local Security Authority Subsystem Service (lsass.exe), and the sensitive credential memory read activity was associated with the IP address `72.5.72.208`."
+    ],
+    "start_alert": 92,
+    "end_alert": 67,
+    "start_entities": [
+      89,
+      90,
+      93,
+      94,
+      95,
+      96,
+      97
+    ],
+    "end_entities": [
+      4
+    ],
+    "shortest_alert_path": [
+      92,
+      3,
+      67
+    ]
+  },
+  {
+    "context": "During an investigation, a suspicious service registration alert was raised when a system program was registered as a service, indicating possible intent to establish persistence or gain system privileges. The process involved was `services.exe` (Process ID 764, created 2024-06-20T08:30:13.7925191Z). Follow-on activity on the same device included an ongoing hands-on-keyboard attack via the Impacket toolkit and the invocation of a malicious PowerShell cmdlet. Later, a user on that same device clicked a malicious URL.",
+    "question": "Following this activity chain on the same device, a 'Malicious URL was clicked on that device' alert was triggered. What was the full malicious URL that was clicked?",
+    "answer": "https://ym018491661.wittytree-b6f239d6.northeurope.azurecontainerapps.io/",
+    "solution": [
+      "A system program was registered as a service on host `mb-adfs`, indicating an attempt to establish persistence or gain system privileges.",
+      "An ongoing hands-on-keyboard attack via the Impacket toolkit was observed, executing the process `powershell.exe` to move laterally across the network.",
+      "A malicious PowerShell Cmdlet was invoked on the device with AadDeviceId `7661dfd4-218f-4016-8a87-66d68a7f098e`, possibly for credential theft, network reconnaissance, or code injection.",
+      "A malicious URL `https://ym018491661.wittytree-b6f239d6.northeurope.azurecontainerapps.io/` was clicked on that device."
+    ],
+    "start_alert": 61,
+    "end_alert": 107,
+    "start_entities": [
+      62,
+      63
+    ],
+    "end_entities": [
+      97
+    ],
+    "shortest_alert_path": [
+      61,
+      26,
+      16,
+      8,
+      51,
+      15,
+      107
+    ]
+  },
+  {
+    "context": "During this incident, an alert fired on host `mb-winclient` (Azure AD device ID `7661dfd4-218f-4016-8a87-66d68a7f098e`) indicating that a malicious PowerShell Cmdlet was invoked \u2014 process ID 13968 running `\"powershell.exe\" c:\\script\\contosoadfsblatempcreds.ps1` at 2024-07-02T09:47:59Z, involving accounts `bjenkins` and `pwilson` and the IP address `72.5.72.208`. Such Cmdlets are often associated with credential theft, exploitation, network reconnaissance or code injection. Roughly at the same time, a closely related alert reported that a renamed Windows system executable was launched, a common defense-evasion technique.",
+    "question": "For that related 'System executable renamed and launched' alert, what is the security identifier (SID) of the account tied to the activity?",
+    "answer": "S-2-2-78",
+    "solution": [
+      "A malicious PowerShell Cmdlet was invoked on the machine through the process with ExtractedFileName `powershell.exe`, potentially associated with credential theft, exploitation, network reconnaissance, or code injection.",
+      "A renamed Windows system executable was launched by the account with SID `S-2-2-78`, indicating an attempt to evade behavior-based detection that relies on default paths and file names."
+    ],
+    "start_alert": 51,
+    "end_alert": 27,
+    "start_entities": [
+      1,
+      15,
+      14,
+      42,
+      13,
+      4,
+      3,
+      9,
+      12,
+      2
+    ],
+    "end_entities": [
+      31
+    ],
+    "shortest_alert_path": [
+      51,
+      8,
+      27
+    ]
+  },
+  {
+    "context": "During an investigation, an alert titled \"Suspicious sequence of exploration activities\" was raised on 2024-07-04, indicating that a process invoked a set of Windows commands (including `whoami.exe`, launched under process IDs 8056, 1120 and 3468) typically used by attackers to identify assets of value and coordinate lateral movement. The activity involved a hidden, base64/encoded-command process `iy2orr1e.rrg.exe` and `powershell.exe`, and was associated with the user account `gsmith` (SID S-2-5-21-571436798-3864380397-1837441745-3206).",
+    "question": "Shortly before this exploration activity, a related alert fired for a malicious PowerShell Cmdlet being invoked on the machine \u2014 such Cmdlets are often tied to credential theft, exploitation, network reconnaissance or code injection. What is the name of the user account associated with that malicious PowerShell Cmdlet alert?",
+    "answer": "pwilson",
+    "solution": [
+      "A process invoked a suspicious sequence of exploration commands using `powershell.exe`, indicating reconnaissance activity to identify valuable assets and prepare for lateral movement.",
+      "The malicious PowerShell Cmdlet associated with credential theft, reconnaissance, or code injection was invoked on the machine under the user account `pwilson`."
+    ],
+    "start_alert": 52,
+    "end_alert": 51,
+    "start_entities": [
+      53,
+      28,
+      18,
+      19,
+      20,
+      25,
+      56,
+      55,
+      44,
+      54
+    ],
+    "end_entities": [
+      9
+    ],
+    "shortest_alert_path": [
+      52,
+      8,
+      51
+    ]
+  },
+  {
+    "context": "During this multi-stage intrusion, an internal phishing campaign alert was raised after a user was observed sending phishing email from a device to recipients inside the organization, suggesting an account had been compromised for lateral movement. The alert involved accounts such as `Nina Sullivan` (santiago@vnevado.alpineskihouse.co, SID S-1-5-11-7842151660-4834030208-105586563-1139) and `Lucas Grey` (bjenkins@niseko.alpineskihouse.co), along with the malicious URL `http://ym018491661.wittytree-b6f239d6.northeurope.azurecontainerapps.io/`. Pivoting through the shared account identifiers, this activity chains to a suspicious system hardware discovery alert on a device and ultimately to a suspected DCSync attack, where a replication request was sent from MB-WINCLIENT to the domain controller MB-DC1.",
+    "question": "In the suspected DCSync (directory services replication) alert, which user account was identified as issuing the replication request from MB-WINCLIENT to MB-DC1?",
+    "answer": "Luciano Herrera (the CIO account)",
+    "solution": [
+      "A compromised user account with AadUserId `a2d0f7c2-b0a0-43bd-bce0-27d8ae3be4d0` was observed sending an internal phishing campaign email to recipients inside the organization.",
+      "A user account with AadUserId `2de70991-2799-4a95-b734-8e3df3a50118` ran a known tool or technique to perform suspicious system hardware discovery on the device.",
+      "The account `Luciano Herrera` (CIO) on MB-WINCLIENT then sent a replication request to MB-DC1, indicating a suspected DCSync attack (replication of directory services)."
+    ],
+    "start_alert": 88,
+    "end_alert": 98,
+    "start_entities": [
+      75,
+      76,
+      77,
+      78,
+      89,
+      90,
+      91
+    ],
+    "end_entities": [
+      81
+    ],
+    "shortest_alert_path": [
+      88,
+      3,
+      0,
+      11,
+      98
+    ]
+  },
+  {
+    "context": "During this multi-stage intrusion, a Suspicious System Hardware Discovery alert fired on host `mb-winclient`, where known reconnaissance tooling was used to gather information about the device. The activity involved processes such as `svchost.exe` (PID 2880, command line `svchost.exe -k netsvcs -p -s winmgmt`) and PowerShell executions including `\"powershell.exe\" c:\\script\\contosoadfsblatempcreds.ps1` (PID 13968) and `\"powershell.exe\" -noexit -command set-location -literalpath 'c:\\users\\bjenkins\\downloads\\midnight14'` (PID 12412), with accounts `bjenkins` and `pwilson` (AAD user ID a2d0f7c2-b0a0-43bd-bce0-27d8ae3be4d0) and IP address 72.5.72.208 observed.",
+    "question": "Following this activity, a later alert flagged an unusual addition of a Password-type credential to the OAuth application 'SimulandApp' by the account `pwilson`. What is the display name (full name) of that user account as reported in the alert?",
+    "answer": "Luciano Herrera",
+    "solution": [
+      "A known hardware discovery tool was used on the device by the account with SID `S-1-5-21-551436448-9871687716-9837441745-1903`, indicating reconnaissance activity.",
+      "The compromised account `Luciano Herrera` (pwilson@niseko.alpineskihouse.co) then performed an unusual addition of a Password-type credential to the OAuth application SimulandApp, which may be used to spread phishing, exfiltrate data, or gain access to other accounts and devices."
+    ],
+    "start_alert": 0,
+    "end_alert": 108,
+    "start_entities": [
+      5,
+      4,
+      9,
+      3,
+      13,
+      6,
+      12,
+      14,
+      1,
+      7
+    ],
+    "end_entities": [
+      81
+    ],
+    "shortest_alert_path": [
+      0,
+      10,
+      108
+    ]
+  },
+  {
+    "context": "During this incident, a \"Suspicious sequence of exploration activities\" alert fired on host `mb-adfs` for account `gsmith` (SID S-2-5-21-571436798-3864380397-1837441745-3206). A hidden PowerShell process `iy2orr1e.rrg.exe` (PID 3116) launched with an encoded command and spawned reconnaissance commands such as `whoami.exe` (PIDs 1120 and 8056), which attackers commonly use to identify valuable assets and plan lateral movement.",
+    "question": "Shortly before this exploration activity, another alert on the same host flagged suspicious access to the LSASS service for credential theft. Which library (DLL) file was reported as an entity in that LSASS credential access alert?",
+    "answer": "cryptdll.dll",
+    "solution": [
+      "A process launched `powershell.exe` (ExtractedFileName: `powershell.exe`) to run a suspicious sequence of Windows exploration commands used to identify valuable assets and plan lateral movement at 2024-07-04 22:35:03 UTC.",
+      "The same activity involved suspicious access to the LSASS service, loading the credential-dumping related file `cryptdll.dll` (Name: `cryptdll.dll`) to decrypt clear-text passwords from LSASS memory at 2024-07-04 22:35:02 UTC."
+    ],
+    "start_alert": 52,
+    "end_alert": 45,
+    "start_entities": [
+      53,
+      29,
+      28,
+      18,
+      20,
+      25,
+      54,
+      19,
+      55,
+      26
+    ],
+    "end_entities": [
+      46
+    ],
+    "shortest_alert_path": [
+      52,
+      8,
+      45
+    ]
+  },
+  {
+    "context": "During an investigation, an internal phishing campaign alert was raised indicating that a user (Nina Sullivan, account `santiago@vnevado.alpineskihouse.co`, AAD User ID `28058d92-fc24-4869-9231-6546a34b00f2`) sent phishing emails from a device to recipients inside the organization, suggesting the account may have been compromised for lateral movement. A few days later, a related alert fired stating that one of the users clicked on a link that was found to be malicious.",
+    "question": "For the alert about the potentially malicious URL click, what is the email address of the mail message recipient who received the message containing that malicious link?",
+    "answer": "bjenkins@niseko.alpineskihouse.co",
+    "solution": [
+      "A compromised user account with SID `S-1-5-21-561436748-3867387497-1732241745-3701` was observed sending internal phishing emails from the device to recipients inside the organization at 2024-07-07 10:09:33 UTC.",
+      "One of those phishing emails was delivered to the mailbox of the recipient `bjenkins@niseko.alpineskihouse.co`, who then clicked on the potentially malicious URL contained in the message at 2024-07-10 11:24:45 UTC."
+    ],
+    "start_alert": 88,
+    "end_alert": 104,
+    "start_entities": [
+      75,
+      76,
+      77,
+      78
+    ],
+    "end_entities": [
+      94
+    ],
+    "shortest_alert_path": [
+      88,
+      2,
+      104
+    ]
+  },
+  {
+    "context": "During this multi-stage intrusion, an alert for a \"Suspicious sequence of exploration activities\" was raised on host `mb-adfs` for account `gsmith` (SID S-2-5-21-571436798-3864380397-1837441745-3206). A set of Windows discovery commands were executed, including `whoami.exe` (PID 1120) and hidden, base64-encoded PowerShell launched via `iy2orr1e.rrg.exe` (PID 3116) \u2014 behavior commonly used by attackers to identify valuable assets and prepare for lateral movement. This activity was followed by suspicious LDAP reconnaissance and, later, a suspected DCSync (directory services replication) attack, and finally an alert indicating that the Distributed Key Manager (DKM) key of the AD FS object with id 4cac49d3-29d3-407e-8c9b-b7ebb21541b2 was read.",
+    "question": "For the final alert in this chain, which device performed the read of the AD FS DKM key?",
+    "answer": "MB-DC1",
+    "solution": [
+      "A suspicious sequence of exploration (discovery) commands was executed by the process `powershell.exe`, indicating reconnaissance to identify valuable assets and plan lateral movement.",
+      "The account with SID `S-1-5-21-551436448-9871687716-9837441745-1903` executed a suspicious LDAP query against the domain controller to enumerate administrative users, groups, and assets.",
+      "Using the harvested credentials, the user Luciano Herrera (CIO) on MB-WINCLIENT sent a directory services replication request to the domain controller host `MB-DC1`, indicating a suspected DCSync attack.",
+      "On the same host `MB-DC1`, the AD FS DKM key of ADFS object id `4cac49d3-29d3-407e-8c9b-b7ebb21541b2` was read, which can be used to forge SAML tokens and escalate access."
+    ],
+    "start_alert": 52,
+    "end_alert": 105,
+    "start_entities": [
+      19,
+      20,
+      56,
+      25,
+      29,
+      28,
+      18,
+      55,
+      44,
+      26
+    ],
+    "end_entities": [
+      99
+    ],
+    "shortest_alert_path": [
+      52,
+      8,
+      64,
+      10,
+      98,
+      99,
+      105
+    ]
+  },
+  {
+    "context": "During an investigation, an alert was raised indicating a suspected AD FS DKM key read, where the user account `gsmith@niseko.alpineskihouse.co` read the DKM key of an AD FS object (id 4cac49d3-29d3-407e-8c9b-b7ebb21541b2). This activity is linked to earlier suspicious activity in the same incident, where a known public dual-purpose tool was observed running under an unexpected filename, likely an attempt to hide its malicious use.",
+    "question": "On which machine was the dual-purpose tool observed running under an unexpected filename?",
+    "answer": "The host `mb-adfs`",
+    "solution": [
+      "The account with AadUserId `ec3ec68b-fdeb-4fe4-9a29-acd445e1ccc5` (gsmith) was detected reading the AD FS DKM key of the AD FS object id `4cac49d3-29d3-407e-8c9b-b7ebb21541b2`.",
+      "Related to this AD FS credential theft activity, a known dual-purpose public tool was observed running under an unexpected filename, an attempt to hide its malicious usage, on the host with HostName `mb-adfs`."
+    ],
+    "start_alert": 106,
+    "end_alert": 32,
+    "start_entities": [
+      103
+    ],
+    "end_entities": [
+      26
+    ],
+    "shortest_alert_path": [
+      106,
+      20,
+      32
+    ]
+  },
+  {
+    "context": "During this incident, an alert fired for an unusual addition of credentials to the OAuth application SimulandApp (OAuth App ID `4d9476b8-6ae6-459b-a273-5837c15b5981`) by the user Luciano Herrera (pwilson@niseko.alpineskihouse.co) from IP address `36.193.21.220`, targeting the Office 365 / Microsoft 365 cloud application (App ID 11161). This activity is linked through a chain of related alerts on a compromised endpoint, including suspicious exploration commands and Task Scheduler abuse, ending with an alert for a system program being registered as a service to establish persistence or gain system privileges.",
+    "question": "For the alert about the suspicious service registration, what is the name of the process (file) involved?",
+    "answer": "services.exe",
+    "solution": [
+      "A user account with AadUserId `2de70991-2799-4a95-b734-8e3df3a50118` (Luciano Herrera, pwilson@niseko.alpineskihouse.co) performed an unusual addition of a Password credential to the OAuth application SimulandApp.",
+      "Using the compromised access, a suspicious sequence of exploration activities was executed through the process `powershell.exe`, running a set of Windows commands to discover valuable assets and prepare for lateral movement.",
+      "These exploration and discovery activities were observed on the host `mb-adfs`, where the involved process also abused Task Scheduler to create, modify, or delete a scheduled task in order to launch malicious code automatically and establish persistence.",
+      "On that same host, persistence was further strengthened when the system program `services.exe` was used to register a system program as a service, indicating an attempt to maintain persistence or gain SYSTEM privileges."
+    ],
+    "start_alert": 80,
+    "end_alert": 61,
+    "start_entities": [
+      81,
+      82,
+      83,
+      84,
+      85,
+      86,
+      87
+    ],
+    "end_entities": [
+      63
+    ],
+    "shortest_alert_path": [
+      80,
+      11,
+      57,
+      8,
+      33,
+      26,
+      61
+    ]
+  },
+  {
+    "context": "During an investigation, an 'ADFS private key extraction attempt' alert was raised on host `mb-adfs`, where a suspicious LDAP query was launched. The activity involved the account `gsmith` (SID `S-2-5-21-571436798-3864380397-1837441745-3206`) and a renamed executable `iy2orr1e.rrg.exe` running with hidden window style and an encoded PowerShell command (process ID 3116). The same user account was later associated with additional suspicious activity, including a mail-related alert reporting that a user clicked on a link found to be malicious.",
+    "question": "For the alert reporting that a user clicked on a potentially malicious link, what was the full URL that was clicked?",
+    "answer": "http://ym018491661.wittytree-b6f239d6.northeurope.azurecontainerapps.io/",
+    "solution": [
+      "A suspicious LDAP query was launched by the renamed PowerShell process `iy2orr1e.rrg.exe` with Process ID `3116` at `2024-07-02t09:48:23.9439954z`, using the hidden window style and an encoded command, in an attempt to extract ADFS private keys.",
+      "This process was identified as a renamed system executable, with the original extracted file name `powershell.exe`, launched to evade path- and name-based detections.",
+      "The same activity chain included a suspicious sequence of exploration commands run under the user account with AadUserId `a2d0f7c2-b0a0-43bd-bce0-27d8ae3be4d0`, used to discover assets and prepare for lateral movement.",
+      "That same compromised user later clicked a potentially malicious URL `http://ym018491661.wittytree-b6f239d6.northeurope.azurecontainerapps.io/`, which was detected as malicious."
+    ],
+    "start_alert": 43,
+    "end_alert": 104,
+    "start_entities": [
+      18,
+      19,
+      20,
+      26,
+      28,
+      29,
+      44
+    ],
+    "end_entities": [
+      91
+    ],
+    "shortest_alert_path": [
+      43,
+      28,
+      27,
+      8,
+      57,
+      3,
+      104
+    ]
+  },
+  {
+    "context": "During an investigation of a multi-stage incident, an alert was raised on host `mb-winclient` (AAD device ID `7661dfd4-218f-4016-8a87-66d68a7f098e`) where a process was injected with potentially malicious code. Related activity on that host included `powershell.exe` (PID 12412) setting its location to `c:\\users\\bjenkins\\downloads\\midnight14`, and `powershell.exe` (PID 13968) executing the script `c:\\script\\contosoadfsblatempcreds.ps1`, with accounts such as `bjenkins` and `pwilson` involved. Following this activity, a suspected DCSync attack (replication of directory services) was observed, and later an alert fired for a suspected AD FS DKM key read of the AD FS object with id `4cac49d3-29d3-407e-8c9b-b7ebb21541b2`.",
+    "question": "Which host performed the suspected AD FS DKM key read?",
+    "answer": "MB-DC1",
+    "solution": [
+      "A process was injected with potentially malicious code under the user account with AadUserId `2de70991-2799-4a95-b734-8e3df3a50118`.",
+      "The compromised account (Luciano Herrera, CIO) on MB-WINCLIENT sent a replication request to the domain controller host `MB-DC1`, indicating a suspected DCSync attack.",
+      "The host `MB-DC1` read the AD FS DKM key of the ADFS object id `4cac49d3-29d3-407e-8c9b-b7ebb21541b2`, indicating a suspected AD FS DKM key read."
+    ],
+    "start_alert": 41,
+    "end_alert": 105,
+    "start_entities": [
+      12,
+      1,
+      7,
+      3,
+      9,
+      42,
+      15,
+      8,
+      13,
+      14
+    ],
+    "end_entities": [
+      99
+    ],
+    "shortest_alert_path": [
+      41,
+      11,
+      98,
+      99,
+      105
+    ]
+  },
+  {
+    "context": "During an investigation on host `mb-winclient` (AAD device ID `7661dfd4-218f-4016-8a87-66d68a7f098e`), an alert for suspicious access to the LSASS service was raised. The LSASS process (PID 760, created 2024-07-02T07:28:35.8580921Z) was accessed in a way consistent with credential theft, involving modules such as `cryptdll.dll`, `vaultcli.dll`, `winscard.dll`, and `hid.dll`, under the account `bjenkins` (SID S-1-5-21-561436748-3867387497-1732241745-3701).",
+    "question": "Just before the LSASS access alert, another alert on the same machine flagged suspicious activity that was initiated remotely. What is the name of the file/executable associated with that remote activity alert?",
+    "answer": "powershell.exe",
+    "solution": [
+      "An attacker performed suspicious access to the LSASS service, targeting the process `lsass.exe` to dump credentials from memory.",
+      "Using the stolen credentials, suspicious remote activity was initiated on the machine, executing the file `powershell.exe` remotely."
+    ],
+    "start_alert": 45,
+    "end_alert": 37,
+    "start_entities": [
+      46,
+      14,
+      49,
+      15,
+      48,
+      50,
+      47,
+      1,
+      2
+    ],
+    "end_entities": [
+      21
+    ],
+    "shortest_alert_path": [
+      45,
+      24,
+      37
+    ]
+  },
+  {
+    "context": "During this multi-stage incident, an alert titled 'System executable renamed and launched' was raised on host `mb-adfs`. A renamed Windows executable `iy2orr1e.rrg.exe` was launched under the SYSTEM account (SID S-2-2-78) with a hidden window and a base64 encoded PowerShell command, following an earlier encoded PowerShell process (PID 6808). Renaming system executables is a common defense evasion technique used to bypass detections based on default file names and paths. Later in the same incident chain, an alert fired indicating that one of the users clicked on a link that was found to be malicious.",
+    "question": "For that later alert about the potentially malicious link click, what was the full URL that the user clicked on?",
+    "answer": "http://ym018491661.wittytree-b6f239d6.northeurope.azurecontainerapps.io/",
+    "solution": [
+      "A renamed Windows system executable, `powershell.exe`, was launched on the device to evade path/file-name based detections.",
+      "Using that process, the account with SID `S-1-5-21-561436748-3867387497-1732241745-3701` ran a known tool/technique to perform suspicious system hardware discovery on the device.",
+      "The same compromised user then clicked a potentially malicious URL `http://ym018491661.wittytree-b6f239d6.northeurope.azurecontainerapps.io/`."
+    ],
+    "start_alert": 27,
+    "end_alert": 104,
+    "start_entities": [
+      25,
+      26,
+      28,
+      29,
+      30,
+      31
+    ],
+    "end_entities": [
+      91
+    ],
+    "shortest_alert_path": [
+      27,
+      8,
+      0,
+      2,
+      104
+    ]
+  },
+  {
+    "context": "During an investigation, an alert fired indicating that a process was injected with potentially malicious code on host `mb-winclient` (AAD device ID `7661dfd4-218f-4016-8a87-66d68a7f098e`). Around the same time, PowerShell activity was observed under the account `bjenkins`, including the command `\"powershell.exe\" c:\\script\\contosoadfsblatempcreds.ps1` (Process ID 13968) and `\"powershell.exe\" -noexit -command set-location -literalpath 'c:\\users\\bjenkins\\downloads\\midnight14'` (Process ID 12412), with a connection to IP `72.5.72.208`.",
+    "question": "Just before this injection alert, a closely related alert reported that a renamed Windows system executable was launched. What is the security identifier (SID) of the account associated with that alert?",
+    "answer": "S-2-2-78",
+    "solution": [
+      "A process `powershell.exe` was injected with potentially malicious code, indicating suspicious code running within a trusted process memory.",
+      "A renamed Windows system executable was launched by the account with SID `S-2-2-78`, likely to evade path- and name-based detections."
+    ],
+    "start_alert": 41,
+    "end_alert": 27,
+    "start_entities": [
+      11,
+      42,
+      2,
+      3,
+      4,
+      12,
+      1,
+      15,
+      7,
+      14
+    ],
+    "end_entities": [
+      31
+    ],
+    "shortest_alert_path": [
+      41,
+      8,
+      27
+    ]
+  },
+  {
+    "context": "During an investigation, a suspicious service registration was detected where a system program `services.exe` (Process ID 764, created 2024-06-20T08:30:13.7925191Z) was registered as a service, potentially indicating an attempt to establish persistence or gain SYSTEM privileges. This activity was linked through the affected host to further alerts, including an ongoing hands-on-keyboard attack via the Impacket toolkit and a sensitive credential memory read from lsass.exe, which allows an attacker to extract authentication hashes or passwords. The compromised credentials were then apparently leveraged to move laterally inside the organization, culminating in an internal phishing campaign alert raised by Microsoft Defender for Office 365, where phishing emails were sent from the device to recipients inside the organization.",
+    "question": "For the internal phishing campaign alert at the end of this attack chain, what is the display name of the user account that was observed sending the phishing emails inside the organization?",
+    "answer": "Nina Sullivan",
+    "solution": [
+      "A system program was registered as a service on host `mb-adfs`, indicating an attempt to establish persistence or gain system privileges.",
+      "An ongoing hands-on-keyboard attack via the Impacket toolkit was observed, executing commands through the process `powershell.exe` for lateral movement.",
+      "The account with SID `S-1-5-21-561436748-3867387497-1732241745-3701` performed a sensitive credential memory read against lsass.exe to dump authentication hashes or passwords.",
+      "The compromised account `Nina Sullivan` was used to send internal phishing emails to recipients inside the organization."
+    ],
+    "start_alert": 61,
+    "end_alert": 88,
+    "start_entities": [
+      62,
+      63
+    ],
+    "end_entities": [
+      75
+    ],
+    "shortest_alert_path": [
+      61,
+      26,
+      16,
+      8,
+      67,
+      2,
+      88
+    ]
+  },
+  {
+    "context": "During an investigation of a multi-stage attack, an 'ADFS private key extraction attempt' alert was raised on host `mb-adfs`, where account `gsmith` (SID `S-2-5-21-571436798-3864380397-1837441745-3206`) launched a suspicious LDAP query. The activity involved a hidden PowerShell process `iy2orr1e.rrg.exe` running an encoded command (process ID 3116 created at 2024-07-02T09:48:23Z and again as process ID 8764 on 2024-07-04). Follow-on alerts show hands-on-keyboard activity via the Impacket toolkit and, moments later, a process scanning or dumping memory from the Local Security Authority Subsystem Service (lsass.exe) to extract authentication hashes or passwords.",
+    "question": "For the 'Sensitive credential memory read' alert involving lsass.exe memory access, what is the security identifier (SID) of the account associated with that activity?",
+    "answer": "S-1-5-21-561436748-3867387497-1732241745-3701",
+    "solution": [
+      "An ADFS private key extraction attempt was detected via a suspicious LDAP query performed by the account with AadUserId `ec3ec68b-fdeb-4fe4-9a29-acd445e1ccc5`.",
+      "An ongoing hands-on-keyboard attack via the Impacket toolkit was observed on the device, involving the process with extracted file name `lsass.exe`.",
+      "The credential theft continued with a sensitive credential memory read of lsass.exe, performed by the account with SID `S-1-5-21-561436748-3867387497-1732241745-3701`."
+    ],
+    "start_alert": 43,
+    "end_alert": 67,
+    "start_entities": [
+      18,
+      19,
+      20,
+      26,
+      28,
+      29,
+      44
+    ],
+    "end_entities": [
+      2
+    ],
+    "shortest_alert_path": [
+      43,
+      20,
+      16,
+      24,
+      67
+    ]
+  },
+  {
+    "context": "During an investigation of a multi-stage incident, an alert titled 'A potentially malicious URL click was detected' fired on 2024-07-10, showing that the user Lucas Grey (mailbox `bjenkins@niseko.alpineskihouse.co`) received and clicked a malicious link `http://ym018491661.wittytree-b6f239d6.northeurope.azurecontainerapps.io/`. Pivoting on the compromised user account, an earlier alert in the same incident (2024-07-04) reported a 'Sensitive credential memory read', where a process scanned or dumped memory from the Local Security Authority Subsystem Service (lsass.exe), potentially allowing an attacker to extract authentication hashes or passwords for offline use.",
+    "question": "For that earlier 'Sensitive credential memory read' alert, which IP address was recorded as an entity associated with the credential dumping activity?",
+    "answer": "72.5.72.208",
+    "solution": [
+      "The user account with SID `S-1-5-21-561436748-3867387497-1732241745-3701` clicked on a potentially malicious URL.",
+      "Following the compromise, a process read/dumped sensitive credential memory from lsass.exe, with activity associated with the IP address `72.5.72.208`."
+    ],
+    "start_alert": 104,
+    "end_alert": 67,
+    "start_entities": [
+      89,
+      90,
+      91,
+      93,
+      94
+    ],
+    "end_entities": [
+      4
+    ],
+    "shortest_alert_path": [
+      104,
+      2,
+      67
+    ]
+  },
+  {
+    "context": "During an investigation, an alert was raised indicating that the domain controller `MB-DC1` read the DKM key of an AD FS object (id 4cac49d3-29d3-407e-8c9b-b7ebb21541b2), a technique often associated with credential theft and token forging. Tracing the related activity backwards leads to earlier alerts on another device in the environment, including reconnaissance activity and an alert for an ongoing hands-on-keyboard attack in which commands were executed via the Impacket toolkit to move laterally across the network.",
+    "question": "For the alert reporting the ongoing hands-on-keyboard attack via the Impacket toolkit, what is the Microsoft Entra (AAD) user ID of the account associated with that activity?",
+    "answer": "ec3ec68b-fdeb-4fe4-9a29-acd445e1ccc5",
+    "solution": [
+      "The host `MB-DC1` was observed reading the DKM key of the AD FS object id 4cac49d3-29d3-407e-8c9b-b7ebb21541b2, indicating a suspected AD FS DKM key read.",
+      "The account with SID `S-1-5-21-551436448-9871687716-9837441745-1903` (Luciano Herrera, CIO) on MB-WINCLIENT sent a replication request to MB-DC1, indicating a suspected DCSync attack.",
+      "The process `powershell.exe` was used on the device to perform suspicious system hardware discovery, gathering information about the target device or network.",
+      "The user account with AadUserId `ec3ec68b-fdeb-4fe4-9a29-acd445e1ccc5` executed commands via the Impacket toolkit, indicating an ongoing hands-on-keyboard attack and lateral movement across the network."
+    ],
+    "start_alert": 105,
+    "end_alert": 16,
+    "start_entities": [
+      99
+    ],
+    "end_entities": [
+      20
+    ],
+    "shortest_alert_path": [
+      105,
+      99,
+      98,
+      10,
+      0,
+      8,
+      16
+    ]
+  },
+  {
+    "context": "During an investigation, a suspicious LDAP query was detected indicating potential reconnaissance activity, where the script `ldaprequest.ps1` was executed via the command line `\"powershell.exe\" c:\\script\\ldaprequest.ps1` under process ID 11116 on 2024-07-02. LDAP queries are often used by attackers to learn the organization's structure by querying the domain controller for administrative users, groups and interesting assets. This activity is linked through a shared IP address to another alert raised at nearly the same time, where a malicious PowerShell Cmdlet associated with credential theft, exploitation, network reconnaissance or code injection was invoked on the machine.",
+    "question": "For the related alert about the malicious PowerShell Cmdlet being invoked, which user account was involved?",
+    "answer": "bjenkins",
+    "solution": [
+      "A suspicious LDAP query was executed from the IP address `72.5.72.208`, indicating potential reconnaissance activity against the domain controller.",
+      "Following the reconnaissance, a malicious PowerShell Cmdlet associated with credential theft or network reconnaissance was invoked on the machine by the account `bjenkins`."
+    ],
+    "start_alert": 64,
+    "end_alert": 51,
+    "start_entities": [
+      65,
+      66
+    ],
+    "end_entities": [
+      1
+    ],
+    "shortest_alert_path": [
+      64,
+      4,
+      51
+    ]
+  },
+  {
+    "context": "During this multi-stage incident, a \"Suspicious Task Scheduler activity\" alert was raised on host `mb-adfs`. A process that had been involved in earlier malicious activity used `schtasks.exe` (PID 4304) to create the scheduled task `run-exportadfstokensignincert.2024-07-02_09_48_23` with the credentials of `niseko\\adfsadmin`, and then ran it via `schtasks.exe /run /tn run-exportadfstokensignincert.2024-07-02_09_48_23` (PID 6892). Related PowerShell activity with encoded commands (PID 6808) was also observed. This chain later tied into credential theft activity against LSASS and, further along, to email-based threats in the same incident.",
+    "question": "Later in this same incident, an alert fired for emails containing a malicious URL that were delivered and then removed after delivery. What is the email address of the account associated with that alert?",
+    "answer": "bjenkins@niseko.alpineskihouse.co",
+    "solution": [
+      "A process used Task Scheduler via `powershell.exe` to create, modify, or delete a scheduled task, establishing persistence.",
+      "The account with AadUserId `a2d0f7c2-b0a0-43bd-bce0-27d8ae3be4d0` was involved in a sensitive credential memory read, where lsass.exe memory was scanned or dumped to extract credentials.",
+      "The email account `bjenkins@niseko.alpineskihouse.co` received email messages containing a malicious URL that were removed after delivery."
+    ],
+    "start_alert": 33,
+    "end_alert": 92,
+    "start_entities": [
+      25,
+      26,
+      29,
+      34,
+      35,
+      36
+    ],
+    "end_entities": [
+      90
+    ],
+    "shortest_alert_path": [
+      33,
+      8,
+      67,
+      3,
+      92
+    ]
+  },
+  {
+    "context": "During an internal phishing campaign alert, a user was observed sending phishing emails from a device to recipients inside the organization, with accounts such as `Nina Sullivan` (santiago@vnevado.alpineskihouse.co) and `Lucas Grey` (bjenkins@niseko.alpineskihouse.co) involved, along with the URL `http://ym018491661.wittytree-b6f239d6.northeurope.azurecontainerapps.io/`. Pivoting from this activity through a series of suspicious exploration command sequences on the compromised machines, the investigation leads to a later alert where an account read the DKM key of the AD FS object with id `4cac49d3-29d3-407e-8c9b-b7ebb21541b2`.",
+    "question": "What is the email address of the account that performed the suspected AD FS DKM key read?",
+    "answer": "gsmith@niseko.alpineskihouse.co",
+    "solution": [
+      "A user account with SID `S-1-5-21-561436748-3867387497-1732241745-3701` was observed sending internal phishing emails from the device, indicating a possible compromise used for lateral movement.",
+      "On the compromised device, a process executed a suspicious sequence of exploration commands, including `whoami.exe`, to enumerate assets of value.",
+      "These exploration activities were performed under the account named `gsmith`.",
+      "The account `gsmith@niseko.alpineskihouse.co` was then observed reading the AD FS DKM key of ADFS object id `4cac49d3-29d3-407e-8c9b-b7ebb21541b2`."
+    ],
+    "start_alert": 88,
+    "end_alert": 106,
+    "start_entities": [
+      75,
+      76,
+      77,
+      78,
+      89,
+      90,
+      91
+    ],
+    "end_entities": [
+      103
+    ],
+    "shortest_alert_path": [
+      88,
+      2,
+      57,
+      54,
+      52,
+      18,
+      106
+    ]
+  },
+  {
+    "context": "During an investigation, a suspicious LDAP query was detected when the account `pwilson` (SID `S-1-5-21-551436448-9871687716-9837441745-1903`, Entra ID `2de70991-2799-4a95-b734-8e3df3a50118`) ran `powershell.exe c:\\script\\ldaprequest.ps1` (Process ID 11116) \u2014 potential reconnaissance against the domain controller. Moments later, on the same device, another alert fired for a sensitive credential memory read, where a process scanned or dumped memory from the Local Security Authority Subsystem Service (lsass.exe) to extract authentication hashes or passwords.",
+    "question": "For the sensitive credential memory read alert that followed the LDAP reconnaissance, what is the Microsoft Entra (AAD) user ID of the account associated with that activity?",
+    "answer": "a2d0f7c2-b0a0-43bd-bce0-27d8ae3be4d0",
+    "solution": [
+      "A suspicious LDAP query indicating reconnaissance activity was executed on the host with AadDeviceId `7661dfd4-218f-4016-8a87-66d68a7f098e`.",
+      "On that same host, a process scanned or dumped memory from lsass.exe to steal credentials, performed under the user account with AadUserId `a2d0f7c2-b0a0-43bd-bce0-27d8ae3be4d0`."
+    ],
+    "start_alert": 64,
+    "end_alert": 67,
+    "start_entities": [
+      9,
+      10,
+      11,
+      65,
+      66
+    ],
+    "end_entities": [
+      3
+    ],
+    "shortest_alert_path": [
+      64,
+      15,
+      67
+    ]
+  },
+  {
+    "context": "During an investigation, an alert titled 'Attempt to hide use of dual-purpose tool' was raised after a known public tool was observed running under an unexpected filename: process ID 5752, created at 2024-07-06T00:00:01.7155092Z, with command line `\"iy2orr1e.rrg.exe\" -windowstyle hidden -encodedcommand qwa6afwauwbjahiaaqbwahqacwbcaeuaeabwag8acgb0aeearabgafmavabvagsazqbuafmaaqbnag4aaqbuaemazqbyahqalgbwahmamqa=`. Following the chain of related alerts on the same host, an earlier alert flagged a suspicious sequence of exploration commands, which then led to an alert for 'Sensitive credential memory read', where a process scanned or dumped memory from the Local Security Authority Subsystem Service (lsass.exe) to extract authentication hashes or passwords.",
+    "question": "For the 'Sensitive credential memory read' alert, which user account was associated with the process that accessed lsass.exe memory?",
+    "answer": "bjenkins",
+    "solution": [
+      "A known dual-purpose tool was renamed to an unexpected filename on host `mb-adfs`, indicating an attempt to hide its malicious use.",
+      "On that host, a suspicious sequence of exploration/discovery commands was executed by the process `powershell.exe`, used to identify valuable assets and prepare for lateral movement.",
+      "The attacker then dumped memory from lsass.exe to steal credentials, compromising the account `bjenkins`."
+    ],
+    "start_alert": 68,
+    "end_alert": 67,
+    "start_entities": [
+      69
+    ],
+    "end_entities": [
+      1
+    ],
+    "shortest_alert_path": [
+      68,
+      26,
+      52,
+      8,
+      67
+    ]
+  },
+  {
+    "context": "During this incident, a potentially malicious URL click was detected \u2014 user `Lucas Grey` (`bjenkins@niseko.alpineskihouse.co`) clicked on the link `http://ym018491661.wittytree-b6f239d6.northeurope.azurecontainerapps.io/` that was delivered to their mailbox and found to be malicious. Pivoting from this activity leads to a chain of endpoint alerts, including a malicious PowerShell Cmdlet invocation, a suspicious sequence of exploration activities, and finally an alert for an attempt to hide the use of a dual-purpose tool, where a known public tool was observed running under an unexpected filename.",
+    "question": "For the alert about the attempt to hide the use of a dual-purpose tool, what is the Microsoft Entra (AAD) user ID of the account associated with that activity?",
+    "answer": "ec3ec68b-fdeb-4fe4-9a29-acd445e1ccc5",
+    "solution": [
+      "The user account with SID `S-1-5-21-561436748-3867387497-1732241745-3701` clicked on a potentially malicious URL, which was detected as the initial compromise.",
+      "Following the click, a malicious PowerShell cmdlet was invoked on the machine through the process `powershell.exe` (ExtractedFileName: `powershell.exe`), potentially used for credential theft, exploitation, network reconnaissance or code injection.",
+      "The same session then executed a suspicious sequence of exploration activities (a set of Windows discovery commands) under the account with AadUserId `ec3ec68b-fdeb-4fe4-9a29-acd445e1ccc5`, used to identify valuable assets and prepare lateral movement.",
+      "Finally, an attempt to hide the use of a dual-purpose tool (a known public tool renamed to an unexpected filename) was observed for the account with AadUserId `ec3ec68b-fdeb-4fe4-9a29-acd445e1ccc5`."
+    ],
+    "start_alert": 104,
+    "end_alert": 32,
+    "start_entities": [
+      89,
+      90,
+      91,
+      93,
+      94
+    ],
+    "end_entities": [
+      20
+    ],
+    "shortest_alert_path": [
+      104,
+      2,
+      51,
+      8,
+      52,
+      20,
+      32
+    ]
+  },
+  {
+    "context": "During an investigation, a 'Sensitive credential memory read' alert fired at 2024-07-04 22:35:04 UTC on host `mb-winclient` (Azure AD device ID `7661dfd4-218f-4016-8a87-66d68a7f098e`), where a process scanned or dumped memory from lsass.exe (PID 760, created 2024-07-02T07:28:35Z). The activity was tied to user `bjenkins` (AAD user ID a2d0f7c2-b0a0-43bd-bce0-27d8ae3be4d0), source IP 72.5.72.208, and a PowerShell process (PID 12412) launched with the command line `\"powershell.exe\" -noexit -command set-location -literalpath 'c:\\users\\bjenkins\\downloads\\midnight14'`. Moments earlier, related alerts showed suspicious remote activity and an attempt to hide the use of a known dual-purpose public tool that was observed running under an unexpected filename.",
+    "question": "For the alert reporting the attempt to hide the use of the dual-purpose tool, what is the security identifier (SID) of the account involved?",
+    "answer": "S-2-5-21-571436798-3864380397-1837441745-3206",
+    "solution": [
+      "A process scanned or dumped memory from the Local Security Authority Subsystem Service, with the extracted file name `lsass.exe`, indicating an attempt to steal credentials such as authentication hashes or passwords.",
+      "The credential theft activity was initiated remotely, and suspicious remote activity (such as interactive sessions, WMI commands, or scheduled task creation from a remote machine) was observed on the host `mb-adfs`.",
+      "On that host, a known public dual-purpose tool was executed under an unexpected filename to hide its malicious use, by the account with SID `S-2-5-21-571436798-3864380397-1837441745-3206`."
+    ],
+    "start_alert": 67,
+    "end_alert": 32,
+    "start_entities": [
+      1,
+      2,
+      3,
+      4,
+      7,
+      14,
+      15,
+      50
+    ],
+    "end_entities": [
+      19
+    ],
+    "shortest_alert_path": [
+      67,
+      24,
+      37,
+      26,
+      32
+    ]
+  },
+  {
+    "context": "During this incident, an alert titled \"Attempt to hide use of dual-purpose tool\" was raised on 2024-07-06, where a known public tool was observed running under an unexpected filename `iy2orr1e.rrg.exe` with the command line `\"iy2orr1e.rrg.exe\" -windowstyle hidden -encodedcommand qwa6afwauwbjahiaaqbwahqacwbcaeuaeabwag8acgb0aeearabgafmavabvagsazqbuafmaaqbnag4aaqbuaemazqbyahqalgbwahmamqa=` under process ID 5752. Investigation shows this same renamed tool was also involved earlier, on 2024-07-04, in an alert for an ADFS private key extraction attempt, where a suspicious LDAP query was launched that may indicate attackers trying to steal Active Directory Federation Service private keys or move laterally.",
+    "question": "For the earlier ADFS private key extraction attempt alert on 2024-07-04, what was the process ID and creation time (UTC) of the process that triggered it?",
+    "answer": "Process ID: 8764, Created Time UTC: 2024-07-04T00:00:01.698205Z (the process was the renamed tool `iy2orr1e.rrg.exe` running with the same hidden window / encoded command line)",
+    "solution": [
+      "The account `gsmith` was observed running a known public dual-purpose tool under an unexpected filename, an attempt to hide its malicious usage.",
+      "This activity was tied to a suspicious LDAP query used for an ADFS private key extraction attempt, executed by the process with Process ID `8764`, created at `2024-07-04t00:00:01.698205z`, with command line `\"iy2orr1e.rrg.exe\" -windowstyle hidden -encodedcommand qwa6afwauwbjahiaaqbwahqacwbcaeuaeabwag8acgb0aeearabgafmavabvagsazqbuafmaaqbnag4aaqbuaemazqbyahqalgbwahmamqa=`."
+    ],
+    "start_alert": 68,
+    "end_alert": 43,
+    "start_entities": [
+      69
+    ],
+    "end_entities": [
+      44
+    ],
+    "shortest_alert_path": [
+      68,
+      18,
+      43
+    ]
+  },
+  {
+    "context": "During this multi-stage intrusion, an alert was raised indicating that the domain controller `MB-DC1` read the DKM key of the AD FS object with id 4cac49d3-29d3-407e-8c9b-b7ebb21541b2, a technique often used by attackers to forge SAML tokens. Pivoting from this activity, the investigation leads through a suspected DCSync replication request and a malicious PowerShell Cmdlet invocation, and finally to an internal phishing campaign alert raised by Microsoft Defender for Office 365, where a compromised account was observed sending phishing emails to recipients inside the organization.",
+    "question": "For the internal phishing campaign alert in this incident, what is the email address of the account that sent the phishing messages to internal recipients?",
+    "answer": "bjenkins@niseko.alpineskihouse.co",
+    "solution": [
+      "The host `MB-DC1` was observed reading the DKM key of the AD FS object id 4cac49d3-29d3-407e-8c9b-b7ebb21541b2, indicating a suspected AD FS DKM key read.",
+      "The account with SID `S-1-5-21-551436448-9871687716-9837441745-1903` (Luciano Herrera, CIO) on MB-WINCLIENT sent a replication request to MB-DC1, indicating a suspected DCSync attack.",
+      "The account with SID `S-1-5-21-561436748-3867387497-1732241745-3701` invoked a malicious PowerShell Cmdlet on the machine, potentially associated with credential theft, exploitation, network reconnaissance or code injection.",
+      "The compromised user account with email `bjenkins@niseko.alpineskihouse.co` was observed sending internal phishing emails to recipients inside the organization, indicating lateral movement by the attacker."
+    ],
+    "start_alert": 105,
+    "end_alert": 88,
+    "start_entities": [
+      99
+    ],
+    "end_entities": [
+      90
+    ],
+    "shortest_alert_path": [
+      105,
+      99,
+      98,
+      10,
+      51,
+      2,
+      88
+    ]
+  },
+  {
+    "context": "During a multi-stage intrusion, a suspicious system hardware discovery activity was detected on host `mb-winclient` (AAD Device ID `7661dfd4-218f-4016-8a87-66d68a7f098e`), where a known reconnaissance technique was used to gather information about the device. The activity involved the account `pwilson` (SID `S-1-5-21-561436748-3867387497-1732241745-3701`), source IP `72.5.72.208`, and processes such as `svchost.exe -k netsvcs -p -s winmgmt` (PID 2880) and a PowerShell execution of `c:\\script\\contosoadfsblatempcreds.ps1` (PID 13968). This reconnaissance was followed by a suspicious sequence of exploration commands typically used to identify valuable assets and plan lateral movement.",
+    "question": "Later in this incident, an alert was raised for a suspected AD FS DKM key read against the AD FS object with ID `4cac49d3-29d3-407e-8c9b-b7ebb21541b2`. What is the email address of the account that performed this DKM key read?",
+    "answer": "gsmith@niseko.alpineskihouse.co",
+    "solution": [
+      "The attacker used `powershell.exe` to perform suspicious system hardware discovery on the device.",
+      "The account `gsmith` executed a suspicious sequence of exploration commands used to identify valuable assets and plan lateral movement.",
+      "The account with email `gsmith@niseko.alpineskihouse.co` read the AD FS DKM key of the ADFS object id `4cac49d3-29d3-407e-8c9b-b7ebb21541b2`."
+    ],
+    "start_alert": 0,
+    "end_alert": 106,
+    "start_entities": [
+      9,
+      4,
+      14,
+      3,
+      5,
+      11,
+      15,
+      6,
+      12,
+      2
+    ],
+    "end_entities": [
+      103
+    ],
+    "shortest_alert_path": [
+      0,
+      8,
+      52,
+      18,
+      106
+    ]
+  },
+  {
+    "context": "During this incident, a \"Suspicious remote activity\" alert was raised on host `mb-adfs`, where activity initiated remotely was observed \u2014 including interactive session attempts, file modifications, WMI commands and scheduled task creation. The alert involved processes such as `lsass.exe` and `cmd.exe` (with `%comspec%` referenced), a PowerShell encoded command (`6808__2024-07-02t09:48:12.7628138z__powershell.exe -encodedcommand qwa6afwauwbjahiaaqbwahqacwbcafiazqbuageabqblafaabwb3aguacgbzaggazqbsagwalgbwahmamqa=`), and accounts including `LocalSystem` and `gsmith` (AadUserId `ec3ec68b-fdeb-4fe4-9a29-acd445e1ccc5`).",
+    "question": "Almost immediately after this alert, another alert fired for a suspicious sequence of exploration activities where a process ran a set of Windows discovery commands. What is the security identifier (SID) of the account associated with that exploration activity alert?",
+    "answer": "S-1-5-21-551436448-9871687716-9837441745-1903",
+    "solution": [
+      "Suspicious remote activity was observed involving the process `powershell.exe`, which was initiated remotely on the machine.",
+      "Following the remote PowerShell activity, a suspicious sequence of exploration commands was executed by the account with SID `S-1-5-21-551436448-9871687716-9837441745-1903`."
+    ],
+    "start_alert": 37,
+    "end_alert": 57,
+    "start_entities": [
+      24,
+      25,
+      19,
+      26,
+      17,
+      40,
+      22,
+      18,
+      20,
+      23
+    ],
+    "end_entities": [
+      10
+    ],
+    "shortest_alert_path": [
+      37,
+      8,
+      57
+    ]
+  },
+  {
+    "context": "During an investigation, an alert for 'Suspicious service registration' was raised after a system program `services.exe` (Process ID 764, created 2024-06-20T08:30:13.7925191Z) was registered as a service, which can indicate malicious intent to establish persistence or gain system privileges. Around the same time on the same host, another alert fired indicating that a suspicious LDAP (Lightweight Directory Access Protocol) query was launched, suggesting attackers might be attempting to steal Active Directory Federation Service (ADFS) private keys or move laterally on the network.",
+    "question": "For the alert regarding the ADFS private key extraction attempt, what is the security identifier (SID) of the account associated with the suspicious LDAP query?",
+    "answer": "S-2-5-21-571436798-3864380397-1837441745-3206",
+    "solution": [
+      "A system program was registered as a service on host `mb-adfs`, indicating a suspicious service registration used to establish persistence or gain system privileges.",
+      "The account with SID `S-2-5-21-571436798-3864380397-1837441745-3206` launched a suspicious LDAP query, attempting to extract ADFS private keys or move laterally on the network."
+    ],
+    "start_alert": 61,
+    "end_alert": 43,
+    "start_entities": [
+      62,
+      63
+    ],
+    "end_entities": [
+      19
+    ],
+    "shortest_alert_path": [
+      61,
+      26,
+      43
+    ]
+  },
+  {
+    "context": "During an investigation on the device `mb-winclient` (Azure AD device ID `7661dfd4-218f-4016-8a87-66d68a7f098e`), an alert for \"Suspicious System Hardware Discovery\" was raised, indicating a known tool or technique was used to gather information about the device or network for later attacks. The activity involved accounts such as `bjenkins` and `pwilson`, the process `svchost.exe`, and PowerShell executions including `\"powershell.exe\" -noexit -command set-location -literalpath 'c:\\users\\bjenkins\\downloads\\midnight14'` (PID 12412) and `\"powershell.exe\" c:\\script\\contosoadfsblatempcreds.ps1` (PID 13968).",
+    "question": "Moments later, a related alert fired for an attempt to hide the use of a dual-purpose tool, where a known public tool was observed running under an unexpected filename. What is the security identifier (SID) of the user account associated with that alert?",
+    "answer": "S-2-5-21-571436798-3864380397-1837441745-3206",
+    "solution": [
+      "The attacker used `powershell.exe` to perform suspicious system hardware discovery on the device.",
+      "A renamed process `iy2orr1e.rrg.exe` (Process ID `3116`, created at `2024-07-02t09:48:23.9439954z`) was executed with the command line `-windowstyle hidden -encodedcommand qwa6afwauwbjahiaaqbwahqacwbcaeuaeabwag8acgb0aeearabgafmavabvagsazqbuafmaaqbnag4aaqbuaemazqbyahqalgbwahmamqa=`, running a suspicious sequence of exploration commands.",
+      "The account with SID `S-2-5-21-571436798-3864380397-1837441745-3206` attempted to hide the use of a dual-purpose tool by running it under an unexpected filename."
+    ],
+    "start_alert": 0,
+    "end_alert": 32,
+    "start_entities": [
+      11,
+      6,
+      3,
+      1,
+      2,
+      7,
+      15,
+      12,
+      9,
+      14
+    ],
+    "end_entities": [
+      19
+    ],
+    "shortest_alert_path": [
+      0,
+      8,
+      52,
+      28,
+      32
+    ]
+  },
+  {
+    "context": "During this multi-stage incident, an alert for 'Sensitive credential memory read' was raised after a process scanned or dumped memory from the Local Security Authority Subsystem Service (`lsass.exe`, Process ID 760, created 2024-07-02T07:28:35.8580921Z). Accessing this process memory allows an attacker to extract secrets such as authentication hashes or passwords that can later be used elsewhere in the environment. Later in the same incident chain, the user Luciano Herrera (pwilson@niseko.alpineskihouse.co) performed an unusual addition of a Password credential to the application 'SimulandApp', which may indicate the app was compromised for phishing, data exfiltration, or gaining access to other accounts and devices.",
+    "question": "For that unusual OAuth credential addition activity, what is the application ID (OAuthAppId) of the affected application?",
+    "answer": "4d9476b8-6ae6-459b-a273-5837c15b5981",
+    "solution": [
+      "The process `powershell.exe` was used to scan or dump memory from the Local Security Authority Subsystem Service (lsass.exe) to extract sensitive credentials, detected at 2024-07-04 22:35:04 UTC.",
+      "The account with AadUserId `2de70991-2799-4a95-b734-8e3df3a50118` performed suspicious system hardware discovery on the device, gathering information for later attacks, at 2024-07-04 22:35:00 UTC.",
+      "The compromised user (Luciano Herrera, pwilson@niseko.alpineskihouse.co) made an unusual addition of a Password credential to the OAuth application `SimulandApp` with OAuthAppId `4d9476b8-6ae6-459b-a273-5837c15b5981` at 2024-07-10 11:24:45 UTC."
+    ],
+    "start_alert": 67,
+    "end_alert": 108,
+    "start_entities": [
+      24,
+      50
+    ],
+    "end_entities": [
+      85
+    ],
+    "shortest_alert_path": [
+      67,
+      8,
+      0,
+      11,
+      108
+    ]
+  },
+  {
+    "context": "During an investigation, an ADFS private key extraction attempt was detected on host `mb-adfs`, where the account `gsmith` (SID `S-2-5-21-571436798-3864380397-1837441745-3206`) ran a hidden, encoded PowerShell command via the process `iy2orr1e.rrg.exe` (PID 3116) that launched a suspicious LDAP query. This activity chain continued and later a suspected DCSync attack was reported, where Luciano Herrera (CIO) on MB-WINCLIENT sent a replication request to a domain controller.",
+    "question": "Following this chain of activity, an alert was raised for a suspected AD FS DKM key read of the ADFS object id 4cac49d3-29d3-407e-8c9b-b7ebb21541b2. Which host performed that DKM key read?",
+    "answer": "MB-DC1",
+    "solution": [
+      "An attacker launched a suspicious hidden PowerShell process `iy2orr1e.rrg.exe` with an encoded command (Process ID `3116`, created at `2024-07-02t09:48:23.9439954z`) that issued a suspicious LDAP query, indicating an ADFS private key extraction attempt.",
+      "The same process spawned `powershell.exe`, which ran a suspicious sequence of Windows exploration commands used to identify valuable assets and prepare for lateral movement.",
+      "The account with SID `S-1-5-21-551436448-9871687716-9837441745-1903` used a known tool/technique to perform suspicious system hardware discovery on the compromised device.",
+      "Using the stolen credentials, the user Luciano Herrera (CIO) on MB-WINCLIENT sent a directory replication request to the domain controller `MB-DC1`, indicating a suspected DCSync attack.",
+      "Finally, a suspected AD FS DKM key read was observed on the host `MB-DC1`, where the DKM key of the ADFS object id `4cac49d3-29d3-407e-8c9b-b7ebb21541b2` was read."
+    ],
+    "start_alert": 43,
+    "end_alert": 105,
+    "start_entities": [
+      18,
+      19,
+      20,
+      26,
+      28,
+      29,
+      44
+    ],
+    "end_entities": [
+      99
+    ],
+    "shortest_alert_path": [
+      43,
+      28,
+      52,
+      8,
+      0,
+      10,
+      98,
+      99,
+      105
+    ]
+  },
+  {
+    "context": "During this multi-stage incident, an alert was raised for \"System executable renamed and launched\" \u2014 a renamed Windows executable was launched, a technique attackers use to evade path/filename-based detections. The observed process was `powershell.exe` running under the `SYSTEM` account (SID `S-2-2-78`), with the process details `6808__2024-07-02t09:48:12.7628138z__powershell.exe -encodedcommand qwa6afwauwbjahiaaqbwahqacwbcafiazqbuageabqblafaabwb3aguacgbzaggazqbsagwalgbwahmamqa=`.",
+    "question": "Roughly a second later, a related alert flagged a suspicious LDAP query indicating a possible ADFS private key extraction attempt. What is the security identifier (SID) of the user account associated with that ADFS private key extraction alert?",
+    "answer": "S-2-5-21-571436798-3864380397-1837441745-3206",
+    "solution": [
+      "A renamed Windows system executable `iy2orr1e.rrg.exe` was launched on the machine, indicating an attempt to evade path/file name based detections.",
+      "Following that, a suspicious LDAP query attempting to extract ADFS private keys was launched by the account with SID `S-2-5-21-571436798-3864380397-1837441745-3206`."
+    ],
+    "start_alert": 27,
+    "end_alert": 43,
+    "start_entities": [
+      8,
+      25,
+      30,
+      31
+    ],
+    "end_entities": [
+      19
+    ],
+    "shortest_alert_path": [
+      27,
+      29,
+      43
+    ]
+  },
+  {
+    "context": "During an investigation, an alert for a suspected DCSync attack (replication of directory services) was raised, showing that the account `Luciano Herrera` (CIO), with email `pwilson@niseko.alpineskihouse.co`, sent a replication request from the host `MB-WINCLIENT` to the domain controller `MB-DC1` on 2024-07-10. Reviewing earlier activity tied to the same compromised account, an earlier alert flagged a suspicious LDAP query indicating reconnaissance activity, where an attacker queries the domain controller for administrative users, groups and interesting assets to learn the organization's structure.",
+    "question": "For that earlier suspicious LDAP query alert, what was the IP address associated with the reconnaissance activity?",
+    "answer": "72.5.72.208",
+    "solution": [
+      "The account with SID `S-1-5-21-551436448-9871687716-9837441745-1903` (Luciano Herrera, CIO) on MB-WINCLIENT sent a replication request to MB-DC1, indicating a suspected DCSync attack.",
+      "A suspicious LDAP query was executed from the IP address `72.5.72.208`, indicating potential reconnaissance activity against the domain controller."
+    ],
+    "start_alert": 98,
+    "end_alert": 64,
+    "start_entities": [
+      81,
+      82,
+      99,
+      100
+    ],
+    "end_entities": [
+      4
+    ],
+    "shortest_alert_path": [
+      98,
+      10,
+      64
+    ]
+  },
+  {
+    "context": "During an investigation, we detected that a user named `Lucas Grey` (email `bjenkins@niseko.alpineskihouse.co`) clicked on a potentially malicious URL `http://ym018491661.wittytree-b6f239d6.northeurope.azurecontainerapps.io/` delivered to his mailbox. Following this initial access, the attack chain progressed through process injection and a suspicious sequence of exploration activities on the compromised environment, eventually leading to a suspicious service creation alert where a service named `DDLOXJDSQSNGMUKKFUXQ` was created on the host `MB-ADFS` to execute potentially malicious commands.",
+    "question": "For the suspicious service creation on `MB-ADFS`, what is the email address of the account that created the service `DDLOXJDSQSNGMUKKFUXQ`?",
+    "answer": "gsmith@niseko.alpineskihouse.co",
+    "solution": [
+      "A user with AadUserId `a2d0f7c2-b0a0-43bd-bce0-27d8ae3be4d0` clicked on a potentially malicious URL.",
+      "The process `powershell.exe` was injected with potentially malicious code, allowing the attacker to hide malicious execution within a trusted process.",
+      "The account with SID `S-2-5-21-571436798-3864380397-1837441745-3206` ran a suspicious sequence of windows exploration commands to discover assets and prepare for lateral movement.",
+      "The account with email `gsmith@niseko.alpineskihouse.co` created a suspicious service `DDLOXJDSQSNGMUKKFUXQ` on host MB-ADFS to execute potentially malicious commands."
+    ],
+    "start_alert": 104,
+    "end_alert": 101,
+    "start_entities": [
+      89,
+      90,
+      91,
+      93,
+      94
+    ],
+    "end_entities": [
+      103
+    ],
+    "shortest_alert_path": [
+      104,
+      3,
+      41,
+      8,
+      52,
+      19,
+      101
+    ]
+  },
+  {
+    "context": "During an investigation of a security incident, an alert titled \"Malicious URL was clicked on that device\" was raised on 2024-07-10 for the host `mb-winclient` (AadDeviceId `7661dfd4-218f-4016-8a87-66d68a7f098e`), indicating a user on that endpoint clicked a malicious link. A day earlier, on 2024-07-09, a related alert reported that emails containing the same malicious URL were delivered to a mailbox and later removed (zapped) from it.",
+    "question": "For the related alert about email messages containing the malicious URL that were removed after delivery, which user account (email address) was the recipient?",
+    "answer": "bjenkins@niseko.alpineskihouse.co",
+    "solution": [
+      "A malicious URL `https://ym018491661.wittytree-b6f239d6.northeurope.azurecontainerapps.io/` was clicked on the device.",
+      "The email account `bjenkins@niseko.alpineskihouse.co` received the email message containing that malicious URL, which was removed after delivery."
+    ],
+    "start_alert": 107,
+    "end_alert": 92,
+    "start_entities": [
+      14,
+      15
+    ],
+    "end_entities": [
+      90
+    ],
+    "shortest_alert_path": [
+      107,
+      97,
+      92
+    ]
+  },
+  {
+    "context": "During an investigation, an alert fired for 'Email messages containing malicious URL removed after delivery' \u2014 emails sent from `santiago@vnevado.alpineskihouse.co` (sender IP `119.36.50.193`) containing the malicious link `https://ym018491661.wittytree-b6f239d6.northeurope.azurecontainerapps.io/` were delivered to recipient mailboxes and later removed on 2024-07-09. The following day, a related alert indicated that one of the recipients actually clicked on a malicious link.",
+    "question": "For the follow-up alert about the potentially malicious URL click detected on 2024-07-10, what exact URL was clicked, and how does it differ from the link seen in the removed email messages?",
+    "answer": "The clicked URL was `http://ym018491661.wittytree-b6f239d6.northeurope.azurecontainerapps.io/` \u2014 the same host as in the removed emails, but accessed over HTTP instead of HTTPS.",
+    "solution": [
+      "The mailbox `bjenkins@niseko.alpineskihouse.co` received email messages containing a malicious URL, which were later removed after delivery at 2024-07-09 11:49:57 UTC.",
+      "The user then clicked on the potentially malicious URL `http://ym018491661.wittytree-b6f239d6.northeurope.azurecontainerapps.io/` at 2024-07-10 11:24:45 UTC."
+    ],
+    "start_alert": 92,
+    "end_alert": 104,
+    "start_entities": [
+      95,
+      96,
+      97
+    ],
+    "end_entities": [
+      91
+    ],
+    "shortest_alert_path": [
+      92,
+      93,
+      104
+    ]
+  },
+  {
+    "context": "During this multi-stage incident, an alert titled \"System executable renamed and launched\" fired when a renamed Windows executable was launched under the `SYSTEM` account (SID `S-2-2-78`). The activity involved `powershell.exe` running with the command line `6808__2024-07-02t09:48:12.7628138z__powershell.exe -encodedcommand qwa6afwauwbjahiaaqbwahqacwbcafiazqbuageabqblafaabwb3aguacgbzaggazqbsagwalgbwahmamqa=`. Attackers often rename system executables to evade behavior-based detections that rely on default paths and file names.",
+    "question": "Seconds after this event, a related alert fired for an attempt to hide the use of a dual-purpose tool running under an unexpected filename on the same machine. What is the Microsoft Entra ID (Azure AD) user ID of the account associated with that alert?",
+    "answer": "ec3ec68b-fdeb-4fe4-9a29-acd445e1ccc5",
+    "solution": [
+      "A renamed Windows system executable was launched on the host `mb-adfs`, indicating an attempt to evade path/filename-based detections.",
+      "The activity was performed by the user account with AadUserId `ec3ec68b-fdeb-4fe4-9a29-acd445e1ccc5`, who attempted to hide the use of a dual-purpose tool by running it under an unexpected filename."
+    ],
+    "start_alert": 27,
+    "end_alert": 32,
+    "start_entities": [
+      8,
+      25,
+      30,
+      31
+    ],
+    "end_entities": [
+      20
+    ],
+    "shortest_alert_path": [
+      27,
+      26,
+      32
+    ]
+  },
+  {
+    "context": "During this incident, an alert titled \"Attempt to hide use of dual-purpose tool\" was raised, where a known public tool was observed running under an unexpected filename `iy2orr1e.rrg.exe` (Process ID 3116, created 2024-07-02T09:48:23.9439954Z) with the command line `-windowstyle hidden -encodedcommand QwA6AFwAUwBjAHIAaQBwAHQAcwBcAEUAeABwAG8AcgB0AEQARgBTAFQAbwBrAGUAbgBTAGkAZwBuAGkAbgBDAGUAcgB0AC4AcABzADEA`. This appeared to be an attempt to conceal malicious tool usage. On the same device, another alert flagged an ongoing hands-on-keyboard attack in which commands were executed remotely via the Impacket toolkit, a technique commonly used for lateral movement and payload deployment.",
+    "question": "For the Impacket-related hands-on-keyboard attack alert, which file name was referenced as being used to execute the commands on the device?",
+    "answer": "%comspec%",
+    "solution": [
+      "On host `mb-adfs`, a known public dual-purpose tool was observed running under an unexpected filename, indicating an attempt to hide its malicious use.",
+      "From that same host, an ongoing hands-on-keyboard attack was detected where commands were executed remotely via the Impacket toolkit, using the file `%comspec%` to launch the commands."
+    ],
+    "start_alert": 32,
+    "end_alert": 16,
+    "start_entities": [
+      28,
+      29
+    ],
+    "end_entities": [
+      22
+    ],
+    "shortest_alert_path": [
+      32,
+      26,
+      16
+    ]
+  },
+  {
+    "context": "During an investigation, an alert fired showing that the user Luciano Herrera (pwilson@niseko.alpineskihouse.co) performed an unusual addition of a Password credential to the OAuth application SimulandApp (OAuthAppId `4d9476b8-6ae6-459b-a273-5837c15b5981`) in the Office 365 / Microsoft 365 cloud application, from IP address `2801:e0a:1eb:dea0:642e:5bb6:d315:fbb3`. This pattern may indicate that an attacker compromised the app to spread phishing, exfiltrate data, or gain access to other accounts and devices. Pivoting on the related account, other alerts in the same incident include a suspicious sequence of Windows exploration commands and a credential theft alert where a process scanned or dumped memory from a system service in order to extract authentication hashes or passwords.",
+    "question": "In the related credential theft alert, which Windows system process had its memory scanned or dumped by the attacker? Provide the process file name.",
+    "answer": "lsass.exe (the Local Security Authority Subsystem Service process)",
+    "solution": [
+      "The account with SID `S-1-5-21-551436448-9871687716-9837441745-1903` (Luciano Herrera, pwilson@niseko.alpineskihouse.co) performed an unusual addition of a Password credential to the OAuth application SimulandApp, indicating the account/app may be compromised.",
+      "Using that compromised access, a suspicious sequence of exploration activities was run through the process `powershell.exe`, which invoked a set of Windows discovery commands to identify valuable assets and prepare for lateral movement.",
+      "The attacker then targeted the process `lsass.exe`, scanning/dumping its memory (sensitive credential memory read) to extract authentication hashes and passwords for further credential theft."
+    ],
+    "start_alert": 108,
+    "end_alert": 67,
+    "start_entities": [
+      81,
+      82,
+      83,
+      84,
+      85,
+      86,
+      109
+    ],
+    "end_entities": [
+      24
+    ],
+    "shortest_alert_path": [
+      108,
+      10,
+      57,
+      8,
+      67
+    ]
+  },
+  {
+    "context": "During an investigation, a 'Suspicious access to LSASS service' alert was raised on host `mb-winclient` (AAD Device ID `7661dfd4-218f-4016-8a87-66d68a7f098e`), where the lsass.exe process (PID 760) was accessed and DLLs such as `cryptdll.dll`, `winscard.dll` and `hid.dll` were involved. A PowerShell process (PID 12412) was also launched from the folder `c:\\users\\bjenkins\\downloads\\midnight14`, and traffic was seen to IP `72.5.72.208`. Attackers typically perform this activity to decrypt clear-text credentials from LSASS memory and then use them for lateral movement.",
+    "question": "A few days later, an 'Internal phishing campaign' alert was triggered from this same device, indicating that a possibly compromised account sent phishing emails to internal recipients. What is the email address of the account that sent those phishing emails?",
+    "answer": "bjenkins@niseko.alpineskihouse.co",
+    "solution": [
+      "An account with AadUserId `a2d0f7c2-b0a0-43bd-bce0-27d8ae3be4d0` was involved in suspicious access to the LSASS service, indicating credential theft for later lateral movement.",
+      "Using the stolen credentials, the compromised account with email `bjenkins@niseko.alpineskihouse.co` was observed sending internal phishing emails to recipients inside the organization."
+    ],
+    "start_alert": 45,
+    "end_alert": 88,
+    "start_entities": [
+      14,
+      46,
+      48,
+      47,
+      7,
+      15,
+      50,
+      24,
+      1,
+      4
+    ],
+    "end_entities": [
+      90
+    ],
+    "shortest_alert_path": [
+      45,
+      3,
+      88
+    ]
+  },
+  {
+    "context": "During this multi-stage intrusion, an alert for `Suspicious access to LSASS service` fired on host `mb-winclient` (AAD device ID `7661dfd4-218f-4016-8a87-66d68a7f098e`) involving the account `bjenkins` (SID `S-1-5-21-561436748-3867387497-1732241745-3701`), the IP `72.5.72.208`, the LSASS process (PID 760) and DLLs such as `cryptdll.dll`, `hid.dll` and `winscard.dll`. A related PowerShell process (PID 12412) was also launched from `c:\\users\\bjenkins\\downloads\\midnight14`. The attack chain continued with Impacket-based hands-on-keyboard activity and, later, an alert titled `Attempt to hide use of dual-purpose tool`, where a known public tool was seen running under an unexpected filename.",
+    "question": "For the `Attempt to hide use of dual-purpose tool` alert, what was the disguised executable's filename, its process ID, and the command line it ran with?",
+    "answer": "The renamed binary was `iy2orr1e.rrg.exe` running as process ID 5752 (created 2024-07-06T00:00:01.7155092Z) with the command line: `\"iy2orr1e.rrg.exe\" -windowstyle hidden -encodedcommand qwa6afwauwbjahiaaqbwahqacwbcaeuaeabwag8acgb0aeearabgafmavabvagsazqbuafmaaqbnag4aaqbuaemazqbyahqalgbwahmamqa=` \u2014 i.e., a hidden-window, base64-encoded PowerShell command masquerading under a random filename.",
+    "solution": [
+      "The attacker used `powershell.exe` to suspiciously access the LSASS service memory in an attempt to dump clear-text credentials.",
+      "Using the stolen credentials, the compromised account with AadUserId `ec3ec68b-fdeb-4fe4-9a29-acd445e1ccc5` executed commands via the Impacket toolkit, indicating an ongoing hands-on-keyboard lateral movement attack.",
+      "The attacker then attempted to hide the use of a dual-purpose tool by renaming it, launching process ID `5752` at `2024-07-06t00:00:01.7155092z` with the command line `\"iy2orr1e.rrg.exe\" -windowstyle hidden -encodedcommand qwa6afwauwbjahiaaqbwahqacwbcaeuaeabwag8acgb0aeearabgafmavabvagsazqbuafmaaqbnag4aaqbuaemazqbyahqalgbwahmamqa=`."
+    ],
+    "start_alert": 45,
+    "end_alert": 68,
+    "start_entities": [
+      50,
+      4,
+      7,
+      1,
+      15,
+      46,
+      14,
+      47,
+      48,
+      2
+    ],
+    "end_entities": [
+      69
+    ],
+    "shortest_alert_path": [
+      45,
+      8,
+      16,
+      20,
+      68
+    ]
+  },
+  {
+    "context": "In this incident, an alert titled \"Unusual addition of credentials to an OAuth app\" was raised after the user Luciano Herrera (pwilson@niseko.alpineskihouse.co) added a Password-type credential to the application SimulandApp (OAuth App ID `4d9476b8-6ae6-459b-a273-5837c15b5981`, Object ID `a66a4b44-d1f7-4563-95bf-a89d1b05b325`) from IP address `36.193.21.220`, involving the cloud application Office 365 / Microsoft 365 (App ID 11161). This pattern may indicate that an attacker compromised the app to spread phishing, exfiltrate data, or gain access to other accounts and devices.",
+    "question": "Following this activity, the same user was involved in a suspected DCSync attack in which a directory services replication request was sent from the workstation MB-WINCLIENT. What is the name of the host that received this replication request?",
+    "answer": "MB-DC1",
+    "solution": [
+      "The user account `Luciano Herrera` (pwilson@niseko.alpineskihouse.co) performed an unusual addition of a Password credential to the OAuth application SimulandApp, indicating the app may have been compromised.",
+      "Using the compromised account `Luciano Herrera` on the device MB-WINCLIENT, the attacker sent a directory replication request in a suspected DCSync attack targeting the domain controller host `MB-DC1`."
+    ],
+    "start_alert": 80,
+    "end_alert": 98,
+    "start_entities": [
+      83,
+      84,
+      85,
+      86,
+      87
+    ],
+    "end_entities": [
+      99
+    ],
+    "shortest_alert_path": [
+      80,
+      81,
+      98
+    ]
+  },
+  {
+    "context": "During an investigation, an alert titled 'Attempt to hide use of dual-purpose tool' was raised when a known public tool was observed running under an unexpected filename. The process details were: ProcessId 5752, created at 2024-07-06T00:00:01.7155092Z, with command line `\"iy2orr1e.rrg.exe\" -windowstyle hidden -encodedcommand qwa6afwauwbjahiaaqbwahqacwbcaeuaeabwag8acgb0aeearabgafmavabvagsazqbuafmaaqbnag4aaqbuaemazqbyahqalgbwahmamqa=`. Pivoting from the user account tied to this process, analysts traced related activity back to a suspicious remote session on the same machine, which led to an alert reporting that a malicious PowerShell Cmdlet \u2014 potentially associated with credential theft, exploitation, network reconnaissance, or code injection \u2014 was invoked on the machine.",
+    "question": "For the alert reporting the invocation of the malicious PowerShell Cmdlet, what is the Microsoft Entra (AAD) user ID of the account involved?",
+    "answer": "2de70991-2799-4a95-b734-8e3df3a50118",
+    "solution": [
+      "The account with SID `S-2-5-21-571436798-3864380397-1837441745-3206` attempted to hide the use of a dual-purpose tool by running a known public tool under an unexpected filename.",
+      "Suspicious remote activity was observed on the machine, initiated through the process `powershell.exe`.",
+      "A malicious PowerShell Cmdlet was invoked on the machine by the user with AadUserId `2de70991-2799-4a95-b734-8e3df3a50118`."
+    ],
+    "start_alert": 68,
+    "end_alert": 51,
+    "start_entities": [
+      69
+    ],
+    "end_entities": [
+      11
+    ],
+    "shortest_alert_path": [
+      68,
+      19,
+      37,
+      8,
+      51
+    ]
+  },
+  {
+    "context": "In this incident, an email from sender `santiago@vnevado.alpineskihouse.co` (sender IP `119.36.50.193`) containing the malicious URL `https://ym018491661.wittytree-b6f239d6.northeurope.azurecontainerapps.io/` was delivered to the mailbox of Lucas Grey (`bjenkins@niseko.alpineskihouse.co`) and later removed. Follow-on activity linked to this incident included suspicious access to the LSASS service and an ongoing hands-on-keyboard attack using the Impacket toolkit, and finally a suspicious service named DDLOXJDSQSNGMUKKFUXQ was created on the host MB-ADFS to execute potentially malicious commands.",
+    "question": "What is the email address of the user account that created the suspicious service on MB-ADFS?",
+    "answer": "gsmith@niseko.alpineskihouse.co",
+    "solution": [
+      "A user with AadUserId `a2d0f7c2-b0a0-43bd-bce0-27d8ae3be4d0` received an email containing a malicious URL, which was later removed after delivery.",
+      "The process `powershell.exe` was then used to suspiciously access the LSASS service in an attempt to dump credentials from memory.",
+      "Using the stolen credentials, the account with AadUserId `ec3ec68b-fdeb-4fe4-9a29-acd445e1ccc5` conducted an ongoing hands-on-keyboard attack via the Impacket toolkit to move laterally across the network.",
+      "The account `gsmith@niseko.alpineskihouse.co` created the suspicious service `DDLOXJDSQSNGMUKKFUXQ` on the device MB-ADFS to execute potentially malicious commands."
+    ],
+    "start_alert": 92,
+    "end_alert": 101,
+    "start_entities": [
+      89,
+      90,
+      93,
+      94,
+      95,
+      96,
+      97
+    ],
+    "end_entities": [
+      103
+    ],
+    "shortest_alert_path": [
+      92,
+      3,
+      45,
+      8,
+      16,
+      20,
+      101
+    ]
+  },
+  {
+    "context": "During an investigation, a \"Suspicious System Hardware Discovery\" alert was raised on a device where a known tool or technique was used to gather information about the target device or network. The activity was tied to the account `pwilson` (SID `S-1-5-21-551436448-9871687716-9837441745-1903`) and involved the process `svchost.exe -k netsvcs -p -s winmgmt` (PID 2880), as well as a PowerShell execution of the script `contosoadfsblatempcreds.ps1` (PID 13968).",
+    "question": "Shortly after this discovery activity, a related alert was raised for suspicious access to the LSASS service, where attackers attempt to decrypt user passwords from LSASS memory. What is the name of the file (module) flagged in that credential access alert?",
+    "answer": "hid.dll",
+    "solution": [
+      "The account `bjenkins` was used to run a known tool or technique to perform suspicious system hardware discovery on the device.",
+      "Following the discovery activity, suspicious access to the LSASS service was detected involving the file `hid.dll`, indicating an attempt to dump credentials from LSASS memory."
+    ],
+    "start_alert": 0,
+    "end_alert": 45,
+    "start_entities": [
+      5,
+      6,
+      9,
+      10,
+      11,
+      12,
+      13
+    ],
+    "end_entities": [
+      47
+    ],
+    "shortest_alert_path": [
+      0,
+      1,
+      45
+    ]
+  },
+  {
+    "context": "During an investigation of an incident in the vnevado.alpineskihouse.co / niseko.alpineskihouse.co environment, an 'Internal phishing campaign' alert was raised on 2024-07-07 after a user was observed sending phishing email from a device to recipients inside the organization, suggesting an account may have been compromised for lateral movement. Accounts seen in that alert include `Nina Sullivan` (santiago@vnevado.alpineskihouse.co, AadUserId 28058d92-fc24-4869-9231-6546a34b00f2) and `Lucas Grey` (bjenkins@niseko.alpineskihouse.co), along with the phishing URL `http://ym018491661.wittytree-b6f239d6.northeurope.azurecontainerapps.io/`. The activity chain also links to a 'Suspicious sequence of exploration activities' alert and to later cloud application abuse.",
+    "question": "Later in this incident chain, an alert flagged an unusual addition of a Password-type credential to the OAuth application 'SimulandApp'. What is the display name of the user account that performed this credential addition?",
+    "answer": "Luciano Herrera (pwilson@niseko.alpineskihouse.co)",
+    "solution": [
+      "The compromised account with AadUserId `a2d0f7c2-b0a0-43bd-bce0-27d8ae3be4d0` was observed sending internal phishing emails from the device to recipients inside the organization.",
+      "The account with SID `S-1-5-21-551436448-9871687716-9837441745-1903` ran a suspicious sequence of Windows exploration commands, used to identify valuable assets and coordinate lateral movement.",
+      "The user account `Luciano Herrera` (pwilson@niseko.alpineskihouse.co) performed an unusual addition of a Password credential to the OAuth application SimulandApp, indicating the app may be abused to spread phishing, exfiltrate data, or gain access to other accounts and devices."
+    ],
+    "start_alert": 88,
+    "end_alert": 108,
+    "start_entities": [
+      75,
+      76,
+      77,
+      78,
+      89,
+      90,
+      91
+    ],
+    "end_entities": [
+      81
+    ],
+    "shortest_alert_path": [
+      88,
+      3,
+      57,
+      10,
+      108
+    ]
+  },
+  {
+    "context": "During an investigation, an alert titled \"Internal phishing campaign\" was raised on 2024-07-07, indicating that a user sent phishing email from a device to recipients inside the organization, suggesting the account may have been compromised for lateral movement (triggered from a Microsoft Defender for Office 365 alert). The involved account was Nina Sullivan (`santiago@vnevado.alpineskihouse.co`, SID `S-1-5-11-7842151660-4834030208-105586563-1139`, AAD User ID `28058d92-fc24-4869-9231-6546a34b00f2`), and the phishing message referenced the URL `http://ym018491661.wittytree-b6f239d6.northeurope.azurecontainerapps.io/`.",
+    "question": "A few days earlier, on 2024-07-04, a related alert flagged \"Suspicious System Hardware Discovery\" where a known tool or technique was used to gather information about a device. What is the account name (username) associated with that discovery activity?",
+    "answer": "bjenkins",
+    "solution": [
+      "A user account with SID `S-1-5-21-561436748-3867387497-1732241745-3701` was observed sending internal phishing emails from this device, indicating the account may have been compromised for lateral movement.",
+      "The same compromised account, identified by the user name `bjenkins`, was then used to run known tools or techniques to perform suspicious system hardware discovery on the device, gathering information for later attacks."
+    ],
+    "start_alert": 88,
+    "end_alert": 0,
+    "start_entities": [
+      75,
+      76,
+      77,
+      78,
+      89,
+      90,
+      91
+    ],
+    "end_entities": [
+      1
+    ],
+    "shortest_alert_path": [
+      88,
+      2,
+      0
+    ]
+  },
+  {
+    "context": "During this multi-stage incident, an alert fired on host `mb-adfs` for a renamed system executable being launched: the process `iy2orr1e.rrg.exe` (PID 3116) ran with `-windowstyle hidden -encodedcommand ...` under the `SYSTEM` account (SID S-2-2-78), following a `powershell.exe` process (PID 6808) also launched with an encoded command. This activity chain later led to process injection and an internal phishing campaign sent from the compromised device, and eventually to an alert titled \"Email messages containing malicious URL removed after delivery\" (ZAP), where emails carrying a malicious URL were delivered and subsequently removed.",
+    "question": "For that alert about the emails with a malicious URL that were removed after delivery, which mailbox address received the message?",
+    "answer": "santiago@vnevado.alpineskihouse.co",
+    "solution": [
+      "A renamed Windows system executable, originally `powershell.exe`, was launched on the device to evade behavior-based detections.",
+      "The renamed process injected potentially malicious code into another process under the user account with AadUserId `a2d0f7c2-b0a0-43bd-bce0-27d8ae3be4d0`, indicating the account was compromised.",
+      "The compromised user account with AadUserId `28058d92-fc24-4869-9231-6546a34b00f2` was then used to launch an internal phishing campaign, sending phishing emails from this device to recipients inside the organization.",
+      "One of the phishing emails containing a malicious URL was delivered to the mailbox of recipient `santiago@vnevado.alpineskihouse.co` and later removed."
+    ],
+    "start_alert": 27,
+    "end_alert": 70,
+    "start_entities": [
+      25,
+      26,
+      28,
+      29,
+      30,
+      31
+    ],
+    "end_entities": [
+      72
+    ],
+    "shortest_alert_path": [
+      27,
+      8,
+      41,
+      3,
+      88,
+      78,
+      70
+    ]
+  },
+  {
+    "context": "During a multi-stage incident, a malicious PowerShell Cmdlet was invoked on host `mb-winclient` (AAD Device ID `7661dfd4-218f-4016-8a87-66d68a7f098e`), where the script `contosoadfsblatempcreds.ps1` was executed via `powershell.exe` (Process ID 13968) under accounts such as `pwilson` (SID S-1-5-21-551436448-9871687716-9837441745-1903) and `bjenkins`. Follow-on activity showed that a compromised user on this device sent internal phishing emails to recipients inside the organization, and a later alert reported emails containing a malicious URL that were delivered and then removed after delivery.",
+    "question": "For the alert about emails containing a malicious URL that were removed after delivery, which recipient mailbox primary address received those messages?",
+    "answer": "santiago@vnevado.alpineskihouse.co",
+    "solution": [
+      "A malicious PowerShell cmdlet associated with credential theft or code injection was invoked on the machine by the user account with AadUserId `a2d0f7c2-b0a0-43bd-bce0-27d8ae3be4d0`.",
+      "The compromised account `santiago@vnevado.alpineskihouse.co` was then observed sending internal phishing emails from this device to recipients inside the organization.",
+      "Emails containing a malicious URL were delivered to and later removed from the mailbox with primary address `santiago@vnevado.alpineskihouse.co`."
+    ],
+    "start_alert": 51,
+    "end_alert": 70,
+    "start_entities": [
+      10,
+      9,
+      14,
+      12,
+      15,
+      13,
+      7,
+      11,
+      1,
+      42
+    ],
+    "end_entities": [
+      71
+    ],
+    "shortest_alert_path": [
+      51,
+      3,
+      88,
+      76,
+      70
+    ]
+  },
+  {
+    "context": "During this incident, an email containing a malicious URL `http://kn017721628.wittytree-b6f239d6.northeurope.azurecontainerapps.io/` was delivered to the mailbox `santiago@vnevado.alpineskihouse.co` and later removed. The message was sent from `4qs6v9m@vnevado.alpineskihouse.co` with sender IP `106.214.87.198`. Following this, an internal phishing campaign alert and a process injection alert were raised on related accounts, and the activity ultimately escalated to a suspected DCSync attack in which a directory services replication request was sent from the workstation MB-WINCLIENT to the domain controller MB-DC1.",
+    "question": "Which user account was identified as the one issuing the directory replication request in the suspected DCSync attack?",
+    "answer": "Luciano Herrera (the CIO account)",
+    "solution": [
+      "The user account with AadUserId `28058d92-fc24-4869-9231-6546a34b00f2` received an email containing a malicious URL, which was delivered and later removed.",
+      "The account with SID `S-1-5-21-561436748-3867387497-1732241745-3701` was observed sending internal phishing emails to recipients inside the organization, indicating the account was compromised for lateral movement.",
+      "The account with SID `S-1-5-21-551436448-9871687716-9837441745-1903` was involved in a process injection, where malicious code was injected into another process to hide execution within a trusted process.",
+      "The account `Luciano Herrera` (CIO) on MB-WINCLIENT performed a suspected DCSync attack, sending a directory services replication request to the domain controller MB-DC1."
+    ],
+    "start_alert": 70,
+    "end_alert": 98,
+    "start_entities": [
+      71,
+      72,
+      73,
+      74,
+      79
+    ],
+    "end_entities": [
+      81
+    ],
+    "shortest_alert_path": [
+      70,
+      78,
+      88,
+      2,
+      41,
+      10,
+      98
+    ]
+  },
+  {
+    "context": "During a multi-stage incident, a 'Suspicious sequence of exploration activities' alert was raised on host `mb-adfs` for account `gsmith` (SID S-2-5-21-571436798-3864380397-1837441745-3206). The activity included repeated `whoami.exe` executions and a hidden, encoded-command process `iy2orr1e.rrg.exe` (PID 3116). A few days later, on 2024-07-07, a related alert titled 'Internal phishing campaign' fired, indicating that a user on this device sent phishing emails to recipients inside the organization, suggesting the account may have been compromised for lateral movement.",
+    "question": "In the internal phishing campaign alert that followed this exploration activity, what malicious URL was contained in the phishing emails sent to internal recipients?",
+    "answer": "http://ym018491661.wittytree-b6f239d6.northeurope.azurecontainerapps.io/",
+    "solution": [
+      "A suspicious sequence of exploration activities was detected, where the process `powershell.exe` ran a set of Windows commands used to discover valuable assets and prepare lateral movement, at 2024-07-04 22:35:03 UTC.",
+      "These exploration activities were performed in the context of the user account with AadUserId `a2d0f7c2-b0a0-43bd-bce0-27d8ae3be4d0`, indicating the account was likely compromised.",
+      "The compromised account was then used to launch an internal phishing campaign from the device, sending phishing emails to recipients inside the organization that contained the malicious URL `http://ym018491661.wittytree-b6f239d6.northeurope.azurecontainerapps.io/`."
+    ],
+    "start_alert": 52,
+    "end_alert": 88,
+    "start_entities": [
+      29,
+      18,
+      20,
+      56,
+      26,
+      28,
+      55,
+      25,
+      53,
+      19
+    ],
+    "end_entities": [
+      91
+    ],
+    "shortest_alert_path": [
+      52,
+      8,
+      57,
+      3,
+      88
+    ]
+  },
+  {
+    "context": "During an investigation, an alert was raised for an unusual addition of credentials to an OAuth app: the user Luciano Herrera (pwilson@niseko.alpineskihouse.co) added a Password-type credential to the application SimulandApp (OAuth App ID `4d9476b8-6ae6-459b-a273-5837c15b5981`, Object ID `a66a4b44-d1f7-4563-95bf-a89d1b05b325`) within the Office 365 / Microsoft 365 cloud application (AppId 11161), from the IP address `2801:e0a:1eb:dea0:642e:5bb6:d315:fbb3`. This pattern may indicate an attacker compromised the app to spread phishing, exfiltrate data, or gain access to other accounts and devices.",
+    "question": "Earlier in this same incident, an alert titled 'Suspicious System Hardware Discovery' was triggered when a known tool or technique was used to gather information about a device. Which Microsoft Entra ID (AAD) user ID was associated with the account in that discovery alert?",
+    "answer": "a2d0f7c2-b0a0-43bd-bce0-27d8ae3be4d0",
+    "solution": [
+      "The user Luciano Herrera (pwilson@niseko.alpineskihouse.co), with AadUserId `2de70991-2799-4a95-b734-8e3df3a50118`, performed an unusual addition of a Password credential to the OAuth application SimulandApp, indicating the app may have been compromised for phishing, data exfiltration, or access to other accounts and devices.",
+      "Following the app compromise, a known tool or technique was used to perform suspicious system hardware discovery on a device, gathering information about the target device or network for later attacks; this activity was carried out under the account with AadUserId `a2d0f7c2-b0a0-43bd-bce0-27d8ae3be4d0`."
+    ],
+    "start_alert": 108,
+    "end_alert": 0,
+    "start_entities": [
+      81,
+      82,
+      83,
+      84,
+      85,
+      86,
+      109
+    ],
+    "end_entities": [
+      3
+    ],
+    "shortest_alert_path": [
+      108,
+      11,
+      0
+    ]
+  },
+  {
+    "context": "During an investigation, a suspicious LDAP query alert was raised at 2024-07-04 22:35:03 UTC, indicating potential reconnaissance activity against the domain controller. The activity was tied to the account `pwilson` (SID `S-1-5-21-551436448-9871687716-9837441745-1903`, AAD User ID `2de70991-2799-4a95-b734-8e3df3a50118`), which executed the script `ldaprequest.ps1` via the command line `\"powershell.exe\" c:\\script\\ldaprequest.ps1` with Process ID 11116, created at 2024-07-02T09:47:42.68Z.",
+    "question": "About one second before the suspicious LDAP query alert, a related alert fired for suspicious access to the LSASS service on the same activity chain, which is typically used to extract clear-text credentials from memory. What is the name of the DLL file reported as an entity in that LSASS-related alert?",
+    "answer": "cryptdll.dll",
+    "solution": [
+      "A suspicious LDAP query indicating reconnaissance activity was executed from the device with IP address `72.5.72.208`.",
+      "On the same device, suspicious access to the LSASS service was detected, involving the file `cryptdll.dll`, which is commonly loaded by credential dumping tools to decrypt clear-text passwords from LSASS memory."
+    ],
+    "start_alert": 64,
+    "end_alert": 45,
+    "start_entities": [
+      9,
+      10,
+      11,
+      65,
+      66
+    ],
+    "end_entities": [
+      46
+    ],
+    "shortest_alert_path": [
+      64,
+      4,
+      45
+    ]
+  },
+  {
+    "context": "During an investigation of a hands-on-keyboard attack, a suspicious command execution via the Impacket toolkit was observed on a device on 2024-07-04. Impacket connects to other hosts to explore network shares and execute commands, and attackers often use it to move laterally before deploying ransomware or other payloads. The activity involved accounts such as `gsmith` (SID `S-2-5-21-571436798-3864380397-1837441745-3206`, AAD user ID `ec3ec68b-fdeb-4fe4-9a29-acd445e1ccc5`) and `LocalSystem`, along with files `powershell.exe` and `%comspec%`, and the process `lsass.exe` (Process ID 780, created 2024-06-20T08:30:13.8583828Z).",
+    "question": "Seconds after this Impacket activity, a related alert fired for a renamed Windows system executable being launched. What is the security identifier (SID) of the account tied to that renamed-executable alert?",
+    "answer": "S-2-2-78",
+    "solution": [
+      "An Impacket-based hands-on-keyboard attack was detected on the device, where the process with Process ID `6808` executed the command line `powershell.exe -encodedcommand qwa6afwauwbjahiaaqbwahqacwbcafiazqbuageabqblafaabwb3aguacgbzaggazqbsagwalgbwahmamqa=` at `2024-07-02t09:48:12.7628138z`, decoding to the renaming/execution of a PowerShell script (`C:\\Scripts\\RenamePowerShell.ps1`).",
+      "Following this, a renamed Windows system executable was launched on the same device to evade path- and name-based detections, and this activity was performed under the user account with SID `S-2-2-78`."
+    ],
+    "start_alert": 16,
+    "end_alert": 27,
+    "start_entities": [
+      17,
+      18,
+      19,
+      20,
+      21,
+      22,
+      23,
+      24
+    ],
+    "end_entities": [
+      31
+    ],
+    "shortest_alert_path": [
+      16,
+      25,
+      27
+    ]
+  },
+  {
+    "context": "During an investigation, an ongoing hands-on-keyboard attack via the Impacket toolkit was detected on a device. Impacket connects to other hosts to explore network shares and execute commands, and attackers often use it to move laterally before deploying ransomware or other payloads. The activity was associated with the accounts `LocalSystem` and `gsmith` (SID `S-2-5-21-571436798-3864380397-1837441745-3206`, AAD user ID `ec3ec68b-fdeb-4fe4-9a29-acd445e1ccc5`), files such as `powershell.exe` and `%comspec%`, and access to the process `lsass.exe` (PID 780, created 2024-06-20T08:30:13.8583828Z).",
+    "question": "Roughly a second later, a related alert flagged suspicious Task Scheduler activity where a process previously involved in malicious activity created, modified, or deleted a scheduled task for persistence. What is the name of the executable file associated with that process?",
+    "answer": "iy2orr1e.rrg.exe",
+    "solution": [
+      "An ongoing hands-on-keyboard attack via the Impacket toolkit was detected on the host `mb-adfs`, where the attacker executed remote commands to explore network shares and move laterally.",
+      "On that same host, the attacker abused Task Scheduler to create, modify, or delete a scheduled task for persistence, launching the suspicious process with file name `iy2orr1e.rrg.exe`."
+    ],
+    "start_alert": 16,
+    "end_alert": 33,
+    "start_entities": [
+      17,
+      18,
+      19,
+      20,
+      21,
+      22,
+      23,
+      24
+    ],
+    "end_entities": [
+      29
+    ],
+    "shortest_alert_path": [
+      16,
+      26,
+      33
+    ]
+  },
+  {
+    "context": "During this multi-stage incident, a 'Suspicious System Hardware Discovery' alert was raised on a device where PowerShell activity was observed under accounts such as `pwilson` (SID S-1-5-21-561436748-3867387497-1732241745-3701). The processes included `\"powershell.exe\" -noexit -command set-location -literalpath 'c:\\users\\bjenkins\\downloads\\midnight14'` (PID 12412) and `\"powershell.exe\" c:\\script\\contosoadfsblatempcreds.ps1` (PID 13968), along with `svchost.exe`, and network activity to IP `72.5.72.208`. This suggests attackers were gathering information about the target device or network for later attacks.",
+    "question": "Pivoting from this device to the related alert reporting that a malicious URL was clicked on it, what is the full malicious URL that was clicked?",
+    "answer": "https://ym018491661.wittytree-b6f239d6.northeurope.azurecontainerapps.io/",
+    "solution": [
+      "A suspicious system hardware discovery activity was detected on the device with AadDeviceId `7661dfd4-218f-4016-8a87-66d68a7f098e`, where a known tool or technique was used to gather information about the device for later attacks.",
+      "On that same device, a user clicked on the malicious URL `https://ym018491661.wittytree-b6f239d6.northeurope.azurecontainerapps.io/`."
+    ],
+    "start_alert": 0,
+    "end_alert": 107,
+    "start_entities": [
+      7,
+      12,
+      8,
+      6,
+      2,
+      9,
+      10,
+      13,
+      4,
+      3
+    ],
+    "end_entities": [
+      97
+    ],
+    "shortest_alert_path": [
+      0,
+      15,
+      107
+    ]
+  },
+  {
+    "context": "In this incident, an alert was raised stating that the user Luciano Herrera (pwilson@niseko.alpineskihouse.co) performed an unusual addition of a Password credential to the OAuth application SimulandApp (OAuth App ID `4d9476b8-6ae6-459b-a273-5837c15b5981`), from IP address `36.193.21.220` and involving the Office 365 / Microsoft 365 cloud application (App ID 11161). This activity pattern may indicate that an attacker has compromised the app and is using it to spread phishing, exfiltrate data, or gain access to other accounts and devices. Pivoting on the compromised user's Entra ID (AAD) user ID leads to a device where a process was injected with potentially malicious code, and on that same device a later alert fired for a malicious link being opened.",
+    "question": "For the related alert 'Malicious URL was clicked on that device' that occurred on the same host, what was the full malicious URL that was clicked?",
+    "answer": "https://ym018491661.wittytree-b6f239d6.northeurope.azurecontainerapps.io/",
+    "solution": [
+      "The user account with AadUserId `2de70991-2799-4a95-b734-8e3df3a50118` (Luciano Herrera, pwilson@niseko.alpineskihouse.co) performed an unusual addition of a Password credential to the OAuth application SimulandApp, indicating the app may have been compromised for phishing or data exfiltration.",
+      "On the host `mb-winclient`, a process was injected with potentially malicious code, hiding malicious execution within a trusted process that may connect to a command and control server.",
+      "From that device, a malicious URL `https://ym018491661.wittytree-b6f239d6.northeurope.azurecontainerapps.io/` was clicked."
+    ],
+    "start_alert": 80,
+    "end_alert": 107,
+    "start_entities": [
+      81,
+      82,
+      83,
+      84,
+      85,
+      86,
+      87
+    ],
+    "end_entities": [
+      97
+    ],
+    "shortest_alert_path": [
+      80,
+      11,
+      41,
+      14,
+      107
+    ]
+  },
+  {
+    "context": "During a security incident, an alert was raised for a malicious PowerShell Cmdlet invoked on a machine by the account `bjenkins` (SID S-1-5-21-561436748-3867387497-1732241745-3701). The activity involved PowerShell processes, including process 12412 launched with `\"powershell.exe\" -noexit -command set-location -literalpath 'c:\\users\\bjenkins\\downloads\\midnight14'` and process 13968 executing the script `contosoadfsblatempcreds.ps1`. Such Cmdlets may be associated with credential theft, exploitation, network reconnaissance or code injection.",
+    "question": "Immediately after this activity, a related alert flagged a suspicious LDAP query indicating potential domain reconnaissance. What is the name of the script file responsible for that LDAP reconnaissance activity?",
+    "answer": "ldaprequest.ps1",
+    "solution": [
+      "A malicious PowerShell Cmdlet was invoked on the machine via the process `powershell.exe` at 2024-07-04 22:35:03 UTC, potentially associated with credential theft, exploitation, network reconnaissance, or code injection.",
+      "Following that, the script `ldaprequest.ps1` executed a suspicious LDAP query against the domain controller, indicating reconnaissance activity to enumerate administrative users, groups, and valuable assets in the organization."
+    ],
+    "start_alert": 51,
+    "end_alert": 64,
+    "start_entities": [
+      1,
+      2,
+      3,
+      7,
+      12,
+      13,
+      42
+    ],
+    "end_entities": [
+      66
+    ],
+    "shortest_alert_path": [
+      51,
+      8,
+      64
+    ]
+  },
+  {
+    "context": "During a multi-stage security incident, an alert for 'Suspicious service registration' was raised when a system program was registered as a service, which can indicate malicious intent to establish persistence or gain system privileges. The process involved was `services.exe` with ProcessId__CreatedTimeUtc__CommandLine of `764__2024-06-20t08:30:13.7925191z__services.exe`.",
+    "question": "On the same host, an alert was triggered around the same time for an attempt to hide the use of a dual-purpose tool, where a known public tool was observed running under an unexpected filename. Which user account was associated with that activity?",
+    "answer": "gsmith",
+    "solution": [
+      "A system program was registered as a service on host `mb-adfs`, indicating a suspicious service registration used to establish persistence or gain system privileges.",
+      "On that host, the account `gsmith` ran a known dual-purpose public tool under an unexpected filename, attempting to hide its malicious usage."
+    ],
+    "start_alert": 61,
+    "end_alert": 32,
+    "start_entities": [
+      62,
+      63
+    ],
+    "end_entities": [
+      18
+    ],
+    "shortest_alert_path": [
+      61,
+      26,
+      32
+    ]
+  },
+  {
+    "context": "During an investigation, a 'Suspicious System Hardware Discovery' alert fired on host `mb-winclient` (AAD device ID `7661dfd4-218f-4016-8a87-66d68a7f098e`), where processes such as `svchost.exe -k netsvcs -p -s winmgmt` (PID 2880) and `\"powershell.exe\" c:\\script\\contosoadfsblatempcreds.ps1` (PID 13968) were observed, involving accounts `bjenkins` and `pwilson`. Following this discovery activity, the same compromised identity was later tied to internal phishing activity, and a related alert reported that email messages containing a malicious URL were delivered to mailboxes and subsequently removed after delivery.",
+    "question": "For the alert about emails containing a malicious URL that were removed after delivery, what was the malicious URL contained in those emails?",
+    "answer": "http://kn017721628.wittytree-b6f239d6.northeurope.azurecontainerapps.io/",
+    "solution": [
+      "The account with SID `S-1-5-21-561436748-3867387497-1732241745-3701` was observed running known tools/techniques for suspicious system hardware discovery on the device at 2024-07-04 22:35:00 UTC.",
+      "The compromised user account `Nina Sullivan` was then observed sending internal phishing emails from this device to recipients inside the organization at 2024-07-07 10:09:33 UTC.",
+      "The phishing emails delivered to internal recipients contained the malicious URL `http://kn017721628.wittytree-b6f239d6.northeurope.azurecontainerapps.io/`, which were later removed after delivery."
+    ],
+    "start_alert": 0,
+    "end_alert": 70,
+    "start_entities": [
+      11,
+      15,
+      5,
+      12,
+      14,
+      6,
+      1,
+      8,
+      13,
+      9
+    ],
+    "end_entities": [
+      79
+    ],
+    "shortest_alert_path": [
+      0,
+      2,
+      88,
+      75,
+      70
+    ]
+  },
+  {
+    "context": "During an investigation, a suspicious LDAP query was detected indicating potential reconnaissance activity. On the device `mb-winclient` (AAD device ID `7661dfd4-218f-4016-8a87-66d68a7f098e`), the account `pwilson` ran `powershell.exe` with the command line `\"powershell.exe\" c:\\script\\ldaprequest.ps1` (Process ID 11116, created 2024-07-02T09:47:42Z), with the associated IP address `72.5.72.208`. LDAP queries like this are often used by attackers to map out an organization's structure by querying the domain controller for administrative users, groups, and interesting assets.",
+    "question": "Days later, the same compromised user was seen making an unusual addition of a Password credential to an OAuth application named SimulandApp. What is the OAuth application ID of that app?",
+    "answer": "4d9476b8-6ae6-459b-a273-5837c15b5981",
+    "solution": [
+      "A suspicious LDAP query indicating reconnaissance activity was executed by the account with AadUserId `2de70991-2799-4a95-b734-8e3df3a50118` at 2024-07-04 22:35:03 UTC.",
+      "Following the reconnaissance, the compromised user Luciano Herrera (pwilson@niseko.alpineskihouse.co) performed an unusual addition of a Password credential to the OAuth application `SimulandApp` with OAuthAppId `4d9476b8-6ae6-459b-a273-5837c15b5981` at 2024-07-10 11:24:45 UTC, which may allow the attacker to persist, spread phishing, or exfiltrate data."
+    ],
+    "start_alert": 64,
+    "end_alert": 108,
+    "start_entities": [
+      4,
+      8,
+      9,
+      14,
+      15,
+      65,
+      66
+    ],
+    "end_entities": [
+      85
+    ],
+    "shortest_alert_path": [
+      64,
+      11,
+      108
+    ]
+  },
+  {
+    "context": "During this incident, a suspicious service named DDLOXJDSQSNGMUKKFUXQ was created by the account `gsmith@niseko.alpineskihouse.co` on host `MB-ADFS` in order to execute potentially malicious commands. Follow-on activity on the same device included a hands-on-keyboard attack using the Impacket toolkit, and later an alert for suspicious access to the LSASS service, where attackers attempt to decrypt user passwords from LSASS memory for use in lateral movement.",
+    "question": "In the alert about suspicious access to the LSASS service, which credential-related library file was identified as being involved?",
+    "answer": "vaultcli.dll",
+    "solution": [
+      "The account with SID `S-2-5-21-571436798-3864380397-1837441745-3206` (gsmith) created a suspicious service `DDLOXJDSQSNGMUKKFUXQ` to execute potentially malicious commands on the host MB-ADFS.",
+      "An ongoing hands-on-keyboard attack via the Impacket toolkit was observed, involving the process with extracted file name `lsass.exe`, indicating lateral movement and credential access attempts.",
+      "Suspicious access to the LSASS service was detected, with the credential-related file `vaultcli.dll` being loaded to dump clear-text passwords from LSASS memory."
+    ],
+    "start_alert": 101,
+    "end_alert": 45,
+    "start_entities": [
+      102,
+      103
+    ],
+    "end_entities": [
+      49
+    ],
+    "shortest_alert_path": [
+      101,
+      19,
+      16,
+      24,
+      45
+    ]
+  },
+  {
+    "context": "During this incident, the user Luciano Herrera (pwilson@niseko.alpineskihouse.co) performed an unusual addition of a Password credential to the OAuth application SimulandApp (OAuthAppId `4d9476b8-6ae6-459b-a273-5837c15b5981`) within the Office 365 / Microsoft 365 cloud application, originating from the IP address `2801:e0a:1eb:dea0:642e:5bb6:d315:fbb3`. This activity is linked through the same compromised account to endpoint activity, including a Suspicious System Hardware Discovery alert where a known tool was used to gather information about the device, and a subsequent 'Suspicious remote activity' alert flagging activity initiated remotely on that machine (such as interactive sessions, file modifications, WMI commands, or scheduled task creation).",
+    "question": "In the 'Suspicious remote activity' alert that followed the hardware discovery activity, what is the name of the file entity associated with the remotely initiated activity?",
+    "answer": "%comspec%",
+    "solution": [
+      "The account with SID `S-1-5-21-551436448-9871687716-9837441745-1903` (Luciano Herrera, pwilson@niseko.alpineskihouse.co) performed an unusual addition of a Password credential to the OAuth application SimulandApp.",
+      "Using the compromised access, a suspicious system hardware discovery was performed on the device via the process `powershell.exe`, gathering information about the target device or network.",
+      "Suspicious remote activity was then observed on the machine, involving the file `%comspec%`, indicating remotely initiated command execution such as interactive sessions, WMI commands, or scheduled tasks."
+    ],
+    "start_alert": 108,
+    "end_alert": 37,
+    "start_entities": [
+      81,
+      82,
+      83,
+      84,
+      85,
+      86,
+      109
+    ],
+    "end_entities": [
+      22
+    ],
+    "shortest_alert_path": [
+      108,
+      10,
+      0,
+      8,
+      37
+    ]
+  }
+]

@@ -1,0 +1,220 @@
+<?xml version='1.0' encoding='utf-8'?>
+<graphml xmlns="http://graphml.graphdrawing.org/xmlns" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://graphml.graphdrawing.org/xmlns http://graphml.graphdrawing.org/xmlns/1.0/graphml.xsd">
+  <key id="d7" for="node" attr.name="value" attr.type="string" />
+  <key id="d6" for="node" attr.name="identifier_fields" attr.type="string" />
+  <key id="d5" for="node" attr.name="node_type" attr.type="string" />
+  <key id="d4" for="node" attr.name="entry" attr.type="string" />
+  <key id="d3" for="node" attr.name="description" attr.type="string" />
+  <key id="d2" for="node" attr.name="name" attr.type="string" />
+  <key id="d1" for="node" attr.name="type" attr.type="string" />
+  <key id="d0" for="graph" attr.name="incident" attr.type="string" />
+  <graph edgedefault="undirected">
+    <node id="0">
+      <data key="d1">alert</data>
+      <data key="d2">A potentially malicious URL click was detected</data>
+      <data key="d3">We have detected that one of your users has recently clicked on a link that was found to be malicious. -V1.0.0.5</data>
+      <data key="d4">{"TenantId": "e34d562e-ef12-4c4e-9bc0-7c6ae357c015", "TimeGenerated": "2024-07-17 10:59:14.787387+00:00", "DisplayName": "A potentially malicious URL click was detected", "AlertName": "A potentially malicious URL click was detected", "AlertSeverity": "High", "Description": "We have detected that one of your users has recently clicked on a link that was found to be malicious. -V1.0.0.5", "ProviderName": "OATP", "VendorName": "Microsoft", "VendorOriginalId": "b778cb93-a82e-3819-fc00-08dca64e349a", "SystemAlertId": "842de14d-27aa-d006-296c-239987d60a6e", "ResourceId": NaN, "SourceComputerId": NaN, "AlertType": "a74bb32a-541b-47fb-adfd-f8c62ce3d59b", "ConfidenceLevel": NaN, "ConfidenceScore": NaN, "IsIncident": false, "StartTime": "2024-07-17 10:50:25.276879+00:00", "EndTime": "2024-07-17 10:50:25.276879+00:00", "ProcessingEndTime": "2024-07-17 10:59:02.820000+00:00", "RemediationSteps": NaN, "ExtendedProperties": "{\"IncidentId\":\"483\",\"OriginSource\":\"Microsoft 365 defender\",\"Category\":\"InitialAccess\",\"DetectionSource\":\"microsoftDefenderForOffice365\",\"AssignedTo\":null,\"Determination\":null,\"Classification\":null,\"ThreatName\":null,\"ThreatFamilyName\":null,\"DetectorId\":\"a74bb32a-541b-47fb-adfd-f8c62ce3d59b\",\"LastUpdated\":\"7/17/2024 10:59:02 AM\",\"ProcessedBySentinel\":\"True\",\"Alert generation status\":\"Full alert created\"}", "Entities": "[{\"$id\":\"2\",\"Recipient\":\"raphaelt@vnevado.alpineskihouse.co\",\"Urls\":[\"https://ms175052280.orangecliff-f53f26fd.eastus.azurecontainerapps.io/\"],\"Sender\":\"alyssat@vnevado.alpineskihouse.co\",\"P1Sender\":\"alyssat@vnevado.alpineskihouse.co\",\"P1SenderDisplayName\":\"\",\"P1SenderDomain\":\"vnevado.alpineskihouse.co\",\"SenderIP\":\"254.241.243.229\",\"P2Sender\":\"alyssat@vnevado.alpineskihouse.co\",\"P2SenderDisplayName\":\"Hailey Johnson\",\"P2SenderDomain\":\"vnevado.alpineskihouse.co\",\"ReceivedDate\":\"2024-07-17T10:31:22\",\"NetworkMessageId\":\"2dbfc9f0-951f-4dd2-692b-08dca64b9909\",\"InternetMessageId\":\"&lt;PR0P264MB41562D8FAFA665F0038DA9C89FA32@PR0P264MB4156.FRAP264.PROD.OUTLOOK.COM&gt;\",\"Subject\":\"Lee Don t miss 1969-Con Event next month\",\"AntispamDirection\":\"Unknown\",\"DeliveryAction\":\"Delivered\",\"DeliveryLocation\":\"Inbox\",\"Language\":\"en\",\"CreatedTimeUtc\":\"2024-07-17T10:52:15.5333333\",\"ThreatAnalysisSummary\":[{\"AnalyzersResult\":[],\"Verdict\":\"Unknown\",\"AnalysisDate\":\"2024-07-17T10:52:15.5333333\"}],\"LastVerdict\":\"Unknown\",\"Type\":\"mailMessage\"},{\"$id\":\"3\",\"MailboxPrimaryAddress\":\"raphaelt@vnevado.alpineskihouse.co\",\"DisplayName\":\"Nina Park\",\"Upn\":\"raphaelt@vnevado.alpineskihouse.co\",\"AadId\":\"e036dee7-fa23-42ef-a019-468c8d3401f1\",\"CreatedTimeUtc\":\"2024-07-17T10:59:02.4966667\",\"ThreatAnalysisSummary\":[{\"AnalyzersResult\":[],\"Verdict\":\"Unknown\",\"AnalysisDate\":\"2024-07-17T10:59:02.4966667\"}],\"LastVerdict\":\"Unknown\",\"Type\":\"mailbox\"},{\"$id\":\"4\",\"Url\":\"http://ms175052280.orangecliff-f53f26fd.eastus.azurecontainerapps.io/\",\"CreatedTimeUtc\":\"2024-07-17T10:59:02.4966667\",\"ThreatAnalysisSummary\":[{\"AnalyzersResult\":[],\"Verdict\":\"Unknown\",\"AnalysisDate\":\"2024-07-17T10:59:02.4966667\"}],\"LastVerdict\":\"Unknown\",\"Type\":\"url\"},{\"$id\":\"5\",\"Name\":\"Nina Park\",\"UPNSuffix\":\"vnevado.alpineskihouse.co\",\"Sid\":\"S-1-5-21-1874151667-3554330288-105586563-1715\",\"AadUserId\":\"e036dee7-fa23-42ef-a019-468c8d3401f1\",\"IsDomainJoined\":true,\"CreatedTimeUtc\":\"2024-07-17T10:59:02.4966667\",\"ThreatAnalysisSummary\":[{\"AnalyzersResult\":[],\"Verdict\":\"Unknown\",\"AnalysisDate\":\"2024-07-17T10:59:02.4966667\"}],\"LastVerdict\":\"Unknown\",\"Type\":\"account\",\"UserPrincipalName\":\"raphaelt@vnevado.alpineskihouse.co\",\"AccountName\":\"raphaelt\",\"DomainName\":\"vnevado.alpineskihouse.co\"},{\"$id\":\"6\",\"Url\":\"https://ms175052280.orangecliff-f53f26fd.eastus.azurecontainerapps.io/\",\"Type\":\"url\"}]", "SourceSystem": "Detection", "WorkspaceSubscriptionId": NaN, "WorkspaceResourceGroup": NaN, "ExtendedLinks": NaN, "ProductName": "Office 365 Advanced Threat Protection", "ProductComponentName": NaN, "AlertLink": "https://security.microsoft.com/alerts/fab778cb93-a82e-3819-fc00-08dca64e349a?tid=a59fc703-72db-43e0-8a21-0494303b7220", "Status": "InProgress", "CompromisedEntity": NaN, "Tactics": "Unknown", "Techniques": "[\"T1566\"]", "SubTechniques": "[\"T1566.002\"]", "Type": "SecurityAlert", "rn": 4238}</data>
+    </node>
+    <node id="1">
+      <data key="d1">entity</data>
+      <data key="d5">mailmessage</data>
+      <data key="d6">Recipient</data>
+      <data key="d7">raphaelt@vnevado.alpineskihouse.co</data>
+    </node>
+    <node id="2">
+      <data key="d1">entity</data>
+      <data key="d5">mailmessage</data>
+      <data key="d6">SenderIP</data>
+      <data key="d7">254.241.243.229</data>
+    </node>
+    <node id="3">
+      <data key="d1">entity</data>
+      <data key="d5">mailmessage</data>
+      <data key="d6">Sender</data>
+      <data key="d7">alyssat@vnevado.alpineskihouse.co</data>
+    </node>
+    <node id="4">
+      <data key="d1">entity</data>
+      <data key="d5">mailbox</data>
+      <data key="d6">MailboxPrimaryAddress</data>
+      <data key="d7">raphaelt@vnevado.alpineskihouse.co</data>
+    </node>
+    <node id="5">
+      <data key="d1">entity</data>
+      <data key="d5">url</data>
+      <data key="d6">Url</data>
+      <data key="d7">http://ms175052280.orangecliff-f53f26fd.eastus.azurecontainerapps.io/</data>
+    </node>
+    <node id="6">
+      <data key="d1">entity</data>
+      <data key="d5">account</data>
+      <data key="d6">Name</data>
+      <data key="d7">Nina Park</data>
+    </node>
+    <node id="7">
+      <data key="d1">entity</data>
+      <data key="d5">account</data>
+      <data key="d6">Email</data>
+      <data key="d7">raphaelt@vnevado.alpineskihouse.co</data>
+    </node>
+    <node id="8">
+      <data key="d1">entity</data>
+      <data key="d5">account</data>
+      <data key="d6">Sid</data>
+      <data key="d7">S-1-5-21-1874151667-3554330288-105586563-1715</data>
+    </node>
+    <node id="9">
+      <data key="d1">entity</data>
+      <data key="d5">account</data>
+      <data key="d6">AadUserId</data>
+      <data key="d7">e036dee7-fa23-42ef-a019-468c8d3401f1</data>
+    </node>
+    <node id="10">
+      <data key="d1">entity</data>
+      <data key="d5">url</data>
+      <data key="d6">Url</data>
+      <data key="d7">https://ms175052280.orangecliff-f53f26fd.eastus.azurecontainerapps.io/</data>
+    </node>
+    <node id="11">
+      <data key="d1">alert</data>
+      <data key="d2">Anonymous IP address</data>
+      <data key="d3">Sign-in from an anonymous IP address (e.g. Tor browser, anonymizer VPNs)</data>
+      <data key="d4">{"TenantId": "e34d562e-ef12-4c4e-9bc0-7c6ae357c015", "TimeGenerated": "2024-07-17 11:01:27.633644+00:00", "DisplayName": "Anonymous IP address", "AlertName": "Anonymous IP address", "AlertSeverity": "Medium", "Description": "Sign-in from an anonymous IP address (e.g. Tor browser, anonymizer VPNs)", "ProviderName": "IPC", "VendorName": "Microsoft", "VendorOriginalId": "1192934356256968fa9f0811188c4ea93f8b858936f7cbb6e7331745e1d87825", "SystemAlertId": "1ae29b32-a9a7-38b7-7bae-4c48498970b9", "ResourceId": NaN, "SourceComputerId": NaN, "AlertType": "AnonymousLogin", "ConfidenceLevel": NaN, "ConfidenceScore": NaN, "IsIncident": false, "StartTime": "2024-07-17 10:56:50.171425+00:00", "EndTime": "2024-07-17 10:56:50.171425+00:00", "ProcessingEndTime": "2024-07-17 11:00:35.455148+00:00", "RemediationSteps": NaN, "ExtendedProperties": "{\"Client IP Address\":\"170.54.121.63\",\"Client Location\":\"Amsterdam, Noord-Holland, NL\",\"Detail Description\":\"This risk event type indicates sign-ins from an anonymous IP address (e.g. Tor browser, anonymizer VPNs). Such IP addresses are commonly used by actors who want to hide their login telemetry (IP address, location, device, etc.) for potentially malicious intent. For more information - https://go.microsoft.com/fwlink/?linkid=2016442\",\"Request Id\":\"87a324c1-8546-46b1-bcc5-87de45081400\",\"State\":\"Open\",\"UpdateOwner\":\"Ipc\",\"UpdatedBy\":\"\",\"Comments\":\"Risk detail: NotSet\",\"ProcessedBySentinel\":\"True\",\"Alert generation status\":\"Full alert created\"}", "Entities": "[{\"$id\":\"2\",\"AadTenantId\":\"a59fc703-72db-43e0-8a21-0494303b7220\",\"AadUserId\":\"e036dee7-fa23-42ef-a019-468c8d3401f1\",\"Type\":\"account\"},{\"$id\":\"3\",\"SessionId\":\"ae42d9c5-95ae-453f-9f86-9ddbd34b0c49\",\"Account\":{\"$ref\":\"2\"},\"UserAgent\":\"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36 Edg/126.0.0.0 OS/10.0.22621\",\"StartTimeUtc\":\"2024-07-17T10:56:50.1714252Z\",\"Type\":\"cloud-logon-session\"},{\"$id\":\"4\",\"RequestId\":\"87a324c1-8546-46b1-bcc5-87de45081400\",\"Type\":\"cloud-logon-request\"},{\"$id\":\"5\",\"Address\":\"170.54.121.63\",\"Location\":{\"CountryCode\":\"NL\",\"State\":\"Noord-Holland\",\"City\":\"Amsterdam\",\"Longitude\":4.94019,\"Latitude\":52.30905,\"Asn\":206264},\"Type\":\"ip\"}]", "SourceSystem": "Detection", "WorkspaceSubscriptionId": NaN, "WorkspaceResourceGroup": NaN, "ExtendedLinks": NaN, "ProductName": "Azure Active Directory Identity Protection", "ProductComponentName": NaN, "AlertLink": NaN, "Status": "New", "CompromisedEntity": NaN, "Tactics": "InitialAccess", "Techniques": NaN, "SubTechniques": NaN, "Type": "SecurityAlert", "rn": 4244}</data>
+    </node>
+    <node id="12">
+      <data key="d1">entity</data>
+      <data key="d5">ip</data>
+      <data key="d6">Address</data>
+      <data key="d7">170.54.121.63</data>
+    </node>
+    <node id="13">
+      <data key="d1">alert</data>
+      <data key="d2">Email messages containing malicious URL removed after delivery​</data>
+      <data key="d3">Emails with malicious URL that were delivered and later removed -V62.34.26.163</data>
+      <data key="d4">{"TenantId": "e34d562e-ef12-4c4e-9bc0-7c6ae357c015", "TimeGenerated": "2024-07-17 11:04:19.964546+00:00", "DisplayName": "Email messages containing malicious URL removed after delivery\u200b", "AlertName": "Email messages containing malicious URL removed after delivery\u200b", "AlertSeverity": "Informational", "Description": "Emails with malicious URL that were delivered and later removed -V62.34.26.163", "ProviderName": "OATP", "VendorName": "Microsoft", "VendorOriginalId": "043fe5b8-68e8-92c7-fc00-08dca64e349a", "SystemAlertId": "6b50ba78-1fff-03b6-3576-034f8d31cb65", "ResourceId": NaN, "SourceComputerId": NaN, "AlertType": "8e6ba277-ef39-404e-aaf1-294f6d9a2b88", "ConfidenceLevel": NaN, "ConfidenceScore": NaN, "IsIncident": false, "StartTime": "2024-07-17 10:49:35.108080+00:00", "EndTime": "2024-07-17 10:51:35.108080+00:00", "ProcessingEndTime": "2024-07-17 11:04:13.526666+00:00", "RemediationSteps": NaN, "ExtendedProperties": "{\"IncidentId\":\"483\",\"OriginSource\":\"Microsoft 365 defender\",\"Category\":\"InitialAccess\",\"DetectionSource\":\"microsoftDefenderForOffice365\",\"AssignedTo\":null,\"Determination\":null,\"Classification\":null,\"ThreatName\":null,\"ThreatFamilyName\":null,\"DetectorId\":\"8e6ba277-ef39-404e-aaf1-294f6d9a2b88\",\"LastUpdated\":\"7/17/2024 11:04:13 AM\",\"ProcessedBySentinel\":\"True\",\"Alert generation status\":\"Full alert created\"}", "Entities": "[{\"$id\":\"2\",\"MailboxPrimaryAddress\":\"raphaelt@vnevado.alpineskihouse.co\",\"DisplayName\":\"Nina Park\",\"Upn\":\"raphaelt@vnevado.alpineskihouse.co\",\"AadId\":\"e036dee7-fa23-42ef-a019-468c8d3401f1\",\"CreatedTimeUtc\":\"2024-07-17T10:57:29.03\",\"ThreatAnalysisSummary\":[{\"AnalyzersResult\":[],\"Verdict\":\"Unknown\",\"AnalysisDate\":\"2024-07-17T10:57:29.03\"}],\"LastVerdict\":\"Unknown\",\"Type\":\"mailbox\"},{\"$id\":\"3\",\"Recipient\":\"raphaelt@vnevado.alpineskihouse.co\",\"Urls\":[\"https://ms175052280.orangecliff-f53f26fd.eastus.azurecontainerapps.io/\"],\"Sender\":\"alyssat@vnevado.alpineskihouse.co\",\"P1Sender\":\"alyssat@vnevado.alpineskihouse.co\",\"P1SenderDisplayName\":\"\",\"P1SenderDomain\":\"vnevado.alpineskihouse.co\",\"SenderIP\":\"254.241.243.229\",\"P2Sender\":\"alyssat@vnevado.alpineskihouse.co\",\"P2SenderDisplayName\":\"Hailey Johnson\",\"P2SenderDomain\":\"vnevado.alpineskihouse.co\",\"ReceivedDate\":\"2024-07-17T10:31:22\",\"NetworkMessageId\":\"2dbfc9f0-951f-4dd2-692b-08dca64b9909\",\"InternetMessageId\":\"&lt;PR0P264MB41562D8FAFA665F0038DA9C89FA32@PR0P264MB4156.FRAP264.PROD.OUTLOOK.COM&gt;\",\"Subject\":\"Lee Don t miss 1969-Con Event next month\",\"AntispamDirection\":\"Unknown\",\"DeliveryAction\":\"Blocked\",\"DeliveryLocation\":\"Quarantine\",\"Language\":\"en\",\"ThreatDetectionMethods\":[\"UrlReputation\"],\"CreatedTimeUtc\":\"2024-07-17T10:57:29.03\",\"ThreatAnalysisSummary\":[{\"AnalyzersResult\":[],\"Verdict\":\"Unknown\",\"AnalysisDate\":\"2024-07-17T10:57:29.03\"}],\"LastVerdict\":\"Unknown\",\"Type\":\"mailMessage\"},{\"$id\":\"4\",\"Name\":\"Nina Park\",\"UPNSuffix\":\"vnevado.alpineskihouse.co\",\"Sid\":\"S-1-5-21-1874151667-3554330288-105586563-1715\",\"AadUserId\":\"e036dee7-fa23-42ef-a019-468c8d3401f1\",\"IsDomainJoined\":true,\"CreatedTimeUtc\":\"2024-07-17T10:57:29.03\",\"ThreatAnalysisSummary\":[{\"AnalyzersResult\":[],\"Verdict\":\"Unknown\",\"AnalysisDate\":\"2024-07-17T10:57:29.03\"}],\"LastVerdict\":\"Unknown\",\"Type\":\"account\",\"UserPrincipalName\":\"raphaelt@vnevado.alpineskihouse.co\",\"AccountName\":\"raphaelt\",\"DomainName\":\"vnevado.alpineskihouse.co\"},{\"$id\":\"5\",\"Url\":\"https://ms175052280.orangecliff-f53f26fd.eastus.azurecontainerapps.io/\",\"CreatedTimeUtc\":\"2024-07-17T11:04:13.1933333\",\"ThreatAnalysisSummary\":[{\"AnalyzersResult\":[],\"Verdict\":\"Unknown\",\"AnalysisDate\":\"2024-07-17T11:04:13.1933333\"}],\"LastVerdict\":\"Unknown\",\"Type\":\"url\"},{\"$id\":\"6\",\"Url\":\"https://ms175052280.orangecliff-f53f26fd.eastus.azurecontainerapps.io/\",\"Type\":\"url\"}]", "SourceSystem": "Detection", "WorkspaceSubscriptionId": NaN, "WorkspaceResourceGroup": NaN, "ExtendedLinks": NaN, "ProductName": "Office 365 Advanced Threat Protection", "ProductComponentName": NaN, "AlertLink": "https://security.microsoft.com/alerts/fa043fe5b8-68e8-92c7-fc00-08dca64e349a?tid=a59fc703-72db-43e0-8a21-0494303b7220", "Status": "InProgress", "CompromisedEntity": NaN, "Tactics": "Unknown", "Techniques": "[\"T1566\"]", "SubTechniques": "[\"T1566.002\"]", "Type": "SecurityAlert", "rn": 4246}</data>
+    </node>
+    <node id="14">
+      <data key="d1">alert</data>
+      <data key="d2">Suspicious inbox manipulation rule</data>
+      <data key="d3">A user's inbox rules were manipulated in a suspicious manner. An attacker might have gained access to a user's inbox and is manipulating rules to delete or move messages or folders to exfiltrate data from your organization.</data>
+      <data key="d4">{"TenantId": "e34d562e-ef12-4c4e-9bc0-7c6ae357c015", "TimeGenerated": "2024-07-17 11:34:48.784934+00:00", "DisplayName": "Suspicious inbox manipulation rule", "AlertName": "Suspicious inbox manipulation rule", "AlertSeverity": "High", "Description": "A user's inbox rules were manipulated in a suspicious manner. An attacker might have gained access to a user's inbox and is manipulating rules to delete or move messages or folders to exfiltrate data from your organization.", "ProviderName": "MicrosoftThreatProtection", "VendorName": "Microsoft", "VendorOriginalId": "ra638568124097180486_-1459614537", "SystemAlertId": "90a1a2a8-5bba-97c5-6ca2-52e0408ff494", "ResourceId": NaN, "SourceComputerId": NaN, "AlertType": "4535cbac-6ddf-4610-baaa-a993ff79b594", "ConfidenceLevel": NaN, "ConfidenceScore": NaN, "IsIncident": false, "StartTime": "2024-07-17 11:06:04+00:00", "EndTime": "2024-07-17 11:06:04+00:00", "ProcessingEndTime": "2024-07-17 11:28:16+00:00", "RemediationSteps": "[\"A. Validate the alert.\\r\\n1. Inspect the user that was compromised.\\r\\n2. Check for other suspicious activities in the timeline.\\r\\n\\r\\nB. Scope the incident. Find related accounts and devices in the incident graph.\\r\\n\\r\\nC. Contain and mitigate the breach. Decommission compromised accounts or reset passwords. Quarantine affected devices to prevent lateral movement.\\r\\n\\r\\nD. Contact your incident response team, or contact Microsoft support for investigation and remediation services.\"]", "ExtendedProperties": "{\"IncidentId\":\"483\",\"OriginSource\":\"Microsoft 365 defender\",\"Category\":\"DefenseEvasion\",\"DetectionSource\":\"microsoft365Defender\",\"AssignedTo\":null,\"Determination\":null,\"Classification\":null,\"ThreatName\":null,\"ThreatFamilyName\":null,\"DetectorId\":\"4535cbac-6ddf-4610-baaa-a993ff79b594\",\"LastUpdated\":\"7/17/2024 11:28:16 AM\",\"ProcessedBySentinel\":\"True\",\"Alert generation status\":\"Full alert created\"}", "Entities": "[{\"$id\":\"2\",\"Name\":\"Nina Park\",\"UPNSuffix\":\"vnevado.alpineskihouse.co\",\"Sid\":\"S-1-5-21-1874151667-3554330288-105586563-1715\",\"AadUserId\":\"e036dee7-fa23-42ef-a019-468c8d3401f1\",\"IsDomainJoined\":true,\"CreatedTimeUtc\":\"2024-07-17T11:26:49.94\",\"ThreatAnalysisSummary\":[{\"AnalyzersResult\":[],\"Verdict\":\"Unknown\",\"AnalysisDate\":\"2024-07-17T11:26:49.94\"}],\"LastVerdict\":\"Unknown\",\"Roles\":[\"Compromised\"],\"Type\":\"account\",\"UserPrincipalName\":\"raphaelt@vnevado.alpineskihouse.co\",\"AccountName\":\"raphaelt\",\"DomainName\":\"vnevado.alpineskihouse.co\"},{\"$id\":\"3\",\"AppId\":20893,\"Name\":\"Microsoft Exchange Online\",\"CreatedTimeUtc\":\"2024-07-17T11:26:49.94\",\"ThreatAnalysisSummary\":[{\"AnalyzersResult\":[],\"Verdict\":\"Unknown\",\"AnalysisDate\":\"2024-07-17T11:26:49.94\"}],\"LastVerdict\":\"Unknown\",\"Type\":\"cloud-application\"},{\"$id\":\"4\",\"Address\":\"237.7.81.122\",\"CreatedTimeUtc\":\"2024-07-17T11:26:49.94\",\"ThreatAnalysisSummary\":[{\"AnalyzersResult\":[],\"Verdict\":\"Unknown\",\"AnalysisDate\":\"2024-07-17T11:26:49.94\"}],\"LastVerdict\":\"Unknown\",\"Roles\":[\"Source\",\"Attacker\"],\"Type\":\"ip\"}]", "SourceSystem": "Detection", "WorkspaceSubscriptionId": NaN, "WorkspaceResourceGroup": NaN, "ExtendedLinks": NaN, "ProductName": "Microsoft 365 Defender", "ProductComponentName": NaN, "AlertLink": "https://security.microsoft.com/alerts/ra638568124097180486_-1459614537?tid=a59fc703-72db-43e0-8a21-0494303b7220", "Status": "New", "CompromisedEntity": NaN, "Tactics": "Unknown", "Techniques": "[\"T1564\"]", "SubTechniques": "[\"T1564.008\"]", "Type": "SecurityAlert", "rn": 4252}</data>
+    </node>
+    <node id="15">
+      <data key="d1">entity</data>
+      <data key="d5">cloud-application</data>
+      <data key="d6">AppId</data>
+      <data key="d7">20893</data>
+    </node>
+    <node id="16">
+      <data key="d1">entity</data>
+      <data key="d5">ip</data>
+      <data key="d6">Address</data>
+      <data key="d7">237.7.81.122</data>
+    </node>
+    <node id="17">
+      <data key="d1">alert</data>
+      <data key="d2">BEC financial fraud</data>
+      <data key="d3">A suspicious inbox rule that hides incoming email messages was created in a risky Azure Active Directory session. An attacker might be attempting to conduct business email compromise (BEC), a form of financial fraud.</data>
+      <data key="d4">{"TenantId": "e34d562e-ef12-4c4e-9bc0-7c6ae357c015", "TimeGenerated": "2024-07-17 11:34:48.803827+00:00", "DisplayName": "BEC financial fraud", "AlertName": "BEC financial fraud", "AlertSeverity": "High", "Description": "A suspicious inbox rule that hides incoming email messages was created in a risky Azure Active Directory session. An attacker might be attempting to conduct business email compromise (BEC), a form of financial fraud.", "ProviderName": "MicrosoftThreatProtection", "VendorName": "Microsoft", "VendorOriginalId": "ra638568124172910123_-2012262848", "SystemAlertId": "166ac45d-f6cf-7617-2290-72009e744b64", "ResourceId": NaN, "SourceComputerId": NaN, "AlertType": "f4e7d875-a0b2-4f8d-2a05-03c1bf633e9f", "ConfidenceLevel": NaN, "ConfidenceScore": NaN, "IsIncident": false, "StartTime": "2024-07-17 11:06:04+00:00", "EndTime": "2024-07-17 11:06:04+00:00", "ProcessingEndTime": "2024-07-17 11:28:23.063333+00:00", "RemediationSteps": "[\"A. Validate the alert.\\r\\n1. Inspect the user that was compromised.\\r\\n2. Check for other suspicious activities in the timeline.\\r\\n\\r\\nB. Scope the incident. Find related accounts and devices in the incident graph.\\r\\n\\r\\nC. Contain and mitigate the breach. Reset the password of the compromised user.\\r\\n\\r\\nD. Check for addition of new multifactor authentication methods to the compromised account. \\r\\n\\r\\nE. Contact your incident response team, or contact Microsoft support for investigation and remediation services.\"]", "ExtendedProperties": "{\"IncidentId\":\"483\",\"OriginSource\":\"Microsoft 365 defender\",\"Category\":\"Collection\",\"DetectionSource\":\"microsoft365Defender\",\"AssignedTo\":null,\"Determination\":null,\"Classification\":null,\"ThreatName\":null,\"ThreatFamilyName\":null,\"DetectorId\":\"f4e7d875-a0b2-4f8d-2a05-03c1bf633e9f\",\"LastUpdated\":\"7/17/2024 11:28:23 AM\",\"ProcessedBySentinel\":\"True\",\"Alert generation status\":\"Full alert created\"}", "Entities": "[{\"$id\":\"2\",\"Name\":\"Nina Park\",\"UPNSuffix\":\"vnevado.alpineskihouse.co\",\"Sid\":\"S-1-5-21-1874151667-3554330288-105586563-1715\",\"AadUserId\":\"e036dee7-fa23-42ef-a019-468c8d3401f1\",\"IsDomainJoined\":true,\"CreatedTimeUtc\":\"2024-07-17T11:26:57.3333333\",\"ThreatAnalysisSummary\":[{\"AnalyzersResult\":[],\"Verdict\":\"Unknown\",\"AnalysisDate\":\"2024-07-17T11:26:57.3333333\"}],\"LastVerdict\":\"Unknown\",\"Roles\":[\"Compromised\"],\"Type\":\"account\",\"UserPrincipalName\":\"raphaelt@vnevado.alpineskihouse.co\",\"AccountName\":\"raphaelt\",\"DomainName\":\"vnevado.alpineskihouse.co\"},{\"$id\":\"3\",\"Address\":\"237.7.81.122\",\"CreatedTimeUtc\":\"2024-07-17T11:26:57.3333333\",\"ThreatAnalysisSummary\":[{\"AnalyzersResult\":[],\"Verdict\":\"Unknown\",\"AnalysisDate\":\"2024-07-17T11:26:57.3333333\"}],\"LastVerdict\":\"Unknown\",\"Roles\":[\"Source\",\"Attacker\"],\"Type\":\"ip\"}]", "SourceSystem": "Detection", "WorkspaceSubscriptionId": NaN, "WorkspaceResourceGroup": NaN, "ExtendedLinks": NaN, "ProductName": "Microsoft 365 Defender", "ProductComponentName": NaN, "AlertLink": "https://security.microsoft.com/alerts/ra638568124172910123_-2012262848?tid=a59fc703-72db-43e0-8a21-0494303b7220", "Status": "New", "CompromisedEntity": NaN, "Tactics": "Unknown", "Techniques": "[\"T1114\"]", "SubTechniques": "[\"T1114.002\"]", "Type": "SecurityAlert", "rn": 4253}</data>
+    </node>
+    <node id="18">
+      <data key="d1">alert</data>
+      <data key="d2">Suspicious emails sent by BEC-related user</data>
+      <data key="d3">Suspicious emails were sent by a possibly compromised user account related to an ongoing BEC (business email compromise) fraud attempt. This alert was triggered based on a previous BEC-related alert.</data>
+      <data key="d4">{"TenantId": "e34d562e-ef12-4c4e-9bc0-7c6ae357c015", "TimeGenerated": "2024-07-17 11:55:04.449509+00:00", "DisplayName": "Suspicious emails sent by BEC-related user", "AlertName": "Suspicious emails sent by BEC-related user", "AlertSeverity": "High", "Description": "Suspicious emails were sent by a possibly compromised user account related to an ongoing BEC (business email compromise) fraud attempt. This alert was triggered based on a previous BEC-related alert.", "ProviderName": "MicrosoftThreatProtection", "VendorName": "Microsoft", "VendorOriginalId": "ra638568137425950963_-495877019", "SystemAlertId": "6e899746-28f3-9ccd-d1ee-3f3add01a356", "ResourceId": NaN, "SourceComputerId": NaN, "AlertType": "fc1cbde1-ca4a-4149-9fab-fac53c26ecea", "ConfidenceLevel": NaN, "ConfidenceScore": NaN, "IsIncident": false, "StartTime": "2024-07-17 11:06:54+00:00", "EndTime": "2024-07-17 11:06:54+00:00", "ProcessingEndTime": "2024-07-17 11:50:30.830000+00:00", "RemediationSteps": "[\"A. Validate the alert.\\r\\n1. Inspect the users that were compromised.\\r\\n2. Check for other suspicious activities and sent emails in the timeline.\\r\\n\\r\\nB. Scope the incident. Find related accounts and devices in the incident graph.\\r\\n\\r\\nC. Contain and mitigate the breach. Decommission compromised accounts or reset passwords. Quarantine affected devices to prevent lateral movement.\\r\\n\\r\\nD. Contact your incident response team, or contact Microsoft support for investigation and remediation services.\"]", "ExtendedProperties": "{\"IncidentId\":\"483\",\"OriginSource\":\"Microsoft 365 defender\",\"Category\":\"SuspiciousActivity\",\"DetectionSource\":\"microsoft365Defender\",\"AssignedTo\":null,\"Determination\":null,\"Classification\":null,\"ThreatName\":null,\"ThreatFamilyName\":null,\"DetectorId\":\"fc1cbde1-ca4a-4149-9fab-fac53c26ecea\",\"LastUpdated\":\"7/17/2024 11:50:30 AM\",\"ProcessedBySentinel\":\"True\",\"Alert generation status\":\"Full alert created\"}", "Entities": "[{\"$id\":\"2\",\"Name\":\"Nina Park\",\"UPNSuffix\":\"vnevado.alpineskihouse.co\",\"Sid\":\"S-1-5-21-1874151667-3554330288-105586563-1715\",\"AadUserId\":\"e036dee7-fa23-42ef-a019-468c8d3401f1\",\"IsDomainJoined\":true,\"CreatedTimeUtc\":\"2024-07-17T11:49:02.7933333\",\"ThreatAnalysisSummary\":[{\"AnalyzersResult\":[],\"Verdict\":\"Unknown\",\"AnalysisDate\":\"2024-07-17T11:49:02.7933333\"}],\"LastVerdict\":\"Unknown\",\"Type\":\"account\",\"UserPrincipalName\":\"raphaelt@vnevado.alpineskihouse.co\",\"AccountName\":\"raphaelt\",\"DomainName\":\"vnevado.alpineskihouse.co\"},{\"$id\":\"3\",\"MailboxPrimaryAddress\":\"Nathan@avoriaz.alpineskihouse.co\",\"DisplayName\":\"Nathan@avoriaz.alpineskihouse.co\",\"Upn\":\"Nathan@avoriaz.alpineskihouse.co\",\"AadId\":\"\",\"CreatedTimeUtc\":\"2024-07-17T11:49:02.7933333\",\"ThreatAnalysisSummary\":[{\"AnalyzersResult\":[],\"Verdict\":\"Suspicious\",\"AnalysisDate\":\"2024-07-17T11:49:02.7933333\"}],\"LastVerdict\":\"Suspicious\",\"Type\":\"mailbox\"},{\"$id\":\"4\",\"Recipient\":\"Nathan@avoriaz.alpineskihouse.co\",\"Sender\":\"raphaelt@vnevado.alpineskihouse.co\",\"P1Sender\":\"raphaelt@vnevado.alpineskihouse.co\",\"P1SenderDisplayName\":\"\",\"P1SenderDomain\":\"\",\"SenderIP\":\"237.7.81.122\",\"P2Sender\":\"raphaelt@vnevado.alpineskihouse.co\",\"P2SenderDisplayName\":\"\",\"P2SenderDomain\":\"\",\"NetworkMessageId\":\"47e56987-44a0-45c4-d1b1-08dca6508dd1\",\"InternetMessageId\":\"&lt;MR1P264MB3828B28AB0B09C3DAED11FCA96A32@MR1P264MB3828.FRAP264.PROD.OUTLOOK.COM&gt;\",\"Subject\":\"Re: Lee Don t miss 777-Con Event next month\",\"AntispamDirection\":\"Unknown\",\"DeliveryAction\":\"Unknown\",\"DeliveryLocation\":\"Unknown\",\"CreatedTimeUtc\":\"2024-07-17T11:49:02.7933333\",\"ThreatAnalysisSummary\":[{\"AnalyzersResult\":[],\"Verdict\":\"Suspicious\",\"AnalysisDate\":\"2024-07-17T11:49:02.7933333\"}],\"LastVerdict\":\"Suspicious\",\"Type\":\"mailMessage\"},{\"$id\":\"5\",\"Address\":\"237.7.81.122\",\"CreatedTimeUtc\":\"2024-07-17T11:49:02.7933333\",\"ThreatAnalysisSummary\":[{\"AnalyzersResult\":[],\"Verdict\":\"Suspicious\",\"AnalysisDate\":\"2024-07-17T11:49:02.7933333\"}],\"LastVerdict\":\"Suspicious\",\"Type\":\"ip\"}]", "SourceSystem": "Detection", "WorkspaceSubscriptionId": NaN, "WorkspaceResourceGroup": NaN, "ExtendedLinks": NaN, "ProductName": "Microsoft 365 Defender", "ProductComponentName": NaN, "AlertLink": "https://security.microsoft.com/alerts/ra638568137425950963_-495877019?tid=a59fc703-72db-43e0-8a21-0494303b7220", "Status": "New", "CompromisedEntity": NaN, "Tactics": "Unknown", "Techniques": "[\"T1586\"]", "SubTechniques": NaN, "Type": "SecurityAlert", "rn": 4255}</data>
+    </node>
+    <node id="19">
+      <data key="d1">entity</data>
+      <data key="d5">mailbox</data>
+      <data key="d6">MailboxPrimaryAddress</data>
+      <data key="d7">nathan@avoriaz.alpineskihouse.co</data>
+    </node>
+    <node id="20">
+      <data key="d1">entity</data>
+      <data key="d5">mailmessage</data>
+      <data key="d6">Recipient</data>
+      <data key="d7">Nathan@avoriaz.alpineskihouse.co</data>
+    </node>
+    <node id="21">
+      <data key="d1">entity</data>
+      <data key="d5">mailmessage</data>
+      <data key="d6">SenderIP</data>
+      <data key="d7">237.7.81.122</data>
+    </node>
+    <node id="22">
+      <data key="d1">entity</data>
+      <data key="d5">mailmessage</data>
+      <data key="d6">Sender</data>
+      <data key="d7">raphaelt@vnevado.alpineskihouse.co</data>
+    </node>
+    <node id="23">
+      <data key="d1">alert</data>
+      <data key="d2">Malicious IP address</data>
+      <data key="d3">Sign-in from an IP address known to be malicious during or around the time of sign-in</data>
+      <data key="d4">{"TenantId": "e34d562e-ef12-4c4e-9bc0-7c6ae357c015", "TimeGenerated": "2024-07-18 13:48:02.042756+00:00", "DisplayName": "Malicious IP address", "AlertName": "Malicious IP address", "AlertSeverity": "High", "Description": "Sign-in from an IP address known to be malicious during or around the time of sign-in", "ProviderName": "IPC", "VendorName": "Microsoft", "VendorOriginalId": "f5a0c7c7e4a3ddf9408ba5b2fd0e4004f352b9d7215f1ad9b9656f2571f98d47", "SystemAlertId": "78c877d5-131f-699c-daed-0ec82d532020", "ResourceId": NaN, "SourceComputerId": NaN, "AlertType": "MaliciousIP", "ConfidenceLevel": NaN, "ConfidenceScore": NaN, "IsIncident": false, "StartTime": "2024-07-17 10:56:50.171425+00:00", "EndTime": "2024-07-17 10:56:50.171425+00:00", "ProcessingEndTime": "2024-07-18 13:47:13.619866+00:00", "RemediationSteps": NaN, "ExtendedProperties": "{\"Client IP Address\":\"170.54.121.63\",\"Client Location\":\"Amsterdam, Noord-Holland, NL\",\"Detail Description\":\"This detection indicates sign-in from a malicious IP address. An IP address is considered malicious based on high failure rates because of invalid credentials received from the IP address or other IP reputation sources.\",\"Request Id\":\"87a324c1-8546-46b1-bcc5-87de45081400\",\"State\":\"Open\",\"UpdateOwner\":\"Ipc\",\"UpdatedBy\":\"\",\"Comments\":\"Risk detail: NotSet\",\"ProcessedBySentinel\":\"True\",\"Alert generation status\":\"Full alert created\"}", "Entities": "[{\"$id\":\"2\",\"AadTenantId\":\"a59fc703-72db-43e0-8a21-0494303b7220\",\"AadUserId\":\"e036dee7-fa23-42ef-a019-468c8d3401f1\",\"Type\":\"account\"},{\"$id\":\"3\",\"RequestId\":\"87a324c1-8546-46b1-bcc5-87de45081400\",\"Type\":\"cloud-logon-request\"},{\"$id\":\"4\",\"Address\":\"170.54.121.63\",\"Location\":{\"CountryCode\":\"NL\",\"State\":\"Noord-Holland\",\"City\":\"Amsterdam\",\"Longitude\":4.94019,\"Latitude\":52.30905,\"Asn\":206264},\"Type\":\"ip\"}]", "SourceSystem": "Detection", "WorkspaceSubscriptionId": NaN, "WorkspaceResourceGroup": NaN, "ExtendedLinks": NaN, "ProductName": "Azure Active Directory Identity Protection", "ProductComponentName": NaN, "AlertLink": NaN, "Status": "New", "CompromisedEntity": NaN, "Tactics": "InitialAccess", "Techniques": NaN, "SubTechniques": NaN, "Type": "SecurityAlert", "rn": 4691}</data>
+    </node>
+    <node id="24">
+      <data key="d1">alert</data>
+      <data key="d2">Password Spray</data>
+      <data key="d3">Password spray attack detected</data>
+      <data key="d4">{"TenantId": "e34d562e-ef12-4c4e-9bc0-7c6ae357c015", "TimeGenerated": "2024-07-18 14:36:59.143748+00:00", "DisplayName": "Password Spray", "AlertName": "Password Spray", "AlertSeverity": "High", "Description": "Password spray attack detected", "ProviderName": "IPC", "VendorName": "Microsoft", "VendorOriginalId": "59f620a2d81b77b8cb404c786a31d55ec7c32e3e17e669688d2feb46646ba640", "SystemAlertId": "d38277fe-5714-dc28-0056-e1dde8c79286", "ResourceId": NaN, "SourceComputerId": NaN, "AlertType": "PasswordSpray", "ConfidenceLevel": NaN, "ConfidenceScore": NaN, "IsIncident": false, "StartTime": "2024-07-17 10:56:50.171425+00:00", "EndTime": "2024-07-17 10:56:50.171425+00:00", "ProcessingEndTime": "2024-07-18 14:36:18.572312+00:00", "RemediationSteps": NaN, "ExtendedProperties": "{\"Client IP Address\":\"170.54.121.63\",\"Client Location\":\"Amsterdam, Noord-Holland, NL\",\"Detail Description\":\"A password spray attack is where multiple usernames are attacked using common passwords in a unified brute force manner to gain unauthorized access. This risk detection is triggered when a password spray attack has been performed.\",\"Request Id\":\"87a324c1-8546-46b1-bcc5-87de45081400\",\"Alert Timing\":\"Offline\",\"Detection Subcategory\":\"BadIP\",\"Tenant Login Source\":\"AzureActiveDirectory\",\"State\":\"Open\",\"UpdateOwner\":\"Ipc\",\"UpdatedBy\":\"\",\"Comments\":\"Risk detail: NotSet\",\"ProcessedBySentinel\":\"True\",\"Alert generation status\":\"Full alert created\"}", "Entities": "[{\"$id\":\"2\",\"AadTenantId\":\"a59fc703-72db-43e0-8a21-0494303b7220\",\"AadUserId\":\"e036dee7-fa23-42ef-a019-468c8d3401f1\",\"Type\":\"account\"},{\"$id\":\"3\",\"RequestId\":\"87a324c1-8546-46b1-bcc5-87de45081400\",\"Type\":\"cloud-logon-request\"},{\"$id\":\"4\",\"Address\":\"170.54.121.63\",\"Location\":{\"CountryCode\":\"NL\",\"State\":\"Noord-Holland\",\"City\":\"Amsterdam\",\"Longitude\":4.94019,\"Latitude\":52.30905,\"Asn\":206264},\"Type\":\"ip\"}]", "SourceSystem": "Detection", "WorkspaceSubscriptionId": NaN, "WorkspaceResourceGroup": NaN, "ExtendedLinks": NaN, "ProductName": "Azure Active Directory Identity Protection", "ProductComponentName": NaN, "AlertLink": NaN, "Status": "New", "CompromisedEntity": NaN, "Tactics": "CredentialAccess", "Techniques": "[\"T1110\"]", "SubTechniques": "[\"T1110.003\",\"T1110.001\"]", "Type": "SecurityAlert", "rn": 4694}</data>
+    </node>
+    <node id="25">
+      <data key="d1">alert</data>
+      <data key="d2">Account compromised following a password-spray attack</data>
+      <data key="d3">A user was signed in from an unusual location and browser during a password spray attack. An attacker might have compromised the user account for unauthorized access to the network. We recommend prompt investigation to mitigate potential security risks.</data>
+      <data key="d4">{"TenantId": "e34d562e-ef12-4c4e-9bc0-7c6ae357c015", "TimeGenerated": "2024-07-18 14:54:18.741032+00:00", "DisplayName": "Account compromised following a password-spray attack", "AlertName": "Account compromised following a password-spray attack", "AlertSeverity": "High", "Description": "A user was signed in from an unusual location and browser during a password spray attack. An attacker might have compromised the user account for unauthorized access to the network. We recommend prompt investigation to mitigate potential security risks.", "ProviderName": "MicrosoftThreatProtection", "VendorName": "Microsoft", "VendorOriginalId": "ra638569108213340626_1087986946", "SystemAlertId": "816c721c-33f5-992c-0cc2-50cfcb9fc569", "ResourceId": NaN, "SourceComputerId": NaN, "AlertType": "2db96ed9-fddd-8548-7173-f5576ca687ad", "ConfidenceLevel": NaN, "ConfidenceScore": NaN, "IsIncident": false, "StartTime": "2024-07-17 10:56:50.171425+00:00", "EndTime": "2024-07-17 10:56:50.171425+00:00", "ProcessingEndTime": "2024-07-18 14:48:24.740000+00:00", "RemediationSteps": "[\"A. Validate the alert.\\r\\n1. Search for the relevant sign-in event in the AADSignInEventsBeta table in advanced hunting by using the SessionId value as provided in the alert evidences.\\r\\n2. Investigate if the login was performed by the user.\\r\\n3. Investigate if the user previously accessed suspicious mails or websites.\\r\\n\\r\\nB. Scope the incident. Find related accounts and devices in the incident graph.\\r\\n\\r\\nC. Contain and mitigate the breach. Decommission compromised accounts or reset passwords. Quarantine affected devices to prevent lateral movement.\\r\\n\\r\\nD. Contact your incident response team, or contact Microsoft support for investigation and remediation services.\"]", "ExtendedProperties": "{\"IncidentId\":\"483\",\"OriginSource\":\"Microsoft 365 defender\",\"Category\":\"SuspiciousActivity\",\"DetectionSource\":\"microsoft365Defender\",\"AssignedTo\":\"Mimik Emails - AlpineSkiHouse\",\"Determination\":null,\"Classification\":null,\"ThreatName\":null,\"ThreatFamilyName\":null,\"DetectorId\":\"2db96ed9-fddd-8548-7173-f5576ca687ad\",\"LastUpdated\":\"7/18/2024 2:48:24 PM\",\"ProcessedBySentinel\":\"True\",\"Alert generation status\":\"Full alert created\"}", "Entities": "[{\"$id\":\"2\",\"Name\":\"Nina Park\",\"UPNSuffix\":\"vnevado.alpineskihouse.co\",\"Sid\":\"S-1-5-21-1874151667-3554330288-105586563-1715\",\"AadUserId\":\"e036dee7-fa23-42ef-a019-468c8d3401f1\",\"IsDomainJoined\":true,\"CreatedTimeUtc\":\"2024-07-18T14:47:01.47\",\"ThreatAnalysisSummary\":[{\"AnalyzersResult\":[],\"Verdict\":\"Unknown\",\"AnalysisDate\":\"2024-07-18T14:47:01.47\"}],\"LastVerdict\":\"Unknown\",\"Roles\":[\"Compromised\"],\"Type\":\"account\",\"UserPrincipalName\":\"raphaelt@vnevado.alpineskihouse.co\",\"AccountName\":\"raphaelt\",\"DomainName\":\"vnevado.alpineskihouse.co\"},{\"$id\":\"3\",\"Address\":\"170.54.121.63\",\"CreatedTimeUtc\":\"2024-07-18T14:47:01.47\",\"ThreatAnalysisSummary\":[{\"AnalyzersResult\":[],\"Verdict\":\"Suspicious\",\"AnalysisDate\":\"2024-07-18T14:47:01.47\"}],\"LastVerdict\":\"Suspicious\",\"Roles\":[\"Source\",\"Attacker\"],\"Type\":\"ip\"}]", "SourceSystem": "Detection", "WorkspaceSubscriptionId": NaN, "WorkspaceResourceGroup": NaN, "ExtendedLinks": NaN, "ProductName": "Microsoft 365 Defender", "ProductComponentName": NaN, "AlertLink": "https://security.microsoft.com/alerts/ra638569108213340626_1087986946?tid=a59fc703-72db-43e0-8a21-0494303b7220", "Status": "New", "CompromisedEntity": NaN, "Tactics": "Unknown", "Techniques": NaN, "SubTechniques": NaN, "Type": "SecurityAlert", "rn": 4697}</data>
+    </node>
+    <edge source="0" target="1" />
+    <edge source="0" target="2" />
+    <edge source="0" target="3" />
+    <edge source="0" target="4" />
+    <edge source="0" target="5" />
+    <edge source="0" target="6" />
+    <edge source="0" target="7" />
+    <edge source="0" target="8" />
+    <edge source="0" target="9" />
+    <edge source="0" target="10" />
+    <edge source="1" target="13" />
+    <edge source="2" target="13" />
+    <edge source="3" target="13" />
+    <edge source="4" target="13" />
+    <edge source="6" target="13" />
+    <edge source="6" target="14" />
+    <edge source="6" target="17" />
+    <edge source="6" target="18" />
+    <edge source="6" target="25" />
+    <edge source="7" target="13" />
+    <edge source="7" target="14" />
+    <edge source="7" target="17" />
+    <edge source="7" target="18" />
+    <edge source="7" target="25" />
+    <edge source="8" target="13" />
+    <edge source="8" target="14" />
+    <edge source="8" target="17" />
+    <edge source="8" target="18" />
+    <edge source="8" target="25" />
+    <edge source="9" target="11" />
+    <edge source="9" target="13" />
+    <edge source="9" target="14" />
+    <edge source="9" target="17" />
+    <edge source="9" target="18" />
+    <edge source="9" target="23" />
+    <edge source="9" target="24" />
+    <edge source="9" target="25" />
+    <edge source="10" target="13" />
+    <edge source="11" target="12" />
+    <edge source="12" target="23" />
+    <edge source="12" target="24" />
+    <edge source="12" target="25" />
+    <edge source="14" target="15" />
+    <edge source="14" target="16" />
+    <edge source="16" target="17" />
+    <edge source="16" target="18" />
+    <edge source="18" target="19" />
+    <edge source="18" target="20" />
+    <edge source="18" target="21" />
+    <edge source="18" target="22" />
+    <data key="d0">{"TenantId": "e34d562e-ef12-4c4e-9bc0-7c6ae357c015", "TimeGenerated": "2024-08-02 22:41:43.924771+00:00", "IncidentName": "10c5408e-d49c-4606-bcd2-71f6cb619e46", "Title": "BEC financial fraud attack was launched from a compromised account (attack disruption)", "Description": NaN, "Severity": "High", "Status": "New", "Classification": NaN, "ClassificationComment": NaN, "ClassificationReason": NaN, "Owner": "{\"objectId\":null,\"email\":null,\"assignedTo\":\"Mimik Emails - AlpineSkiHouse\",\"userPrincipalName\":null}", "ProviderName": "Microsoft XDR", "ProviderIncidentId": 483, "FirstActivityTime": "2024-07-17 10:49:35.108080+00:00", "LastActivityTime": "2024-07-17 11:06:54+00:00", "FirstModifiedTime": NaN, "LastModifiedTime": "2024-08-02 22:41:43.924771+00:00", "CreatedTime": "2024-07-17 10:52:15.616666+00:00", "ClosedTime": NaN, "IncidentNumber": 134, "RelatedAnalyticRuleIds": "[]", "AlertIds": "[\"78c877d5-131f-699c-daed-0ec82d532020\",\"1ae29b32-a9a7-38b7-7bae-4c48498970b9\",\"d38277fe-5714-dc28-0056-e1dde8c79286\",\"6b50ba78-1fff-03b6-3576-034f8d31cb65\",\"842de14d-27aa-d006-296c-239987d60a6e\",\"90a1a2a8-5bba-97c5-6ca2-52e0408ff494\",\"166ac45d-f6cf-7617-2290-72009e744b64\",\"6e899746-28f3-9ccd-d1ee-3f3add01a356\",\"816c721c-33f5-992c-0cc2-50cfcb9fc569\"]", "BookmarkIds": "[]", "Comments": "[]", "Tasks": "[]", "Labels": "[{\"labelName\":\"BEC\",\"labelType\":\"User\"},{\"labelName\":\"LATEST\",\"labelType\":\"User\"},{\"labelName\":\"bec_fraud_tag\",\"labelType\":\"AutoAssigned\"},{\"labelName\":\"compromised_credentials_tag\",\"labelType\":\"AutoAssigned\"},{\"labelName\":\"credential_phish_tag\",\"labelType\":\"AutoAssigned\"}]", "IncidentUrl": "https://portal.azure.com/#asset/Microsoft_Azure_Security_Insights/Incident/subscriptions/7e838342-601f-4552-9baf-0dfb300cf555/resourceGroups/cybersoc/providers/Microsoft.OperationalInsights/workspaces/cybersoc/providers/Microsoft.SecurityInsights/Incidents/10c5408e-d49c-4606-bcd2-71f6cb619e46", "AdditionalData": "{\"alertsCount\":9,\"bookmarksCount\":0,\"commentsCount\":0,\"alertProductNames\":[\"Azure Active Directory Identity Protection\",\"Office 365 Advanced Threat Protection\",\"Microsoft 365 Defender\"],\"tactics\":[],\"techniques\":[\"T1110\",\"T1566\",\"T1564\",\"T1114\",\"T1586\"],\"providerIncidentUrl\":\"https://security.microsoft.com/incidents/483?tid=a59fc703-72db-43e0-8a21-0494303b7220\"}", "ModifiedBy": "Microsoft Defender XDR - alert correlation", "SourceSystem": "Azure", "Type": "SecurityIncident"}</data>
+  </graph>
+</graphml>

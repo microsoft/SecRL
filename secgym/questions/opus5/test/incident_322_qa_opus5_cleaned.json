@@ -1,0 +1,1551 @@
+[
+  {
+    "context": "During an investigation, an alert fired for 'Ntdsutil collecting Active Directory information', where `powershell.exe` executed an encoded command and subsequently `ntdsutil.exe` was launched with the command line `\"ntdsutil.exe\" \"ac i ntds\" ifm \"create full c:\\temp\" q q` (Process ID 6748) to dump Active Directory data. Tracing this activity across the incident leads back through a compromised account performing Azure Resource Manager operations from a suspicious proxy IP, and further back to phishing emails containing malicious URLs that were delivered to a mailbox and later removed.",
+    "question": "Following this chain back to the initial access stage, an alert was raised for a potentially malicious URL click. Which mailbox recipient clicked on the malicious link?",
+    "answer": "alyssat@vnevado.alpineskihouse.co",
+    "solution": [
+      "On host `vnevado-dc`, ntdsutil.exe was used to collect Active Directory information at 2024-08-01 12:54:34 UTC.",
+      "An Azure Resource Manager operation was performed from a suspicious proxy IP address by the account with SID `S-1-5-21-1840151686-3534835288-156286563-1127` at 2024-08-01 13:09:13 UTC.",
+      "Email messages containing a malicious URL were delivered to the recipient mailbox `alyssat@vnevado.alpineskihouse.co` and later removed at 2024-08-01 12:44:53 UTC.",
+      "A potentially malicious URL click was detected for the same recipient `alyssat@vnevado.alpineskihouse.co` at 2024-08-01 12:44:53 UTC."
+    ],
+    "start_alert": 22,
+    "end_alert": 0,
+    "start_entities": [
+      17,
+      18,
+      19,
+      20
+    ],
+    "end_entities": [
+      1
+    ],
+    "shortest_alert_path": [
+      22,
+      21,
+      25,
+      8,
+      2,
+      1,
+      0
+    ]
+  },
+  {
+    "context": "During an investigation, Microsoft Defender for Resource Manager raised an alert titled 'Azure Resource Manager operation from suspicious proxy IP address' on 2024-08-01 13:09:13 UTC. The operation came from IP `253.1.244.215`, which is associated with proxy services such as TOR, and involved the account `alyssat@vnevado.alpineskihouse.co` (Hailey Johnson, AAD user ID 5e5dd0bd-f7ed-4583-8e9e-52f91e31a360) acting on resources in resource group `ctfcat` of subscription `7e838342-601f-4552-9baf-0dfb300cf555`, including the virtual machine, its network interface, and a shutdown schedule.",
+    "question": "About 20 minutes earlier, a related alert fired for a suspicious credential dump from NTDS.dit on the domain controller targeted by these Azure resource operations. What is the name of the executable that was used to perform that credential dump?",
+    "answer": "ntdsutil.exe",
+    "solution": [
+      "An Azure Resource Manager operation was detected from a suspicious proxy IP address, associated with the host `vnevado-dc` (Field: HostName).",
+      "On that same domain controller host, a suspicious credential dump from NTDS.dit was detected, where attackers dumped the NTDS.dit database to obtain domain users' credentials.",
+      "The credential dump was performed by the process with ExtractedFileName `ntdsutil.exe`."
+    ],
+    "start_alert": 25,
+    "end_alert": 16,
+    "start_entities": [
+      30,
+      29,
+      9,
+      31,
+      26,
+      6,
+      27,
+      8,
+      28,
+      7
+    ],
+    "end_entities": [
+      20
+    ],
+    "shortest_alert_path": [
+      25,
+      21,
+      16
+    ]
+  },
+  {
+    "context": "During an investigation, Microsoft Defender for Resource Manager raised an alert titled 'Azure Resource Manager operation from suspicious proxy IP address' on 2024-08-01 13:09:13 UTC. The operation came from IP `253.1.244.215`, associated with proxy services such as TOR, and was tied to the account `alyssat@vnevado.alpineskihouse.co` (Name: Hailey Johnson, AadUserId: 5e5dd0bd-f7ed-4583-8e9e-52f91e31a360, SID: S-1-5-21-1840151686-3534835288-156286563-1127). The targeted Azure resources were in subscription `7e838342-601f-4552-9baf-0dfb300cf555`, resource group `ctfcat`, and included the virtual machine, its network interface, and a DevTest Labs shutdown schedule.",
+    "question": "Shortly before this Azure Resource Manager activity, an alert fired on the same domain controller indicating Ntdsutil was used to collect Active Directory information. What was the process ID, creation time, and full command line of that Ntdsutil execution?",
+    "answer": "Process ID: 6748, Created Time (UTC): 2024-08-01T12:37:30.2769191Z, Command Line: \"ntdsutil.exe\" \"ac i ntds\" ifm \"create full c:\\temp\" q q",
+    "solution": [
+      "An Azure Resource Manager operation was detected from a suspicious proxy IP address (such as TOR) involving the host with HostName `vnevado-dc` at 2024-08-01 13:09:13 UTC.",
+      "On that same host `vnevado-dc`, Ntdsutil was observed collecting Active Directory information, indicating credential/database dumping activity.",
+      "The attacker launched the process with ProcessId `6748` at CreatedTimeUtc `2024-08-01t12:37:30.2769191z` using the command line `\"ntdsutil.exe\" \"ac i ntds\" ifm \"create full c:\\temp\" q q` to create a full copy of the AD DS database (NTDS.dit) in `c:\\temp`."
+    ],
+    "start_alert": 25,
+    "end_alert": 22,
+    "start_entities": [
+      9,
+      30,
+      8,
+      7,
+      31,
+      29,
+      28,
+      6,
+      27,
+      26
+    ],
+    "end_entities": [
+      19
+    ],
+    "shortest_alert_path": [
+      25,
+      21,
+      22
+    ]
+  },
+  {
+    "context": "During an investigation, an alert was raised at 2024-08-01 12:44:53 UTC indicating that a potentially malicious URL click was detected for the user with mailbox `alyssat@vnevado.alpineskihouse.co`. Follow-on alerts showed that emails containing a malicious URL were delivered and later removed, and about an hour later a related alert fired showing the malicious URL was actually clicked on an endpoint device.",
+    "question": "For the later alert indicating that the malicious URL was clicked on the device, what was the full URL that was clicked?",
+    "answer": "https://dj01161621.bravesand-e1ccd718.eastus.azurecontainerapps.io/",
+    "solution": [
+      "The mailbox recipient `alyssat@vnevado.alpineskihouse.co` received a phishing email and a potentially malicious URL click was detected from that account at 2024-08-01 12:44:53 UTC.",
+      "The account `Hailey Johnson` was also delivered emails containing the malicious URL, which were removed after delivery at 2024-08-01 12:44:53 UTC.",
+      "On the affected device, the malicious URL `https://dj01161621.bravesand-e1ccd718.eastus.azurecontainerapps.io/` was clicked at 2024-08-01 13:49:58 UTC."
+    ],
+    "start_alert": 0,
+    "end_alert": 33,
+    "start_entities": [
+      1
+    ],
+    "end_entities": [
+      24
+    ],
+    "shortest_alert_path": [
+      0,
+      1,
+      2,
+      6,
+      33
+    ]
+  },
+  {
+    "context": "During an investigation, an alert was raised for 'Email messages containing malicious URL removed after delivery'. The email was sent from `raphaelt@vnevado.alpineskihouse.co` (sender IP `202.205.215.225`) to the mailbox `alyssat@vnevado.alpineskihouse.co`, and contained the malicious URL `dj01161621.bravesand-e1ccd718.eastus.azurecontainerapps.io`. Roughly 35 minutes later, the same compromised user account triggered another alert for suspicious Azure Resource Management (ARM) activities performed from a risky sign-in session.",
+    "question": "For the follow-up alert about suspicious Azure Resource Management activities by the risky user, what was the source IP address associated with that activity?",
+    "answer": "253.1.244.215",
+    "solution": [
+      "At 2024-08-01 12:44:53 UTC, the user account with AadUserId `5e5dd0bd-f7ed-4583-8e9e-52f91e31a360` received an email containing a malicious URL, which was delivered and later removed.",
+      "At 2024-08-01 13:19:20 UTC, that compromised user's risky session was used to perform suspicious Azure Resource Management (ARM) activities originating from the IP address `253.1.244.215`."
+    ],
+    "start_alert": 2,
+    "end_alert": 32,
+    "start_entities": [
+      1,
+      3,
+      4,
+      5,
+      10
+    ],
+    "end_entities": [
+      31
+    ],
+    "shortest_alert_path": [
+      2,
+      9,
+      32
+    ]
+  },
+  {
+    "context": "During this multi-stage incident, a potentially malicious URL click was detected after a phishing email was delivered to the recipient `alyssat@vnevado.alpineskihouse.co`. The attack chain progressed from the removal of emails containing the malicious URL, to a suspicious Azure Resource Manager operation from a proxy IP address, and finally to activity on a domain controller where Ntdsutil was used to collect Active Directory information.",
+    "question": "For the alert about Ntdsutil collecting Active Directory information, what was the process ID and the full command line used to run the tool?",
+    "answer": "Process ID: 6748, Command line: \"ntdsutil.exe\" \"ac i ntds\" ifm \"create full c:\\temp\" q q (created at 2024-08-01T12:37:30.2769191Z)",
+    "solution": [
+      "The mailbox recipient `alyssat@vnevado.alpineskihouse.co` received an email and a potentially malicious URL click was detected at 2024-08-01 12:44:53 UTC.",
+      "The user account with SID `S-1-5-21-1840151686-3534835288-156286563-1127` was associated with the emails containing the malicious URL that were removed after delivery at 2024-08-01 12:44:53 UTC.",
+      "The compromised activity reached the host `vnevado-dc`, where an Azure Resource Manager operation from a suspicious proxy IP address was detected at 2024-08-01 13:09:13 UTC.",
+      "On that host, the attacker launched the process with Process ID `6748` at `2024-08-01t12:37:30.2769191z` using the command line `\"ntdsutil.exe\" \"ac i ntds\" ifm \"create full c:\\temp\" q q` to collect Active Directory information."
+    ],
+    "start_alert": 0,
+    "end_alert": 22,
+    "start_entities": [
+      1
+    ],
+    "end_entities": [
+      19
+    ],
+    "shortest_alert_path": [
+      0,
+      1,
+      2,
+      8,
+      25,
+      21,
+      22
+    ]
+  },
+  {
+    "context": "During an investigation, an alert titled 'Ntdsutil collecting Active Directory information' was raised after `powershell.exe` executed an encoded command that ultimately launched `ntdsutil.exe` (Process ID 6748) with the command line `\"ntdsutil.exe\" \"ac i ntds\" ifm \"create full c:\\temp\" q q`. This behavior suggests an attacker was gathering Active Directory database information for persistence or lateral movement. Shortly afterwards, at 2024-08-01 13:09:13 UTC, Microsoft Defender for Resource Manager detected an Azure Resource Manager operation originating from an IP address associated with proxy services such as TOR, which threat actors often use to hide their source IP.",
+    "question": "Which user account (email address) performed the Azure Resource Manager operation that came from the suspicious proxy IP address?",
+    "answer": "alyssat@vnevado.alpineskihouse.co",
+    "solution": [
+      "On host `vnevado-dc`, ntdsutil.exe was launched to collect Active Directory information (potential credential theft from the AD DS database) at 2024-08-01 12:54:34 UTC.",
+      "Following the domain controller compromise, a suspicious Azure Resource Manager operation was performed from a proxy/TOR-associated IP address by the account with email `alyssat@vnevado.alpineskihouse.co` at 2024-08-01 13:09:13 UTC."
+    ],
+    "start_alert": 22,
+    "end_alert": 25,
+    "start_entities": [
+      17,
+      18,
+      19,
+      20
+    ],
+    "end_entities": [
+      7
+    ],
+    "shortest_alert_path": [
+      22,
+      21,
+      25
+    ]
+  },
+  {
+    "context": "During an investigation, we found that a user named `Hailey Johnson` (email `alyssat@vnevado.alpineskihouse.co`, SID `S-1-5-21-1840151686-3534835288-156286563-1127`, Entra ID `5e5dd0bd-f7ed-4583-8e9e-52f91e31a360`) clicked on a link `https://dj01161621.bravesand-e1ccd718.eastus.azurecontainerapps.io/` contained in an email that was later quarantined by zero-hour auto purge (ZAP). Following the click, the same malicious URL activity was traced to the user's device, and proxy logs subsequently flagged a connection from that device (`vnevado-win11h.vnevado.alpineskihouse.co`) to the suspicious domain `login.micro.demo.antoinetest.ovh`.",
+    "question": "According to the proxy log alert for the connection to `login.micro.demo.antoinetest.ovh`, what is the IP address associated with the source device?",
+    "answer": "231.60.52.209",
+    "solution": [
+      "A user clicked on a link in an email that was later quarantined by zero-hour auto purge (ZAP); the malicious URL was `https://dj01161621.bravesand-e1ccd718.eastus.azurecontainerapps.io/`.",
+      "The malicious URL was clicked on the device with HostName `vnevado-win11h`.",
+      "Proxy logs detected a malicious URL connection from that device's IP address `231.60.52.209` to `login.micro.demo.antoinetest.ovh`."
+    ],
+    "start_alert": 23,
+    "end_alert": 11,
+    "start_entities": [
+      6,
+      7,
+      8,
+      9,
+      24
+    ],
+    "end_entities": [
+      14
+    ],
+    "shortest_alert_path": [
+      23,
+      24,
+      33,
+      13,
+      11
+    ]
+  },
+  {
+    "context": "During an incident investigation, a proxy log alert flagged a connection from 231.60.52.209 (host vnevado-win11h.vnevado.alpineskihouse.co) and 228.3.31.94 to the malicious URL `login.micro.demo.antoinetest.ovh`. Pivoting from this host, a malicious URL was later clicked on that device by a user account, and the same compromised identity was subsequently seen performing suspicious Azure Resource Management (ARM) activities from a risky sign-in session, as flagged by Microsoft Defender for Cloud and Microsoft Entra ID Protection risk scores.",
+    "question": "For the alert about suspicious Azure Resource Management activities performed by the risky user, what source IP address was associated with that activity?",
+    "answer": "253.1.244.215",
+    "solution": [
+      "A malicious URL connection to `login.micro.demo.antoinetest.ovh` was detected in proxy logs from the host with HostName `vnevado-win11h`.",
+      "The user account with Sid `S-1-5-21-1840151686-3534835288-156286563-1127` clicked on the malicious URL on that device.",
+      "Suspicious Azure Resource Management activities were then performed by that risky user from the IP address `253.1.244.215`."
+    ],
+    "start_alert": 11,
+    "end_alert": 32,
+    "start_entities": [
+      12,
+      14,
+      15
+    ],
+    "end_entities": [
+      31
+    ],
+    "shortest_alert_path": [
+      11,
+      13,
+      33,
+      8,
+      32
+    ]
+  },
+  {
+    "context": "During a multi-stage incident, Microsoft Defender for Resource Manager raised an alert for an Azure Resource Manager operation coming from an IP address associated with proxy/anonymization services such as TOR (source IP `253.1.244.215`). The targeted Azure resources belonged to subscription `7e838342-601f-4552-9baf-0dfb300cf555`, resource group `ctfcat`, and included the virtual machine, network interface and shutdown schedule for the domain controller host `vnevado-dc`. Pivoting from the compromised account involved, the activity chain also leads to endpoint-based alerts, including one where a malicious URL (`login.micro.demo.antoinetest.ovh`) was detected in proxy logs for the device `vnevado-win11h.vnevado.alpineskihouse.co`, whose connection was logged from `231.60.52.209`.",
+    "question": "In that proxy log alert about the malicious URL, besides the client address `231.60.52.209` noted in the alert description, which other IP address was recorded as an entity of the alert?",
+    "answer": "228.3.31.94",
+    "solution": [
+      "A user account with SID `S-1-5-21-1840151686-3534835288-156286563-1127` performed an Azure Resource Manager operation from a suspicious proxy IP address.",
+      "On the device with HostName `vnevado-win11h`, a malicious URL was clicked.",
+      "Proxy logs from that device recorded a connection to the malicious URL `login.micro.demo.antoinetest.ovh`, resolving to the malicious IP address `228.3.31.94`."
+    ],
+    "start_alert": 25,
+    "end_alert": 11,
+    "start_entities": [
+      21,
+      26,
+      27,
+      28,
+      29,
+      30,
+      31
+    ],
+    "end_entities": [
+      15
+    ],
+    "shortest_alert_path": [
+      25,
+      8,
+      33,
+      13,
+      11
+    ]
+  },
+  {
+    "context": "During a phishing-related security incident, an alert titled \"A potentially malicious URL click was detected\" was raised at 2024-08-01 12:44:53 UTC after a user clicked a link found to be malicious. The email message involved was delivered to the recipient `alyssat@vnevado.alpineskihouse.co`. Follow-on alerts in the same incident showed that emails containing the malicious URL were removed after delivery, and that the malicious URL was subsequently clicked on an endpoint device.",
+    "question": "Shortly after the click, a related alert was generated from proxy log analysis showing an outbound connection from the internal host 231.60.52.209 / vnevado-win11h.vnevado.alpineskihouse.co. What was the malicious destination URL (domain) recorded in those proxy logs?",
+    "answer": "login.micro.demo.antoinetest.ovh",
+    "solution": [
+      "A malicious URL click was detected for the mail message recipient `alyssat@vnevado.alpineskihouse.co` at 2024-08-01 12:44:53 UTC.",
+      "Emails containing the malicious URL that were delivered to the account with Email `alyssat@vnevado.alpineskihouse.co` were later removed after delivery.",
+      "The malicious URL was clicked on the device with HostName `vnevado-win11h`.",
+      "Proxy logs show the connection from that device to the malicious URL with Url `login.micro.demo.antoinetest.ovh`."
+    ],
+    "start_alert": 0,
+    "end_alert": 11,
+    "start_entities": [
+      1
+    ],
+    "end_entities": [
+      12
+    ],
+    "shortest_alert_path": [
+      0,
+      1,
+      2,
+      7,
+      33,
+      13,
+      11
+    ]
+  },
+  {
+    "context": "During this incident, an alert was raised indicating that a potentially malicious URL click was detected for the user `alyssat@vnevado.alpineskihouse.co`, who received a suspicious email message. Shortly afterwards, a related alert was triggered for email messages containing a malicious URL that were delivered and later removed from mailboxes.",
+    "question": "For the related alert about emails with a malicious URL removed after delivery, what was the malicious URL contained in those email messages?",
+    "answer": "dj01161621.bravesand-e1ccd718.eastus.azurecontainerapps.io",
+    "solution": [
+      "A potentially malicious URL click was detected for the mail recipient `alyssat@vnevado.alpineskihouse.co` at 2024-08-01 12:44:53 UTC.",
+      "The email messages delivered to that recipient contained the malicious URL `dj01161621.bravesand-e1ccd718.eastus.azurecontainerapps.io`, which were removed after delivery."
+    ],
+    "start_alert": 0,
+    "end_alert": 2,
+    "start_entities": [
+      1
+    ],
+    "end_entities": [
+      10
+    ],
+    "shortest_alert_path": [
+      0,
+      1,
+      2
+    ]
+  },
+  {
+    "context": "During an investigation, Microsoft Defender for Resource Manager flagged an Azure Resource Manager operation coming from the suspicious proxy IP address `253.1.244.215` (often associated with anonymizing services such as TOR). The targeted Azure resources belonged to subscription `7e838342-601f-4552-9baf-0dfb300cf555`, resource group `ctfcat`, and included the virtual machine, network interface and shutdown schedule for the host `vnevado-dc`. Pivoting on the compromised user account behind this activity leads to a later alert in the same incident, raised at 2024-08-01 13:49:58 UTC, indicating that a malicious URL was clicked on a device.",
+    "question": "For that later 'Malicious URL was clicked on that device' alert, what IP address was recorded for the device involved?",
+    "answer": "172.33.118.200",
+    "solution": [
+      "A user account with AadUserId `5e5dd0bd-f7ed-4583-8e9e-52f91e31a360` performed an Azure Resource Manager operation from a suspicious proxy IP address at 2024-08-01 13:09:13 UTC.",
+      "Following that activity, a malicious URL was clicked on a device associated with the IP address `172.33.118.200` at 2024-08-01 13:49:58 UTC."
+    ],
+    "start_alert": 25,
+    "end_alert": 33,
+    "start_entities": [
+      21,
+      26,
+      27,
+      28,
+      29,
+      30,
+      31
+    ],
+    "end_entities": [
+      35
+    ],
+    "shortest_alert_path": [
+      25,
+      9,
+      33
+    ]
+  },
+  {
+    "context": "During a multi-stage incident, a malicious URL was clicked on the device `vnevado-win11h` (AAD Device ID `76707c40-3343-490e-9205-88fdb51aefe0`, IP `172.33.118.200`). The click occurred in Microsoft Edge, with process details `4256__2024-08-01t13:42:52.04__\"msedge.exe\" --type=utility --utility-sub-type=network.mojom.networkservice --lang=en-us --service-sandbox-type=none --field-trial-handle=1912,i,9358546549091360037,1317674413260171076,262144 --variations-seed-version --mojo-platform-channel-handle=3124 /prefetch:11`. About an hour before this click, an earlier alert reported that email messages containing a malicious URL were delivered to the mailbox of the same user and later removed.",
+    "question": "For the earlier alert about emails containing a malicious URL that were removed after delivery, what was the malicious URL contained in those email messages?",
+    "answer": "dj01161621.bravesand-e1ccd718.eastus.azurecontainerapps.io",
+    "solution": [
+      "The user account `Hailey Johnson` clicked on a malicious URL on that device.",
+      "The malicious URL `dj01161621.bravesand-e1ccd718.eastus.azurecontainerapps.io` was contained in email messages that were delivered and later removed."
+    ],
+    "start_alert": 33,
+    "end_alert": 2,
+    "start_entities": [
+      13,
+      34,
+      35,
+      36,
+      37
+    ],
+    "end_entities": [
+      10
+    ],
+    "shortest_alert_path": [
+      33,
+      6,
+      2
+    ]
+  },
+  {
+    "context": "During an investigation, an alert for 'Suspicious credential dump from NTDS.dit' was raised, where attackers dump NTDS.dit to obtain user credentials stored on the domain controller. The activity involved an encoded PowerShell command (`powershell.exe -encodedcommand ...`, PID 2556, created at 2024-08-01T12:37:29.65Z) followed by `ntdsutil.exe \"ac i ntds\" ifm \"create full c:\\temp\" q q` (PID 6748, created at 2024-08-01T12:37:30.27Z). Shortly afterwards, at 13:09 UTC, Microsoft Defender for Resource Manager flagged an Azure Resource Manager operation coming from an IP address associated with proxy services such as TOR, and about ten minutes later a further alert reported suspicious Azure Resource Management activities performed by a user account that had signed in to a risky session.",
+    "question": "For that final alert about suspicious Azure Resource Management activities performed by a risky user, what is the security identifier (SID) of the account involved?",
+    "answer": "S-1-5-21-1840151686-3534835288-156286563-1127",
+    "solution": [
+      "At 2024-08-01 12:49:26 UTC, a suspicious credential dump from NTDS.dit was detected on host `vnevado-dc`, indicating the attacker extracted domain user credentials from the domain controller.",
+      "At 2024-08-01 13:09:13 UTC, the compromised account with SID `S-1-5-21-1840151686-3534835288-156286563-1127` performed an Azure Resource Manager operation from a suspicious proxy (TOR-associated) IP address.",
+      "At 2024-08-01 13:19:20 UTC, the same account with SID `S-1-5-21-1840151686-3534835288-156286563-1127` was flagged as a risky user performing suspicious Azure Resource Management (ARM) activities from that risky sign-in session."
+    ],
+    "start_alert": 16,
+    "end_alert": 32,
+    "start_entities": [
+      17,
+      18,
+      19,
+      20
+    ],
+    "end_entities": [
+      8
+    ],
+    "shortest_alert_path": [
+      16,
+      21,
+      25,
+      8,
+      32
+    ]
+  },
+  {
+    "context": "During investigation of a multi-stage incident, Microsoft Defender for Office 365 raised an alert indicating that a user clicked on a link in an email that was later quarantined by zero-hour auto purge (ZAP). The URL clicked was `https://dj01161621.bravesand-e1ccd718.eastus.azurecontainerapps.io/`.",
+    "question": "A related alert, triggered shortly before this one, reported email messages containing a malicious URL that were delivered and then removed after delivery. What was the sender address of those email messages?",
+    "answer": "raphaelt@vnevado.alpineskihouse.co",
+    "solution": [
+      "The user account with SID `S-1-5-21-1840151686-3534835288-156286563-1127` clicked a link in an email that was later quarantined by zero-hour auto purge (ZAP).",
+      "The email containing the malicious URL was delivered and later removed after delivery; it was sent from the sender `raphaelt@vnevado.alpineskihouse.co`."
+    ],
+    "start_alert": 23,
+    "end_alert": 2,
+    "start_entities": [
+      24
+    ],
+    "end_entities": [
+      5
+    ],
+    "shortest_alert_path": [
+      23,
+      8,
+      2
+    ]
+  },
+  {
+    "context": "During an investigation, a proxy log alert flagged a connection from 231.60.52.209 (host vnevado-win11h.vnevado.alpineskihouse.co) as well as 228.3.31.94 to the malicious URL `login.micro.demo.antoinetest.ovh`. Pivoting from this host led to a chain of related alerts, including a malicious URL click on a device and an Azure Resource Manager operation from a suspicious proxy IP address, ultimately connecting to an alert where attackers dumped NTDS.dit to obtain domain user credentials from the domain controller.",
+    "question": "In the related alert about the suspicious credential dump from NTDS.dit, what was the name of the executable file of the process involved in this activity?",
+    "answer": "powershell.exe",
+    "solution": [
+      "A connection to a malicious URL (login.micro.demo.antoinetest.ovh) was detected in proxy logs from the host with HostName `vnevado-win11h` at 2024-08-01 12:47:22 UTC.",
+      "The user account with Sid `S-1-5-21-1840151686-3534835288-156286563-1127` clicked on the malicious URL on that device at 2024-08-01 13:49:58 UTC.",
+      "An Azure Resource Manager operation from a suspicious proxy IP address was detected involving the host with HostName `vnevado-dc` at 2024-08-01 13:09:13 UTC.",
+      "On the domain controller, a suspicious credential dump from NTDS.dit was performed by the process with ExtractedFileName `powershell.exe` at 2024-08-01 12:49:26 UTC, allowing the attacker to obtain domain user credentials."
+    ],
+    "start_alert": 11,
+    "end_alert": 16,
+    "start_entities": [
+      12,
+      14,
+      15
+    ],
+    "end_entities": [
+      18
+    ],
+    "shortest_alert_path": [
+      11,
+      13,
+      33,
+      8,
+      25,
+      21,
+      16
+    ]
+  },
+  {
+    "context": "During this multi-stage incident, a proxy log alert flagged a connection from IP `231.60.52.209` (host vnevado-win11h.vnevado.alpineskihouse.co) to the malicious URL `login.micro.demo.antoinetest.ovh`, with another related IP `228.3.31.94` also observed. Following this chain of activity, a malicious URL was clicked on a device, a suspicious Azure Resource Manager operation was performed from a proxy IP address, and later an alert was raised for Active Directory information being collected on a domain controller.",
+    "question": "In the related alert about Active Directory information being collected, which command line executable was launched to gather the AD DS database information?",
+    "answer": "ntdsutil.exe",
+    "solution": [
+      "A malicious URL connection to `login.micro.demo.antoinetest.ovh` was detected in proxy logs from host `vnevado-win11h` (IP 231.60.52.209) at 2024-08-01 12:47:22 UTC.",
+      "The malicious URL was clicked on that device by the user with AadUserId `5e5dd0bd-f7ed-4583-8e9e-52f91e31a360`.",
+      "From the compromised environment, an Azure Resource Manager operation was performed from a suspicious proxy (TOR) IP address, involving host `vnevado-dc`.",
+      "On that domain controller, the attacker launched the process with ExtractedFileName `ntdsutil.exe` to collect Active Directory information (dump the AD DS database) for credential theft and lateral movement."
+    ],
+    "start_alert": 11,
+    "end_alert": 22,
+    "start_entities": [
+      12,
+      14,
+      15
+    ],
+    "end_entities": [
+      20
+    ],
+    "shortest_alert_path": [
+      11,
+      13,
+      33,
+      9,
+      25,
+      21,
+      22
+    ]
+  },
+  {
+    "context": "During an investigation of a multi-stage incident, an alert titled 'Suspicious credential dump from NTDS.dit' was raised on a domain controller. The activity involved `powershell.exe` (PID 2556) running a long base64 encoded command, followed by `ntdsutil.exe` (PID 6748) executed with the command line `\"ntdsutil.exe\" \"ac i ntds\" ifm \"create full c:\\temp\" q q`, indicating an attacker attempting to dump credentials stored in the domain controller. Pivoting from the affected host and the compromised user account, further alerts in the same incident point back to the initial access vector, where a user clicked a link in an email that was later quarantined by zero-hour auto purge (ZAP).",
+    "question": "For the alert where the user accessed a link in an email that was subsequently quarantined by ZAP, what was the URL the user clicked on?",
+    "answer": "https://dj01161621.bravesand-e1ccd718.eastus.azurecontainerapps.io/",
+    "solution": [
+      "A suspicious credential dump from NTDS.dit was detected on the domain controller host `vnevado-dc`, where the attacker extracted stored domain user credentials.",
+      "Using the stolen credentials, the account with SID `S-1-5-21-1840151686-3534835288-156286563-1127` performed an Azure Resource Manager operation from a suspicious proxy (TOR) IP address.",
+      "The same user accessed a link in an email that was subsequently quarantined by zero-hour auto purge (ZAP), clicking the malicious URL `https://dj01161621.bravesand-e1ccd718.eastus.azurecontainerapps.io/`."
+    ],
+    "start_alert": 16,
+    "end_alert": 23,
+    "start_entities": [
+      17,
+      18,
+      19,
+      20
+    ],
+    "end_entities": [
+      24
+    ],
+    "shortest_alert_path": [
+      16,
+      21,
+      25,
+      8,
+      23
+    ]
+  },
+  {
+    "context": "During a multi-stage security incident, an alert was raised by Microsoft Defender for Office 365 indicating that a user clicked on a link in an email that was later quarantined by zero-hour auto purge (ZAP). The affected account was `alyssat@vnevado.alpineskihouse.co` (display name `Hailey Johnson`, AAD User ID `5e5dd0bd-f7ed-4583-8e9e-52f91e31a360`, SID `S-1-5-21-1840151686-3534835288-156286563-1127`).",
+    "question": "Following this alert, a related detection showed that a malicious link was actually clicked on the user's device. What is the full URL that was clicked?",
+    "answer": "https://dj01161621.bravesand-e1ccd718.eastus.azurecontainerapps.io/",
+    "solution": [
+      "A user clicked on a link in an email that was later quarantined by zero-hour auto purge (ZAP); the malicious URL accessed was `https://dj01161621.bravesand-e1ccd718.eastus.azurecontainerapps.io/` at 2024-08-01 12:54:55 UTC."
+    ],
+    "start_alert": 23,
+    "end_alert": 23,
+    "start_entities": [
+      9,
+      7,
+      6,
+      8
+    ],
+    "end_entities": [
+      24
+    ],
+    "shortest_alert_path": [
+      23
+    ]
+  },
+  {
+    "context": "During an investigation of a multi-stage incident, a proxy log alert flagged a connection from `231.60.52.209` (device vnevado-win11h.vnevado.alpineskihouse.co) to the malicious URL `login.micro.demo.antoinetest.ovh`; a second source IP `228.3.31.94` was also observed in the same alert. Following this activity, the same compromised user later clicked a malicious URL on the device, and Microsoft Defender for Resource Manager subsequently detected a resource management operation originating from an IP address associated with anonymizing proxy services such as TOR \u2014 behavior often used by threat actors to hide their source IP.",
+    "question": "For the Azure Resource Manager operation performed from the suspicious proxy IP address, which Azure resource was targeted? Provide its full resource ID.",
+    "answer": "/subscriptions/7e838342-601f-4552-9baf-0dfb300cf555/resourcegroups/ctfcat/providers/microsoft.compute/virtualmachines/vnevado-dc",
+    "solution": [
+      "Proxy logs detected a connection from host `vnevado-win11h` (IP 231.60.52.209) to the malicious URL `login.micro.demo.antoinetest.ovh`.",
+      "On that device, the user account with email `alyssat@vnevado.alpineskihouse.co` clicked on the malicious URL.",
+      "Following the compromise, an Azure Resource Manager operation was performed from a suspicious proxy (TOR) IP address against the Azure resource `/subscriptions/7e838342-601f-4552-9baf-0dfb300cf555/resourcegroups/ctfcat/providers/microsoft.compute/virtualmachines/vnevado-dc`."
+    ],
+    "start_alert": 11,
+    "end_alert": 25,
+    "start_entities": [
+      12,
+      14,
+      15
+    ],
+    "end_entities": [
+      28
+    ],
+    "shortest_alert_path": [
+      11,
+      13,
+      33,
+      7,
+      25
+    ]
+  },
+  {
+    "context": "During an investigation, an alert titled 'Suspicious Azure Resource Management activities by a risky user' was raised on 2024-08-01 at 13:19 UTC, where suspicious cloud Azure Resource Management (ARM) operations were performed from the IP address `253.1.244.215` by a user account that had signed in during a risky session. This alert was triggered based on a Microsoft Defender for Cloud alert combined with Microsoft Entra ID Protection risk scores. About 30 minutes later, a related alert indicated that a malicious link was clicked on a device associated with the same compromised account.",
+    "question": "For the later alert where a malicious URL was clicked on the device, what was the full URL that was clicked?",
+    "answer": "https://dj01161621.bravesand-e1ccd718.eastus.azurecontainerapps.io/",
+    "solution": [
+      "A risky user account with SID `S-1-5-21-1840151686-3534835288-156286563-1127` performed suspicious Azure Resource Management (ARM) activities from a risky sign-in session at 2024-08-01 13:19:20 UTC.",
+      "Following that activity, a malicious URL `https://dj01161621.bravesand-e1ccd718.eastus.azurecontainerapps.io/` was clicked on the device at 2024-08-01 13:49:58 UTC."
+    ],
+    "start_alert": 32,
+    "end_alert": 33,
+    "start_entities": [
+      31
+    ],
+    "end_entities": [
+      24
+    ],
+    "shortest_alert_path": [
+      32,
+      8,
+      33
+    ]
+  },
+  {
+    "context": "During a multi-stage incident, an alert titled 'Suspicious Azure Resource Management activities by a risky user' was raised on 2024-08-01, indicating that suspicious cloud ARM activities were performed by a user account that signed in to a risky session from the IP address `253.1.244.215`. This alert was triggered based on a Microsoft Defender for Cloud alert related to ARM and Microsoft Entra ID Protection risk scores. Earlier in the same incident, the same compromised user was targeted by emails containing a malicious link, which were delivered to mailboxes and later removed by automated remediation.",
+    "question": "For the related alert about email messages containing a malicious URL that were removed after delivery, what was the malicious URL contained in those emails?",
+    "answer": "dj01161621.bravesand-e1ccd718.eastus.azurecontainerapps.io",
+    "solution": [
+      "A user account with SID `S-1-5-21-1840151686-3534835288-156286563-1127` signed in to a risky session and performed suspicious Azure Resource Management (ARM) activities at 2024-08-01 13:19:20 UTC.",
+      "The same compromised user was involved in an email campaign where messages containing a malicious URL were delivered and later removed at 2024-08-01 12:44:53 UTC.",
+      "The malicious URL delivered in those email messages is `dj01161621.bravesand-e1ccd718.eastus.azurecontainerapps.io`."
+    ],
+    "start_alert": 32,
+    "end_alert": 2,
+    "start_entities": [
+      31
+    ],
+    "end_entities": [
+      10
+    ],
+    "shortest_alert_path": [
+      32,
+      8,
+      2
+    ]
+  },
+  {
+    "context": "During a multi-stage incident, the tool `ntdsutil.exe` was observed being launched via an encoded PowerShell command (process ID 6748, command line `\"ntdsutil.exe\" \"ac i ntds\" ifm \"create full c:\\temp\" q q`), suggesting an attacker was collecting Active Directory information for persistence or lateral movement. This activity is linked through a shared host and compromised account to other alerts in the incident, including one reporting emails containing a malicious URL that were delivered and later removed from mailboxes.",
+    "question": "For the related alert about email messages containing a malicious URL that were removed after delivery, which mailbox recipient received those emails?",
+    "answer": "alyssat@vnevado.alpineskihouse.co",
+    "solution": [
+      "On host `vnevado-dc`, Ntdsutil was launched to collect Active Directory information, indicating credential/AD database dumping activity.",
+      "The compromised account with SID `S-1-5-21-1840151686-3534835288-156286563-1127` performed an Azure Resource Manager operation from a suspicious proxy (TOR) IP address.",
+      "That same identity was used to send phishing emails, and a message containing a malicious URL was delivered to the recipient mailbox `alyssat@vnevado.alpineskihouse.co` before being removed."
+    ],
+    "start_alert": 22,
+    "end_alert": 2,
+    "start_entities": [
+      17,
+      18,
+      19,
+      20
+    ],
+    "end_entities": [
+      1
+    ],
+    "shortest_alert_path": [
+      22,
+      21,
+      25,
+      8,
+      2
+    ]
+  },
+  {
+    "context": "During a multi-stage security incident, an alert titled 'Malicious URL was clicked on that device' was raised on 2024-08-01 13:49:58 UTC. The user account involved was `Hailey Johnson` (`alyssat@vnevado.alpineskihouse.co`, SID `S-1-5-21-1840151686-3534835288-156286563-1127`), who clicked on the malicious URL `https://dj01161621.bravesand-e1ccd718.eastus.azurecontainerapps.io/` from a device with AAD Device ID `76707c40-3343-490e-9205-88fdb51aefe0` and IP `172.33.118.200`. The browser process was `msedge.exe` (Process ID 4256, created at 2024-08-01T13:42:52.04).",
+    "question": "About an hour earlier, another alert in the same incident reported a malicious URL detected in proxy logs, showing the endpoint `vnevado-win11h.vnevado.alpineskihouse.co` reaching out to `login.micro.demo.antoinetest.ovh`. What source IP address was recorded on the proxy for that connection?",
+    "answer": "231.60.52.209",
+    "solution": [
+      "A malicious URL was clicked on the device with HostName `vnevado-win11h` at 2024-08-01 13:49:58 UTC.",
+      "Proxy logs detected a malicious URL connection from that same device (vnevado-win11h.vnevado.alpineskihouse.co) to `login.micro.demo.antoinetest.ovh`, originating from the IP address `231.60.52.209`."
+    ],
+    "start_alert": 33,
+    "end_alert": 11,
+    "start_entities": [
+      6,
+      7,
+      8,
+      9,
+      24,
+      34,
+      35,
+      36,
+      37
+    ],
+    "end_entities": [
+      14
+    ],
+    "shortest_alert_path": [
+      33,
+      13,
+      11
+    ]
+  },
+  {
+    "context": "During this multi-stage incident, an alert titled \"Suspicious credential dump from NTDS.dit\" was raised on 2024-08-01 at 12:49 UTC. The attacker launched `powershell.exe` with a long Base64 encoded command (process ID 2556) and then executed `ntdsutil.exe` with the command line `\"ntdsutil.exe\" \"ac i ntds\" ifm \"create full c:\\temp\" q q` (process ID 6748) in order to obtain user credentials stored on the domain controller.",
+    "question": "About 20 minutes later, Microsoft Defender for Resource Manager detected an Azure Resource Manager operation coming from an IP address associated with proxy services such as TOR. What is the security identifier (SID) of the account that performed that resource management operation?",
+    "answer": "S-1-5-21-1840151686-3534835288-156286563-1127",
+    "solution": [
+      "A suspicious credential dump from NTDS.dit was detected on the domain controller host `vnevado-dc` at 2024-08-01 12:49:26 UTC, indicating the attacker harvested domain user credentials.",
+      "Using the stolen credentials, an Azure Resource Manager operation was performed from a suspicious proxy (TOR) IP address at 2024-08-01 13:09:13 UTC by the compromised account with SID `S-1-5-21-1840151686-3534835288-156286563-1127`."
+    ],
+    "start_alert": 16,
+    "end_alert": 25,
+    "start_entities": [
+      17,
+      18,
+      19,
+      20
+    ],
+    "end_entities": [
+      8
+    ],
+    "shortest_alert_path": [
+      16,
+      21,
+      25
+    ]
+  },
+  {
+    "context": "During this multi-stage incident, an alert fired for 'Ntdsutil collecting Active Directory information', where `powershell.exe` executed a Base64 encoded command (Process ID 2556) and then `ntdsutil.exe` was launched with the command line `\"ntdsutil.exe\" \"ac i ntds\" ifm \"create full c:\\temp\" q q` (Process ID 6748) to dump the Active Directory database. Pivoting from the compromised host, the same user account was later observed performing an Azure Resource Manager operation from a suspicious proxy IP address, and that user was also involved in an earlier email-based alert where a link in a message later quarantined by zero-hour auto purge (ZAP) was clicked.",
+    "question": "For the alert about the user clicking a link in an email that was subsequently quarantined by ZAP, what was the exact URL that the user accessed?",
+    "answer": "https://dj01161621.bravesand-e1ccd718.eastus.azurecontainerapps.io/",
+    "solution": [
+      "On the host with HostName `vnevado-dc`, Ntdsutil was launched to collect Active Directory information, indicating credential access or lateral movement activity.",
+      "The account with Name `Hailey Johnson` performed Azure Resource Manager operations from a suspicious proxy (TOR) IP address, suggesting the account was compromised.",
+      "The same compromised user accessed a link in an email that was later quarantined by zero-hour auto purge (ZAP); the malicious URL was `https://dj01161621.bravesand-e1ccd718.eastus.azurecontainerapps.io/`."
+    ],
+    "start_alert": 22,
+    "end_alert": 23,
+    "start_entities": [
+      17,
+      18,
+      19,
+      20
+    ],
+    "end_entities": [
+      24
+    ],
+    "shortest_alert_path": [
+      22,
+      21,
+      25,
+      6,
+      23
+    ]
+  },
+  {
+    "context": "During this incident, Microsoft Defender for Resource Manager detected an Azure Resource Manager operation coming from the suspicious proxy IP address `253.1.244.215` (associated with proxy services such as TOR). The operation targeted resources in subscription `7e838342-601f-4552-9baf-0dfb300cf555`, resource group `ctfcat`, including the virtual machine `vnevado-dc`, its network interface, and an auto-shutdown schedule.",
+    "question": "Earlier in the same incident, an alert was raised for emails containing a malicious URL that were delivered and then removed after delivery. Which recipient mailbox's primary address was affected by those emails?",
+    "answer": "alyssat@vnevado.alpineskihouse.co",
+    "solution": [
+      "The user account `Hailey Johnson` performed an Azure Resource Manager operation from a suspicious proxy IP address at 2024-08-01 13:09:13 UTC.",
+      "The mailbox with primary address `alyssat@vnevado.alpineskihouse.co` received email messages containing a malicious URL, which were removed after delivery at 2024-08-01 12:44:53 UTC."
+    ],
+    "start_alert": 25,
+    "end_alert": 2,
+    "start_entities": [
+      21,
+      26,
+      27,
+      28,
+      29,
+      30,
+      31
+    ],
+    "end_entities": [
+      3
+    ],
+    "shortest_alert_path": [
+      25,
+      6,
+      2
+    ]
+  },
+  {
+    "context": "During a multi-stage incident, the tool `ntdsutil.exe` was launched via an encoded PowerShell command (`powershell.exe -encodedcommand ...`, PID 2556) and then executed as PID 6748 with the command line `\"ntdsutil.exe\" \"ac i ntds\" ifm \"create full c:\\temp\" q q`, indicating an attacker collecting Active Directory information. The activity chain later pivoted to cloud activity, including an Azure Resource Manager operation from a suspicious proxy IP address, and eventually to an alert reporting that a malicious URL was clicked on a device.",
+    "question": "For the later alert in this chain where a malicious URL was clicked on the device, what IP address was recorded as associated with that event?",
+    "answer": "172.33.118.200",
+    "solution": [
+      "On host `vnevado-dc`, ntdsutil.exe was launched to collect Active Directory information (possible credential/DB dump for persistence or lateral movement) at 2024-08-01 12:54:34 UTC.",
+      "Using the compromised access, the user account with AadUserId `5e5dd0bd-f7ed-4583-8e9e-52f91e31a360` performed an Azure Resource Manager operation from a suspicious proxy (TOR) IP address at 2024-08-01 13:09:13 UTC.",
+      "A malicious URL was then clicked on the device with IP address `172.33.118.200` at 2024-08-01 13:49:58 UTC."
+    ],
+    "start_alert": 22,
+    "end_alert": 33,
+    "start_entities": [
+      17,
+      18,
+      19,
+      20
+    ],
+    "end_entities": [
+      35
+    ],
+    "shortest_alert_path": [
+      22,
+      21,
+      25,
+      9,
+      33
+    ]
+  },
+  {
+    "context": "During a multi-stage incident, a suspicious credential dump from NTDS.dit was detected on a domain controller, where `powershell.exe` ran an encoded command and then `ntdsutil.exe` (Process ID 6748) executed `\"ac i ntds\" ifm \"create full c:\\temp\" q q` to extract the Active Directory database. Follow-on activity in the same incident included Azure Resource Manager operations from a suspicious proxy IP address and phishing emails containing malicious URLs that were delivered and later removed from mailboxes.",
+    "question": "Tracing this incident back to its initial access phase, an alert fired for a potentially malicious URL click. What is the email address of the user (mail recipient) who clicked on that malicious link?",
+    "answer": "alyssat@vnevado.alpineskihouse.co",
+    "solution": [
+      "A suspicious credential dump from NTDS.dit was detected on the domain controller host `vnevado-dc` at 2024-08-01 12:49:26 UTC, indicating attackers harvested domain user credentials.",
+      "Using the stolen credentials, an Azure Resource Manager operation was performed from a suspicious proxy (TOR) IP address by the compromised account with email `alyssat@vnevado.alpineskihouse.co` at 2024-08-01 13:09:13 UTC.",
+      "That same account was targeted by email: a message containing a malicious URL was delivered to the recipient `alyssat@vnevado.alpineskihouse.co` and later removed after delivery at 2024-08-01 12:44:53 UTC.",
+      "The recipient `alyssat@vnevado.alpineskihouse.co` clicked the potentially malicious URL in that email, as detected at 2024-08-01 12:44:53 UTC, which enabled the compromise of the account."
+    ],
+    "start_alert": 16,
+    "end_alert": 0,
+    "start_entities": [
+      17,
+      18,
+      19,
+      20
+    ],
+    "end_entities": [
+      1
+    ],
+    "shortest_alert_path": [
+      16,
+      21,
+      25,
+      7,
+      2,
+      1,
+      0
+    ]
+  },
+  {
+    "context": "During an investigation, proxy logs flagged a connection from 231.60.52.209 (host vnevado-win11h.vnevado.alpineskihouse.co) to the malicious URL `login.micro.demo.antoinetest.ovh`, with additional traffic observed from 228.3.31.94. Follow-up telemetry showed the malicious URL was actually clicked on that device, and a related Microsoft Defender for Office 365 alert reported that a user had clicked a link in an email that was subsequently quarantined by zero-hour auto purge (ZAP).",
+    "question": "Which user account was identified as having clicked the link in the email that was later quarantined by ZAP?",
+    "answer": "Hailey Johnson",
+    "solution": [
+      "The host `vnevado-win11h` was seen connecting to a malicious URL (login.micro.demo.antoinetest.ovh) in the proxy logs.",
+      "On that device, a malicious URL was clicked by the user with AadUserId `5e5dd0bd-f7ed-4583-8e9e-52f91e31a360`.",
+      "The account `Hailey Johnson` accessed a link in an email that was subsequently quarantined by zero-hour auto purge (ZAP)."
+    ],
+    "start_alert": 11,
+    "end_alert": 23,
+    "start_entities": [
+      12,
+      14,
+      15
+    ],
+    "end_entities": [
+      6
+    ],
+    "shortest_alert_path": [
+      11,
+      13,
+      33,
+      9,
+      23
+    ]
+  },
+  {
+    "context": "During a multi-stage security incident, an alert titled `Malicious URL was clicked on that device` was raised on 2024-08-01 at 13:49 UTC. The malicious URL `https://dj01161621.bravesand-e1ccd718.eastus.azurecontainerapps.io/` was opened on the host `vnevado-win11h` (AadDeviceId `76707c40-3343-490e-9205-88fdb51aefe0`, IP `172.33.118.200`) through the browser process `msedge.exe` with ProcessId 4256, created at 2024-08-01T13:42:52.04. The activity was tied to the account with SID `S-1-5-21-1840151686-3534835288-156286563-1127` and AadUserId `5e5dd0bd-f7ed-4583-8e9e-52f91e31a360`.",
+    "question": "Based on the entities in this alert, what is the display name of the user account that was involved in clicking the malicious URL on that device?",
+    "answer": "Hailey Johnson",
+    "solution": [
+      "A malicious URL was clicked on the device at 2024-08-01 13:49:58 UTC, and the alert 'Malicious URL was clicked on that device' was raised.",
+      "The account associated with this malicious URL click is the user with Name `Hailey Johnson`."
+    ],
+    "start_alert": 33,
+    "end_alert": 33,
+    "start_entities": [
+      24,
+      34,
+      9,
+      36,
+      37,
+      13,
+      35,
+      8
+    ],
+    "end_entities": [
+      6
+    ],
+    "shortest_alert_path": [
+      33
+    ]
+  },
+  {
+    "context": "During this incident, Microsoft Defender for Resource Manager detected an Azure Resource Manager operation coming from the suspicious proxy IP address `253.1.244.215` (often associated with anonymizing services such as TOR). The affected resources belonged to subscription `7e838342-601f-4552-9baf-0dfb300cf555`, resource group `ctfcat`, and included the virtual machine, network interface, and shutdown schedule for the host `vnevado-dc`. Investigation showed the same compromised user account was also involved in an earlier Microsoft Defender for Office 365 alert, where the user clicked a link in an email that was subsequently quarantined by zero-hour auto purge (ZAP).",
+    "question": "For the earlier alert where the user accessed a link in an email that ZAP later quarantined, what was the full URL that the user clicked?",
+    "answer": "https://dj01161621.bravesand-e1ccd718.eastus.azurecontainerapps.io/",
+    "solution": [
+      "A user account with AadUserId `5e5dd0bd-f7ed-4583-8e9e-52f91e31a360` performed an Azure Resource Manager operation from a suspicious proxy IP address at 2024-08-01 13:09:13 UTC.",
+      "The same compromised user accessed a link in an email that was subsequently quarantined by zero-hour auto purge (ZAP) at 2024-08-01 12:54:55 UTC.",
+      "The malicious link clicked by the user was the URL `https://dj01161621.bravesand-e1ccd718.eastus.azurecontainerapps.io/`."
+    ],
+    "start_alert": 25,
+    "end_alert": 23,
+    "start_entities": [
+      21,
+      26,
+      27,
+      28,
+      29,
+      30,
+      31
+    ],
+    "end_entities": [
+      24
+    ],
+    "shortest_alert_path": [
+      25,
+      9,
+      23
+    ]
+  },
+  {
+    "context": "During this multi-stage intrusion, an alert for 'Suspicious credential dump from NTDS.dit' was raised after `powershell.exe` executed a long encoded command and then launched `ntdsutil.exe` with the command line `\"ntdsutil.exe\" \"ac i ntds\" ifm \"create full c:\\temp\" q q` (Process ID 6748), an activity typically used by attackers to dump the domain controller credential store. The attack chain continued with Azure Resource Manager operations from a suspicious proxy IP and a malicious URL being clicked on an endpoint, which in turn triggered a proxy-log detection where the device `vnevado-win11h.vnevado.alpineskihouse.co` (source 231.60.52.209) connected to the malicious domain `login.micro.demo.antoinetest.ovh`.",
+    "question": "In that proxy-log detection of the malicious URL, besides the source address 231.60.52.209 recorded in the alert description, what other IP address entity was flagged as part of this alert?",
+    "answer": "228.3.31.94",
+    "solution": [
+      "A suspicious credential dump from NTDS.dit was detected on the domain controller host `vnevado-dc`, where attackers extracted stored domain user credentials.",
+      "Using the compromised credentials, an Azure Resource Manager operation was performed from a suspicious proxy IP address by the account `Hailey Johnson`.",
+      "A malicious URL was clicked on the device with HostName `vnevado-win11h`.",
+      "Proxy logs from that device revealed a malicious URL connection (login.micro.demo.antoinetest.ovh) associated with the IP address `228.3.31.94`."
+    ],
+    "start_alert": 16,
+    "end_alert": 11,
+    "start_entities": [
+      17,
+      18,
+      19,
+      20
+    ],
+    "end_entities": [
+      15
+    ],
+    "shortest_alert_path": [
+      16,
+      21,
+      25,
+      6,
+      33,
+      13,
+      11
+    ]
+  },
+  {
+    "context": "During this multi-stage incident, an alert titled \"Suspicious Azure Resource Management activities by a risky user\" fired on 2024-08-01 13:19 UTC. It flagged cloud Azure Resource Management (ARM) activities performed from IP address `253.1.244.215` by the account `Hailey Johnson` (email `alyssat@vnevado.alpineskihouse.co`, SID `S-1-5-21-1840151686-3534835288-156286563-1127`, AAD user ID `5e5dd0bd-f7ed-4583-8e9e-52f91e31a360`), which had signed in during a risky session.",
+    "question": "About ten minutes earlier, Microsoft Defender for Resource Manager detected a resource management operation coming from an IP address associated with proxy/anonymization services such as TOR. What is the full Azure resource ID of the resource that was targeted by that operation?",
+    "answer": "/subscriptions/7e838342-601f-4552-9baf-0dfb300cf555/resourcegroups/ctfcat/providers/microsoft.devtestlab/schedules/shutdown-computevm-vnevado-dc",
+    "solution": [
+      "A risky user account with email `alyssat@vnevado.alpineskihouse.co` performed suspicious Azure Resource Management (ARM) activities at 2024-08-01 13:19:20 UTC.",
+      "Related to this activity, Microsoft Defender for Resource Manager detected an Azure Resource Manager operation originating from a suspicious proxy (TOR) IP address at 2024-08-01 13:09:13 UTC.",
+      "The targeted Azure resource of that operation was the resource with ResourceId `/subscriptions/7e838342-601f-4552-9baf-0dfb300cf555/resourcegroups/ctfcat/providers/microsoft.devtestlab/schedules/shutdown-computevm-vnevado-dc`."
+    ],
+    "start_alert": 32,
+    "end_alert": 25,
+    "start_entities": [
+      6,
+      7,
+      8,
+      9,
+      31
+    ],
+    "end_entities": [
+      30
+    ],
+    "shortest_alert_path": [
+      32,
+      7,
+      25
+    ]
+  },
+  {
+    "context": "During this multi-stage incident, an alert titled \"Malicious URL was clicked on that device\" fired on 2024-08-01 at 13:49 UTC for host `vnevado-win11h` (AAD device ID `76707c40-3343-490e-9205-88fdb51aefe0`, IP `172.33.118.200`). The click on `https://dj01161621.bravesand-e1ccd718.eastus.azurecontainerapps.io/` was made through Microsoft Edge, with process details `4256__2024-08-01t13:42:52.04__\"msedge.exe\" --type=utility --utility-sub-type=network.mojom.networkservice --lang=en-us ... /prefetch:11`. Earlier the same day, around 12:44 UTC, email protection alerts fired for messages containing a malicious URL that were delivered and later removed, as well as an alert stating that a potentially malicious URL click was detected.",
+    "question": "For the earlier alert \"A potentially malicious URL click was detected\", which mailbox recipient address was identified as the user who clicked the malicious link?",
+    "answer": "alyssat@vnevado.alpineskihouse.co",
+    "solution": [
+      "A malicious URL was clicked on a device by the user account `Hailey Johnson`.",
+      "An email message containing that malicious URL was delivered to the recipient `alyssat@vnevado.alpineskihouse.co` and later removed after delivery.",
+      "A potentially malicious URL click was detected for the same mail recipient `alyssat@vnevado.alpineskihouse.co`."
+    ],
+    "start_alert": 33,
+    "end_alert": 0,
+    "start_entities": [
+      13,
+      24,
+      34,
+      35,
+      36,
+      37
+    ],
+    "end_entities": [
+      1
+    ],
+    "shortest_alert_path": [
+      33,
+      6,
+      2,
+      1,
+      0
+    ]
+  },
+  {
+    "context": "During an investigation, a proxy log alert flagged a connection from `231.60.52.209` (host vnevado-win11h.vnevado.alpineskihouse.co) to the malicious URL `login.micro.demo.antoinetest.ovh`, with `228.3.31.94` also observed in the same alert. About an hour later, a related alert reported that a malicious URL was actually clicked on a device tied to this same host.",
+    "question": "For the later alert reporting that a malicious URL was clicked on that device, what IP address was recorded as the entity involved?",
+    "answer": "172.33.118.200",
+    "solution": [
+      "A malicious URL connection to `login.micro.demo.antoinetest.ovh` was detected in proxy logs originating from the host `vnevado-win11h`.",
+      "The malicious URL was clicked on the device associated with the IP address `172.33.118.200`."
+    ],
+    "start_alert": 11,
+    "end_alert": 33,
+    "start_entities": [
+      12,
+      14,
+      15
+    ],
+    "end_entities": [
+      35
+    ],
+    "shortest_alert_path": [
+      11,
+      13,
+      33
+    ]
+  },
+  {
+    "context": "During a multi-stage incident, an alert titled \"Suspicious credential dump from NTDS.dit\" was raised on the domain controller host `vnevado-dc`. Attackers dump NTDS.dit in order to obtain the user credentials stored on the domain controller. In this alert, an encoded PowerShell command was executed (`powershell.exe` with `-encodedcommand iabuahqazabzahuadabpagwa...`, Process ID 2556, created 2024-08-01T12:37:29.65Z) which referenced the file `c:\\temp\\Active Directory\\ntds.dit` and uploaded it to Azure storage.",
+    "question": "Beyond the PowerShell activity, the related alert activity shows that the AD database was actually extracted using a built-in Windows Active Directory management command-line utility. What is the file name of that executable?",
+    "answer": "ntdsutil.exe",
+    "solution": [
+      "An attacker executed the process `ntdsutil.exe` on the domain controller at 2024-08-01 12:49:26 UTC to dump the NTDS.dit database and obtain stored user credentials."
+    ],
+    "start_alert": 16,
+    "end_alert": 16,
+    "start_entities": [
+      21,
+      18,
+      17
+    ],
+    "end_entities": [
+      20
+    ],
+    "shortest_alert_path": [
+      16
+    ]
+  },
+  {
+    "context": "During this multi-stage incident, an alert fired for `ntdsutil.exe` collecting Active Directory information on a domain controller. The process was launched with the command line `\"ntdsutil.exe\" \"ac i ntds\" ifm \"create full c:\\temp\" q q` (Process ID 6748), spawned by an encoded `powershell.exe` command (Process ID 2556) that also uploaded data to an Azure storage blob. Shortly after, related cloud alerts were raised, including an Azure Resource Manager operation coming from a suspicious proxy IP address, and finally suspicious Azure Resource Management (ARM) activities performed by a user who had signed in to a risky session.",
+    "question": "For the final alert about suspicious Azure Resource Management activities performed by a risky user, what is the Microsoft Entra (AAD) user ID of the account involved?",
+    "answer": "5e5dd0bd-f7ed-4583-8e9e-52f91e31a360",
+    "solution": [
+      "On host `vnevado-dc`, Ntdsutil.exe was launched to collect Active Directory information (credential dumping from the AD DS database) at 2024-08-01 12:54:34 UTC.",
+      "Using the harvested credentials, an Azure Resource Manager operation was performed from a suspicious proxy/TOR IP address by the account with AadUserId `5e5dd0bd-f7ed-4583-8e9e-52f91e31a360` at 2024-08-01 13:09:13 UTC.",
+      "The same account, AadUserId `5e5dd0bd-f7ed-4583-8e9e-52f91e31a360`, then performed suspicious Azure Resource Management activities from a risky sign-in session at 2024-08-01 13:19:20 UTC."
+    ],
+    "start_alert": 22,
+    "end_alert": 32,
+    "start_entities": [
+      17,
+      18,
+      19,
+      20
+    ],
+    "end_entities": [
+      9
+    ],
+    "shortest_alert_path": [
+      22,
+      21,
+      25,
+      9,
+      32
+    ]
+  },
+  {
+    "context": "During an investigation, a proxy log alert flagged a connection from 231.60.52.209 (host vnevado-win11h.vnevado.alpineskihouse.co) to the malicious URL `login.micro.demo.antoinetest.ovh`. Further pivoting on this device showed that the malicious URL was actually clicked by a user, and the URL was traced back to a phishing campaign where emails containing the malicious URL were delivered and later removed from mailboxes.",
+    "question": "For the related alert about emails containing a malicious URL that were removed after delivery, which mailbox recipient received the malicious email?",
+    "answer": "alyssat@vnevado.alpineskihouse.co",
+    "solution": [
+      "A malicious URL connection to `login.micro.demo.antoinetest.ovh` was detected in the proxy logs from the host with HostName `vnevado-win11h` (231.60.52.209 - vnevado-win11h.vnevado.alpineskihouse.co).",
+      "On that device, the malicious URL was clicked by the user account with Email `alyssat@vnevado.alpineskihouse.co`.",
+      "The click originated from an email message containing the malicious URL that was delivered and later removed, whose Recipient was `alyssat@vnevado.alpineskihouse.co`."
+    ],
+    "start_alert": 11,
+    "end_alert": 2,
+    "start_entities": [
+      12,
+      14,
+      15
+    ],
+    "end_entities": [
+      1
+    ],
+    "shortest_alert_path": [
+      11,
+      13,
+      33,
+      7,
+      2
+    ]
+  },
+  {
+    "context": "During an investigation, a malicious URL `https://dj01161621.bravesand-e1ccd718.eastus.azurecontainerapps.io/` was clicked on the device `vnevado-win11h` (AAD Device ID `76707c40-3343-490e-9205-88fdb51aefe0`, IP `172.33.118.200`) using Microsoft Edge (process `msedge.exe`, ProcessId__CreatedTimeUtc__CommandLine: `4256__2024-08-01t13:42:52.04__\"msedge.exe\" --type=utility --utility-sub-type=network.mojom.networkservice ... /prefetch:11`). Pivoting from the compromised user account, the same activity chain also included an Azure Resource Manager operation coming from a suspicious proxy IP address, and ultimately an alert on a domain controller for a suspicious credential dump from NTDS.dit.",
+    "question": "For the 'Suspicious credential dump from NTDS.dit' alert in this chain, which executable was run with a Base64 `-EncodedCommand`, and what were its process ID and process creation time (UTC)?",
+    "answer": "The executable was `powershell.exe`, launched with an `-encodedcommand` argument; Process ID: 2556, Created Time (UTC): 2024-08-01T12:37:29.6522416Z",
+    "solution": [
+      "A malicious URL was clicked on a device by the user account with AadUserId `5e5dd0bd-f7ed-4583-8e9e-52f91e31a360` at 2024-08-01 13:49:58 UTC.",
+      "An Azure Resource Manager operation was performed from a suspicious proxy IP address, involving the host `vnevado-dc` at 2024-08-01 13:09:13 UTC.",
+      "On that domain controller, a suspicious credential dump from NTDS.dit was performed by the process with ProcessId `2556`, created at `2024-08-01t12:37:29.6522416z`, running the encoded PowerShell command line `\"powershell.exe\" -encodedcommand iabuahqazabzahuadabpagwalgblahgazqagaccayqbjacaaaqagag4adabkahmajwagaccaaqbmag0ajwagaccaywbyaguayqb0aguaiabmahuababsacaaywa6afwadablag0acaanacaacqagaheaowagacaadwbnaguadaagaggadab0ahaacwa6ac8alwbnagkadaboahuaygauagmabwbtac8acgazag0abwb0aguaywbvag4adabyag8abaavaecaaabvahmadabwageaywbrac0aqwbvag0acabpagwazqbkaeiaaqbuageacgbpaguacwavahiayqb3ac8abqbhahmadablahialwbsahuaygblahuacwauaguaeablacaalqbvahuadabmagkabablacaadablahmadaauaguaeablacaalqb1ahmazqbiageacwbpagmacabhahiacwbpag4azwa7acaaiabpag4adgbvagsazqatahiazqbzahqabqblahqaaabvagqaiaatag0azqb0aggabwbkacaazwblahqaiaatahuacgbpacaadgblagmadabvahiacwbhag4azabhahiacgbvahcacwauagmabwbtacaalqb1ahmazqbiageacwbpagmacabhahiacwbpag4azwa7acaaiabpag4acwb0ageababsac0abqbvagqadqbsaguaiabhahoalgbhagmaywbvahuabgb0ahmaiaatahmaywbvahaazqagaemadqbyahiazqbuahqavqbzaguacgagac0argbvahiaywbladsaiabpag4acwb0ageababsac0abqbvagqadqbsaguaiabhahoalgbzahqabwbyageazwblacaaiaatahmaywbvahaazqagaemadqbyahiazqbuahqavqbzaguacgagac0argbvahiaywbladsaiaagaemabwbuag4azqbjahqalqbbahoaqqbjagmabwb1ag4adaagac0asqbkaguabgb0agkadab5adsaiaagacqargbpagwazqagacaaiaagacaaiaagacaaiaagacaaiaagad0aiaanagmaogbcahqazqbtahaaxabbagmadabpahyazqagaeqaaqbyaguaywb0ag8acgb5afwabgb0agqacwauagqaaqb0accaowagacaajabzacaapqagagcazqb0ac0ayqb6ahmadabvahiayqbnaguaqqbjagmabwb1ag4adaa7acaaiaakagmabwbuahqazqb4ahqaiaa9acaajabzac4aqwbvag4adablahgadaa7acaaiaakaemabwbuahqayqbpag4azqbyae4ayqbtaguaiaa9acaaigbhahuadabvag0ayqb0agkabwbuaciaowagacaajabcagwabwbiadmasabuacaapqagaeaaewagacaaiaagacaargbpagwazqagacaaiaagacaaiaagacaaiaagacaaiaagad0aiaakaeyaaqbsaguaowagacaaiaagacaaqwbvag4adabhagkabgblahiaiaagacaaiaagacaaiaagad0aiaakaemabwbuahqayqbpag4azqbyae4ayqbtaguaowagacaaiaagacaaqgbsag8aygagacaaiaagacaaiaagacaaiaagacaaiaagad0aiaanaekabqbhagcazqawadaamwauagoacabnaccaowagacaaiaagacaaqwbvag4adablahgadaagacaaiaagacaaiaagacaaiaagad0aiaakagmabwbuahqazqb4ahqaowagacaaiaagacaauwb0ageabgbkageacgbkaeiababvagiavabpaguacgagad0aiaanaeeacgbjaggaaqb2aguajwa7acaaiaagah0aowagafmazqb0ac0aqqb6afmadabvahiayqbnaguaqgbsag8aygbdag8abgb0aguabgb0acaaqabcagwabwbiadmasabuadsaiaagaa==` at 2024-08-01 12:49:26 UTC, which copied the NTDS.dit database and exfiltrated it to Azure storage."
+    ],
+    "start_alert": 33,
+    "end_alert": 16,
+    "start_entities": [
+      13,
+      24,
+      34,
+      35,
+      36,
+      37
+    ],
+    "end_entities": [
+      17
+    ],
+    "shortest_alert_path": [
+      33,
+      9,
+      25,
+      21,
+      16
+    ]
+  },
+  {
+    "context": "During a multi-stage incident, a user clicked on a link in an email (`https://dj01161621.bravesand-e1ccd718.eastus.azurecontainerapps.io/`) that was later quarantined by zero-hour auto purge (ZAP), as flagged by Microsoft Defender for Office 365. About 25 minutes later, the same compromised user account was seen performing suspicious Azure Resource Management (ARM) activities from a risky sign-in session, reported by Microsoft Defender for Cloud together with Microsoft Entra ID Protection risk scores.",
+    "question": "From which source IP address were the suspicious Azure Resource Management activities performed?",
+    "answer": "253.1.244.215",
+    "solution": [
+      "The user account with email `alyssat@vnevado.alpineskihouse.co` clicked a link in an email that was later quarantined by zero-hour auto purge (ZAP) at 2024-08-01 12:54:55 UTC.",
+      "Following the compromise of that user, suspicious Azure Resource Management activities were performed by the risky user account from the IP address `253.1.244.215` at 2024-08-01 13:19:20 UTC."
+    ],
+    "start_alert": 23,
+    "end_alert": 32,
+    "start_entities": [
+      24
+    ],
+    "end_entities": [
+      31
+    ],
+    "shortest_alert_path": [
+      23,
+      7,
+      32
+    ]
+  },
+  {
+    "context": "During this multi-stage incident, an alert was raised for suspicious Azure Resource Management (ARM) activities performed by a user account that signed in to a risky session from the IP address `253.1.244.215`. Pivoting from the compromised account leads to a device on which a malicious link was clicked, and that same device also generated proxy log activity: a connection originating from `231.60.52.209` - `vnevado-win11h.vnevado.alpineskihouse.co` was flagged by the proxy as malicious.",
+    "question": "In the proxy log alert associated with the host `vnevado-win11h.vnevado.alpineskihouse.co`, what was the malicious destination URL/domain that the host connected to?",
+    "answer": "login.micro.demo.antoinetest.ovh",
+    "solution": [
+      "A user account with SID `S-1-5-21-1840151686-3534835288-156286563-1127` signed in to a risky session and performed suspicious Azure Resource Management (ARM) activities at 2024-08-01 13:19:20 UTC.",
+      "The device with HostName `vnevado-win11h` was involved, where a malicious URL was clicked on at 2024-08-01 13:49:58 UTC.",
+      "Proxy logs from that host (231.60.52.209 - vnevado-win11h.vnevado.alpineskihouse.co) show a connection to the malicious URL `login.micro.demo.antoinetest.ovh`."
+    ],
+    "start_alert": 32,
+    "end_alert": 11,
+    "start_entities": [
+      31
+    ],
+    "end_entities": [
+      12
+    ],
+    "shortest_alert_path": [
+      32,
+      8,
+      33,
+      13,
+      11
+    ]
+  },
+  {
+    "context": "During an investigation of a multi-stage incident on the domain controller `vnevado-dc`, an alert titled 'Ntdsutil collecting Active Directory information' was raised at 2024-08-01 12:54 UTC. The alert showed the process `ntdsutil.exe` (Process ID 6748, created 2024-08-01T12:37:30.2769191Z) running with the command line `\"ntdsutil.exe\" \"ac i ntds\" ifm \"create full c:\\temp\" q q`, which is a technique attackers use to gather AD data for persistence or lateral movement.",
+    "question": "A closely related alert, 'Suspicious credential dump from NTDS.dit', was triggered shortly before this activity and involved a scripting process launched with a Base64-encoded command. What was the Process ID and creation time (UTC) of that process?",
+    "answer": "Process ID: 2556, Created Time (UTC): 2024-08-01T12:37:29.6522416Z \u2014 corresponding to the process `\"powershell.exe\" -encodedcommand iabuahqazabzahuadabpagwalgblahgazqagacc...` (a long Base64-encoded PowerShell command)",
+    "solution": [
+      "The attacker ran Ntdsutil to collect Active Directory information, using process ID `6748` created at `2024-08-01t12:37:30.2769191z` with the command line `\"ntdsutil.exe\" \"ac i ntds\" ifm \"create full c:\\temp\" q q`.",
+      "This Ntdsutil activity was launched in the context of a credential dump from NTDS.dit, performed by the parent PowerShell process with process ID `2556`, created at `2024-08-01t12:37:29.6522416z`, with the command line `\"powershell.exe\" -encodedcommand iabuahqazabzahuadabpagwalgblahgazqagaccayqbjacaaaqagag4adabkahmajwagaccaaqbmag0ajwagaccaywbyaguayqb0aguaiabmahuababsacaaywa6afwadablag0acaanacaacqagaheaowagacaadwbnaguadaagaggadab0ahaacwa6ac8alwbnagkadaboahuaygauagmabwbtac8acgazag0abwb0aguaywbvag4adabyag8abaavaecaaabvahmadabwageaywbrac0aqwbvag0acabpagwazqbkaeiaaqbuageacgbpaguacwavahiayqb3ac8abqbhahmadablahialwbsahuaygblahuacwauaguaeablacaalqbvahuadabmagkabablacaadablahmadaauaguaeablacaalqb1ahmazqbiageacwbpagmacabhahiacwbpag4azwa7acaaiabpag4adgbvagsazqatahiazqbzahqabqblahqaaabvagqaiaatag0azqb0aggabwbkacaazwblahqaiaatahuacgbpacaadgblagmadabvahiacwbhag4azabhahiacgbvahcacwauagmabwbtacaalqb1ahmazqbiageacwbpagmacabhahiacwbpag4azwa7acaaiabpag4acwb0ageababsac0abqbvagqadqbsaguaiabhahoalgbhagmaywbvahuabgb0ahmaiaatahmaywbvahaazqagaemadqbyahiazqbuahqavqbzaguacgagac0argbvahiaywbladsaiabpag4acwb0ageababsac0abqbvagqadqbsaguaiabhahoalgbzahqabwbyageazwblacaaiaatahmaywbvahaazqagaemadqbyahiazqbuahqavqbzaguacgagac0argbvahiaywbladsaiaagaemabwbuag4azqbjahqalqbbahoaqqbjagmabwb1ag4adaagac0asqbkaguabgb0agkadab5adsaiaagacqargbpagwazqagacaaiaagacaaiaagacaaiaagacaaiaagad0aiaanagmaogbcahqazqbtahaaxabbagmadabpahyazqagaeqaaqbyaguaywb0ag8acgb5afwabgb0agqacwauagqaaqb0accaowagacaajabzacaapqagagcazqb0ac0ayqb6ahmadabvahiayqbnaguaqqbjagmabwb1ag4adaa7acaaiaakagmabwbuahqazqb4ahqaiaa9acaajabzac4aqwbvag4adablahgadaa7acaaiaakaemabwbuahqayqbpag4azqbyae4ayqbtaguaiaa9acaaigbhahuadabvag0ayqb0agkabwbuaciaowagacaajabcagwabwbiadmasabuacaapqagaeaaewagacaaiaagacaargbpagwazqagacaaiaagacaaiaagacaaiaagacaaiaagad0aiaakaeyaaqbsaguaowagacaaiaagacaaqwbvag4adabhagkabgblahiaiaagacaaiaagacaaiaagad0aiaakaemabwbuahqayqbpag4azqbyae4ayqbtaguaowagacaaiaagacaaqgbsag8aygagacaaiaagacaaiaagacaaiaagacaaiaagad0aiaanaekabqbhagcazqawadaamwauagoacabnaccaowagacaaiaagacaaqwbvag4adablahgadaagacaaiaagacaaiaagacaaiaagad0aiaakagmabwbuahqazqb4ahqaowagacaaiaagacaauwb0ageabgbkageacgbkaeiababvagiavabpaguacgagad0aiaanaeeacgbjaggaaqb2aguajwa7acaaiaagah0aowagafmazqb0ac0aqqb6afmadabvahiayqbnaguaqgbsag8aygbdag8abgb0aguabgb0acaaqabcagwabwbiadmasabuadsaiaagaa==`, which dumped NTDS.dit to obtain domain user credentials."
+    ],
+    "start_alert": 22,
+    "end_alert": 16,
+    "start_entities": [
+      18,
+      19,
+      20,
+      21
+    ],
+    "end_entities": [
+      17
+    ],
+    "shortest_alert_path": [
+      22,
+      19,
+      16
+    ]
+  },
+  {
+    "context": "During an investigation, Microsoft Defender for Resource Manager detected an Azure Resource Manager operation coming from a suspicious proxy IP address `253.1.244.215` (often associated with anonymizing services such as TOR). The activity targeted resources under subscription `7e838342-601f-4552-9baf-0dfb300cf555`, resource group `ctfcat`, including the domain controller VM `vnevado-dc`, its network interface, and an auto-shutdown schedule. Pivoting from the user account involved in this operation, the same identity is linked to email-based alerts in this incident, including emails containing a malicious URL that were delivered and later removed, and a detection of a potentially malicious URL click.",
+    "question": "For the alert reporting that a potentially malicious URL click was detected, which mailbox recipient address was involved?",
+    "answer": "alyssat@vnevado.alpineskihouse.co",
+    "solution": [
+      "A suspicious Azure Resource Manager operation was performed from a proxy (e.g., TOR) IP address by the account with AadUserId `5e5dd0bd-f7ed-4583-8e9e-52f91e31a360`.",
+      "An email containing a malicious URL was delivered and later removed from the mailbox of the recipient `alyssat@vnevado.alpineskihouse.co`.",
+      "The recipient `alyssat@vnevado.alpineskihouse.co` clicked on the potentially malicious URL contained in that email."
+    ],
+    "start_alert": 25,
+    "end_alert": 0,
+    "start_entities": [
+      21,
+      26,
+      27,
+      28,
+      29,
+      30,
+      31
+    ],
+    "end_entities": [
+      1
+    ],
+    "shortest_alert_path": [
+      25,
+      9,
+      2,
+      1,
+      0
+    ]
+  },
+  {
+    "context": "During an investigation, a proxy log alert flagged a connection from IP `231.60.52.209` (and associated IP `228.3.31.94`) to the malicious URL `login.micro.demo.antoinetest.ovh`. Tracing this activity further revealed that the malicious link originated from an email campaign \u2014 emails containing the malicious URL were delivered to a mailbox and later removed, and a potentially malicious URL click was subsequently detected for that user.",
+    "question": "For the alert reporting the potentially malicious URL click, which mailbox recipient was identified as the user who clicked the malicious link?",
+    "answer": "alyssat@vnevado.alpineskihouse.co",
+    "solution": [
+      "A malicious URL connection to `login.micro.demo.antoinetest.ovh` was detected in proxy logs from the host with HostName `vnevado-win11h`.",
+      "The user account `Hailey Johnson` clicked on the malicious URL on that device.",
+      "An email containing a malicious URL was delivered and later removed for the recipient `alyssat@vnevado.alpineskihouse.co`.",
+      "The potentially malicious URL click was detected for the mail recipient `alyssat@vnevado.alpineskihouse.co`."
+    ],
+    "start_alert": 11,
+    "end_alert": 0,
+    "start_entities": [
+      12,
+      14,
+      15
+    ],
+    "end_entities": [
+      1
+    ],
+    "shortest_alert_path": [
+      11,
+      13,
+      33,
+      6,
+      2,
+      1,
+      0
+    ]
+  },
+  {
+    "context": "During a multi-stage incident, a malicious URL `https://dj01161621.bravesand-e1ccd718.eastus.azurecontainerapps.io/` was clicked on the device `vnevado-win11h` (AAD device ID `76707c40-3343-490e-9205-88fdb51aefe0`, IP `172.33.118.200`) via Microsoft Edge, with process ID 4256 created at 2024-08-01T13:42:52.04. Earlier the same day, Microsoft Defender for Resource Manager flagged an Azure Resource Manager operation coming from an IP address associated with proxy/anonymization services such as TOR, which is often used by threat actors to hide their true source IP. This ARM activity was linked to the same compromised user account.",
+    "question": "For the alert about the Azure Resource Manager operation performed from the suspicious proxy IP address, which Azure subscription ID was targeted?",
+    "answer": "7e838342-601f-4552-9baf-0dfb300cf555",
+    "solution": [
+      "The user account with AadUserId `5e5dd0bd-f7ed-4583-8e9e-52f91e31a360` clicked on a malicious URL on that device.",
+      "Following the compromise, a suspicious Azure Resource Manager operation was performed from a proxy (e.g., TOR) IP address against the Azure subscription with SubscriptionId `7e838342-601f-4552-9baf-0dfb300cf555`."
+    ],
+    "start_alert": 33,
+    "end_alert": 25,
+    "start_entities": [
+      13,
+      24,
+      34,
+      35,
+      36,
+      37
+    ],
+    "end_entities": [
+      26
+    ],
+    "shortest_alert_path": [
+      33,
+      9,
+      25
+    ]
+  },
+  {
+    "context": "During an investigation, a potentially malicious URL click was detected after a user with the mailbox `alyssat@vnevado.alpineskihouse.co` clicked on a link found to be malicious. Follow-on alerts in the same incident chain included emails containing a malicious URL being removed after delivery, an Azure Resource Manager operation from a suspicious proxy IP address, and finally a suspicious credential dump from NTDS.dit on a domain controller, where attackers dump NTDS.dit to obtain user credentials.",
+    "question": "For the alert reporting the suspicious credential dump from NTDS.dit, what is the name of the executable file associated with the process that carried out this activity?",
+    "answer": "powershell.exe",
+    "solution": [
+      "The mailbox recipient `alyssat@vnevado.alpineskihouse.co` received an email containing a malicious URL, and a potentially malicious URL click was detected from this user.",
+      "The emails containing the malicious URL were later removed after delivery, affecting the account with SID `S-1-5-21-1840151686-3534835288-156286563-1127`.",
+      "On host `vnevado-dc`, an Azure Resource Manager operation was performed from a suspicious proxy (TOR-associated) IP address.",
+      "On the same domain controller, the process `powershell.exe` was used to dump credentials from NTDS.dit in order to obtain domain users' credentials."
+    ],
+    "start_alert": 0,
+    "end_alert": 16,
+    "start_entities": [
+      1
+    ],
+    "end_entities": [
+      18
+    ],
+    "shortest_alert_path": [
+      0,
+      1,
+      2,
+      8,
+      25,
+      21,
+      16
+    ]
+  },
+  {
+    "context": "During this multi-stage incident, an alert from Microsoft Defender for Office 365 fired: \"User accessed a link in an email subsequently quarantined by ZAP\". The user involved was Hailey Johnson (`alyssat@vnevado.alpineskihouse.co`, SID `S-1-5-21-1840151686-3534835288-156286563-1127`, AAD user ID `5e5dd0bd-f7ed-4583-8e9e-52f91e31a360`), and the link clicked was `https://dj01161621.bravesand-e1ccd718.eastus.azurecontainerapps.io/`.",
+    "question": "Roughly an hour later, a follow-up alert reported that a malicious URL was clicked on the device used by this same user. What IP address was recorded in that later alert?",
+    "answer": "172.33.118.200",
+    "solution": [
+      "The user account with SID `S-1-5-21-1840151686-3534835288-156286563-1127` clicked on a link in an email that was later quarantined by zero-hour auto purge (ZAP) at 2024-08-01 12:54:55 UTC.",
+      "The malicious URL was clicked on the device with IP address `172.33.118.200` at 2024-08-01 13:49:58 UTC."
+    ],
+    "start_alert": 23,
+    "end_alert": 33,
+    "start_entities": [
+      6,
+      7,
+      8,
+      9,
+      24
+    ],
+    "end_entities": [
+      35
+    ],
+    "shortest_alert_path": [
+      23,
+      8,
+      33
+    ]
+  },
+  {
+    "context": "During a multi-stage security incident, a malicious URL `https://dj01161621.bravesand-e1ccd718.eastus.azurecontainerapps.io/` was clicked on the device `vnevado-win11h` (AAD Device ID `76707c40-3343-490e-9205-88fdb51aefe0`, IP `172.33.118.200`) via Microsoft Edge, with the process details `4256__2024-08-01t13:42:52.04__\"msedge.exe\" --type=utility --utility-sub-type=network.mojom.networkservice --lang=en-us --service-sandbox-type=none --field-trial-handle=1912,i,9358546549091360037,1317674413260171076,262144 --variations-seed-version --mojo-platform-channel-handle=3124 /prefetch:11`. Tracing the same compromised user account led to an Azure Resource Manager operation from a suspicious proxy IP address, and further to an alert on a domain controller where Ntdsutil was used to collect Active Directory information.",
+    "question": "For the Ntdsutil alert at the end of this attack chain, what was the process ID, creation time and full command line of the process that was launched to collect the Active Directory information?",
+    "answer": "Process ID: 6748, Created Time (UTC): 2024-08-01T12:37:30.2769191Z, Command line: \"ntdsutil.exe\" \"ac i ntds\" ifm \"create full c:\\temp\" q q",
+    "solution": [
+      "The user account `Hailey Johnson` clicked on a malicious URL on the device at 2024-08-01 13:49:58 UTC.",
+      "An Azure Resource Manager operation was performed from a suspicious proxy IP address involving the host `vnevado-dc` at 2024-08-01 13:09:13 UTC.",
+      "On that host, the attacker launched Ntdsutil to collect Active Directory information, with Process ID `6748`, created at `2024-08-01t12:37:30.2769191z`, running the command line `\"ntdsutil.exe\" \"ac i ntds\" ifm \"create full c:\\temp\" q q`."
+    ],
+    "start_alert": 33,
+    "end_alert": 22,
+    "start_entities": [
+      13,
+      24,
+      34,
+      35,
+      36,
+      37
+    ],
+    "end_entities": [
+      19
+    ],
+    "shortest_alert_path": [
+      33,
+      6,
+      25,
+      21,
+      22
+    ]
+  },
+  {
+    "context": "During a multi-stage security incident, a proxy log alert was raised for a connection originating from the host `vnevado-win11h.vnevado.alpineskihouse.co` with IP address `231.60.52.209`, communicating with a destination IP `228.3.31.94`. The analyst is advised to check the endpoint to determine what happened.",
+    "question": "According to the proxy log alert, which malicious domain/URL did the host `vnevado-win11h` connect to?",
+    "answer": "login.micro.demo.antoinetest.ovh",
+    "solution": [
+      "A malicious URL was detected in the proxy logs, showing a connection from the host `vnevado-win11h.vnevado.alpineskihouse.co` (IP `231.60.52.209`) to the malicious URL `login.micro.demo.antoinetest.ovh` at 2024-08-01 12:47:22 UTC."
+    ],
+    "start_alert": 11,
+    "end_alert": 11,
+    "start_entities": [
+      15,
+      14,
+      13
+    ],
+    "end_entities": [
+      12
+    ],
+    "shortest_alert_path": [
+      11
+    ]
+  },
+  {
+    "context": "During an investigation of a multi-stage security incident, an alert for 'Suspicious credential dump from NTDS.dit' was raised on 2024-08-01. The activity involved `powershell.exe` (Process ID 2556) running an encoded command that referenced writing NTDS output to `c:\\temp` and uploading data to Azure storage, followed by `ntdsutil.exe` (Process ID 6748) executing `\"ac i ntds\" ifm \"create full c:\\temp\" q q`. This chain of activity was later followed by an Azure Resource Manager operation from a suspicious proxy IP address, and eventually an alert indicating a malicious URL was clicked on a device in the same incident.",
+    "question": "For the later alert in this incident where a malicious URL was clicked on a device, what was the full URL that was clicked?",
+    "answer": "https://dj01161621.bravesand-e1ccd718.eastus.azurecontainerapps.io/",
+    "solution": [
+      "Credentials were dumped from the NTDS.dit database on the domain controller host `vnevado-dc`, exposing domain user credentials.",
+      "Using the stolen credentials, the account with SID `S-1-5-21-1840151686-3534835288-156286563-1127` performed Azure Resource Manager operations from a suspicious proxy (TOR) IP address.",
+      "A malicious URL `https://dj01161621.bravesand-e1ccd718.eastus.azurecontainerapps.io/` was clicked on the device, continuing the attack chain."
+    ],
+    "start_alert": 16,
+    "end_alert": 33,
+    "start_entities": [
+      17,
+      18,
+      19,
+      20
+    ],
+    "end_entities": [
+      24
+    ],
+    "shortest_alert_path": [
+      16,
+      21,
+      25,
+      8,
+      33
+    ]
+  },
+  {
+    "context": "During this multi-stage incident, a user clicked on a link in an email (`https://dj01161621.bravesand-e1ccd718.eastus.azurecontainerapps.io/`) that was later quarantined by zero-hour auto purge (ZAP), as reported by Microsoft Defender for Office 365. The same compromised account was then tied to an Azure Resource Manager operation coming from a suspicious proxy IP address, and further activity on the affected domain controller host led to an alert for a suspicious credential dump from NTDS.dit, where attackers dump the NTDS.dit file to obtain domain user credentials.",
+    "question": "For the alert about the suspicious credential dump from NTDS.dit, what was the name of the executable file (process) identified in that alert?",
+    "answer": "powershell.exe",
+    "solution": [
+      "The user account `Hailey Johnson` clicked on a link in an email that was later quarantined by zero-hour auto purge (ZAP).",
+      "An Azure Resource Manager operation was performed from a suspicious proxy IP address on the host with HostName `vnevado-dc`.",
+      "On that host, a suspicious credential dump from NTDS.dit was performed by the process with ExtractedFileName `powershell.exe` to obtain domain user credentials."
+    ],
+    "start_alert": 23,
+    "end_alert": 16,
+    "start_entities": [
+      24
+    ],
+    "end_entities": [
+      18
+    ],
+    "shortest_alert_path": [
+      23,
+      6,
+      25,
+      21,
+      16
+    ]
+  },
+  {
+    "context": "In a multi-stage phishing-related security incident, an alert titled \"Email messages containing malicious URL removed after delivery\" was raised on 2024-08-01 12:44:53 UTC. The emails were sent from `raphaelt@vnevado.alpineskihouse.co` with sender IP `202.205.215.225` and contained the malicious URL `dj01161621.bravesand-e1ccd718.eastus.azurecontainerapps.io`. An involved account was displayed as `Hailey Johnson` with Entra ID (AAD) user ID `5e5dd0bd-f7ed-4583-8e9e-52f91e31a360` and SID `S-1-5-21-1840151686-3534835288-156286563-1127`.",
+    "question": "For this alert about the malicious URL emails that were delivered and later removed, which mailbox address actually received these messages?",
+    "answer": "alyssat@vnevado.alpineskihouse.co",
+    "solution": [
+      "An email containing a malicious URL was delivered to the organization and later removed by ZAP (zero-hour auto purge), triggering the alert 'Email messages containing malicious URL removed after delivery' at 2024-08-01 12:44:53 UTC.",
+      "The mail message entity involved in this alert has Recipient `alyssat@vnevado.alpineskihouse.co`, identifying the mailbox that received the malicious URL email."
+    ],
+    "start_alert": 2,
+    "end_alert": 2,
+    "start_entities": [
+      6,
+      9,
+      7,
+      4,
+      10,
+      8,
+      5
+    ],
+    "end_entities": [
+      1
+    ],
+    "shortest_alert_path": [
+      2
+    ]
+  },
+  {
+    "context": "During an investigation, Microsoft Defender for Office 365 detected that a user with mailbox `alyssat@vnevado.alpineskihouse.co` clicked on a link that was determined to be malicious. Follow-on alerts showed that emails containing this malicious link were delivered and later removed by zero-hour auto purge (ZAP), and that the user had already accessed the link before the message was quarantined.",
+    "question": "In the alert reporting that a user accessed a link in an email that was subsequently quarantined by ZAP, what is the full URL that the user accessed?",
+    "answer": "https://dj01161621.bravesand-e1ccd718.eastus.azurecontainerapps.io/",
+    "solution": [
+      "The mailbox recipient `alyssat@vnevado.alpineskihouse.co` received an email and a potentially malicious URL click was detected at 2024-08-01 12:44:53 UTC.",
+      "The account `Hailey Johnson` was also affected by the campaign \u2014 emails containing the malicious URL were delivered and later removed after delivery.",
+      "The user accessed the link in the email that was subsequently quarantined by zero-hour auto purge (ZAP); the malicious URL clicked was `https://dj01161621.bravesand-e1ccd718.eastus.azurecontainerapps.io/`."
+    ],
+    "start_alert": 0,
+    "end_alert": 23,
+    "start_entities": [
+      1
+    ],
+    "end_entities": [
+      24
+    ],
+    "shortest_alert_path": [
+      0,
+      1,
+      2,
+      6,
+      23
+    ]
+  },
+  {
+    "context": "During this multi-stage incident, a 'Suspicious credential dump from NTDS.dit' alert was raised on 2024-08-01. Investigators observed `powershell.exe` running an encoded command that referenced NTDS-related activity, followed by `ntdsutil.exe` executing with the command line `\"ntdsutil.exe\" \"ac i ntds\" ifm \"create full c:\\temp\" q q` (Process ID 6748). This activity is linked through a shared host and a compromised account to further cloud-based activity, including an Azure Resource Manager operation from a suspicious proxy IP address. The same chain also includes an alert for email messages containing a malicious URL that were delivered and later removed from mailboxes.",
+    "question": "For the alert about emails containing a malicious URL that were removed after delivery, what was the sender IP address of those email messages?",
+    "answer": "202.205.215.225",
+    "solution": [
+      "A suspicious credential dump from NTDS.dit was detected on the domain controller host `vnevado-dc`, indicating attackers extracted domain user credentials.",
+      "Using the compromised credentials, an Azure Resource Manager operation was performed from a suspicious proxy IP address by the account with Name `Hailey Johnson`.",
+      "Emails containing a malicious URL were delivered to users and later removed; these messages originated from the sender IP `202.205.215.225`."
+    ],
+    "start_alert": 16,
+    "end_alert": 2,
+    "start_entities": [
+      17,
+      18,
+      19,
+      20
+    ],
+    "end_entities": [
+      4
+    ],
+    "shortest_alert_path": [
+      16,
+      21,
+      25,
+      6,
+      2
+    ]
+  },
+  {
+    "context": "During a multi-stage incident, an alert fired for 'Ntdsutil collecting Active Directory information'. The activity involved `powershell.exe` running with a long base64 encoded command (Process ID 2556, created 2024-08-01T12:37:29.65Z) that ultimately spawned `ntdsutil.exe` (Process ID 6748, created 2024-08-01T12:37:30.27Z) with the command line `\"ntdsutil.exe\" \"ac i ntds\" ifm \"create full c:\\temp\" q q`, a known technique for dumping the Active Directory database. Following this domain controller activity, the attack chain continued with cloud resource management operations from a suspicious proxy IP and a malicious URL being clicked on an endpoint. Around the same time, proxy logs also generated an alert for a connection from 231.60.52.209 (vnevado-win11h.vnevado.alpineskihouse.co) to login.micro.demo.antoinetest.ovh.",
+    "question": "In that proxy log alert, besides the source host address 231.60.52.209, which other IP address entity was flagged as part of the malicious connection?",
+    "answer": "228.3.31.94",
+    "solution": [
+      "Ntdsutil was used to collect Active Directory information on host `vnevado-dc`.",
+      "A suspicious Azure Resource Manager operation from a proxy IP address was performed by the account with SID `S-1-5-21-1840151686-3534835288-156286563-1127`.",
+      "A malicious URL was clicked on the device with hostname `vnevado-win11h`.",
+      "The proxy logs detected the malicious URL connection associated with the IP address `228.3.31.94`."
+    ],
+    "start_alert": 22,
+    "end_alert": 11,
+    "start_entities": [
+      17,
+      18,
+      19,
+      20
+    ],
+    "end_entities": [
+      15
+    ],
+    "shortest_alert_path": [
+      22,
+      21,
+      25,
+      8,
+      33,
+      13,
+      11
+    ]
+  }
+]

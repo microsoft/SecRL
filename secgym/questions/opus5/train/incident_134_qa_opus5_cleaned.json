@@ -1,0 +1,556 @@
+[
+  {
+    "context": "During an ongoing business email compromise (BEC) investigation, an alert was raised for email messages containing a malicious URL `https://ms175052280.orangecliff-f53f26fd.eastus.azurecontainerapps.io/` that were delivered and later removed. The message was sent from `alyssat@vnevado.alpineskihouse.co` (sender IP `254.241.243.229`) to the mailbox `raphaelt@vnevado.alpineskihouse.co`.",
+    "question": "A follow-up alert flagged suspicious emails being sent by the possibly compromised user account tied to this BEC fraud attempt. What IP address was associated with that follow-up alert?",
+    "answer": "237.7.81.122",
+    "solution": [
+      "The email account `raphaelt@vnevado.alpineskihouse.co` received an email containing a malicious URL, which was later removed after delivery at 2024-07-17 11:04:19 UTC.",
+      "The compromised account was then used to send suspicious BEC-related emails, originating from the IP address `237.7.81.122` at 2024-07-17 11:55:04 UTC."
+    ],
+    "start_alert": 13,
+    "end_alert": 18,
+    "start_entities": [
+      1,
+      2,
+      3,
+      4,
+      10
+    ],
+    "end_entities": [
+      16
+    ],
+    "shortest_alert_path": [
+      13,
+      7,
+      18
+    ]
+  },
+  {
+    "context": "During an investigation, an alert fired for \"Email messages containing malicious URL removed after delivery\" \u2014 emails containing the malicious URL `https://ms175052280.orangecliff-f53f26fd.eastus.azurecontainerapps.io/` were delivered to the mailbox `raphaelt@vnevado.alpineskihouse.co` (AAD user ID `e036dee7-fa23-42ef-a019-468c8d3401f1`, SID `S-1-5-21-1874151667-3554330288-105586563-1715`) and were later removed. The messages were observed coming from sender IP `254.241.243.229`.",
+    "question": "For the emails flagged in this alert, what is the sender's email address (the mailbox from which the malicious URL messages originated)?",
+    "answer": "alyssat@vnevado.alpineskihouse.co",
+    "solution": [
+      "At 2024-07-17 11:04:19 UTC, the alert \"Email messages containing malicious URL removed after delivery\" was triggered, indicating that emails containing a malicious URL were delivered to mailboxes and later removed.",
+      "The mail message entity associated with this alert shows the sender of the malicious email, Field: Sender, Value: `alyssat@vnevado.alpineskihouse.co`."
+    ],
+    "start_alert": 13,
+    "end_alert": 13,
+    "start_entities": [
+      10,
+      9,
+      7,
+      8,
+      2,
+      1,
+      4,
+      6
+    ],
+    "end_entities": [
+      3
+    ],
+    "shortest_alert_path": [
+      13
+    ]
+  },
+  {
+    "context": "During an ongoing BEC (business email compromise) investigation, an alert titled \"Suspicious emails sent by BEC-related user\" was triggered on 2024-07-17. The alert indicates that suspicious emails were sent from the possibly compromised account `raphaelt@vnevado.alpineskihouse.co` (display name `Nina Park`, SID `S-1-5-21-1874151667-3554330288-105586563-1715`, Entra ID `e036dee7-fa23-42ef-a019-468c8d3401f1`), with the messages originating from sender IP address `237.7.81.122`.",
+    "question": "A related alert in this incident involves the mailbox that was targeted by these suspicious messages. What is the primary address of that mailbox?",
+    "answer": "nathan@avoriaz.alpineskihouse.co",
+    "solution": [
+      "Suspicious emails related to an ongoing BEC (business email compromise) fraud attempt were sent from the possibly compromised mailbox with primary address `nathan@avoriaz.alpineskihouse.co`."
+    ],
+    "start_alert": 18,
+    "end_alert": 18,
+    "start_entities": [
+      16,
+      20,
+      7,
+      6,
+      21,
+      22,
+      8,
+      9
+    ],
+    "end_entities": [
+      19
+    ],
+    "shortest_alert_path": [
+      18
+    ]
+  },
+  {
+    "context": "During an ongoing identity-based investigation, an alert was raised for a sign-in from an anonymous IP address (e.g. Tor browser or anonymizer VPN) on 2024-07-17. The sign-in was associated with the AAD user ID `e036dee7-fa23-42ef-a019-468c8d3401f1` and originated from the IP address `170.54.121.63`.",
+    "question": "A related alert the following day indicates that an account was compromised following a password-spray attack, where a user signed in from an unusual location and browser. What is the email address of the user account that was compromised in that password-spray alert?",
+    "answer": "raphaelt@vnevado.alpineskihouse.co",
+    "solution": [
+      "A sign-in was detected from an anonymous IP address `170.54.121.63` (e.g., Tor browser or anonymizer VPN) at 2024-07-17 11:01:27 UTC.",
+      "Following a password-spray attack, the account with email `raphaelt@vnevado.alpineskihouse.co` was compromised, signing in from an unusual location and browser at 2024-07-18 14:54:18 UTC."
+    ],
+    "start_alert": 11,
+    "end_alert": 25,
+    "start_entities": [
+      9,
+      12
+    ],
+    "end_entities": [
+      7
+    ],
+    "shortest_alert_path": [
+      11,
+      12,
+      25
+    ]
+  },
+  {
+    "context": "During an investigation, we detected that one of your users clicked on a potentially malicious link `http://ms175052280.orangecliff-f53f26fd.eastus.azurecontainerapps.io/` that was delivered to their mailbox. About five minutes later, a related alert was raised indicating that email messages containing a malicious URL were delivered and later removed from the mailbox (ZAP - zero-hour auto purge).",
+    "question": "In the follow-up alert about emails containing a malicious URL being removed after delivery, what exact URL was flagged in those messages?",
+    "answer": "https://ms175052280.orangecliff-f53f26fd.eastus.azurecontainerapps.io/ (the same host as the clicked link, but using the HTTPS scheme)",
+    "solution": [
+      "The user with mailbox `raphaelt@vnevado.alpineskihouse.co` clicked on a potentially malicious URL.",
+      "The email messages containing the malicious URL `https://ms175052280.orangecliff-f53f26fd.eastus.azurecontainerapps.io/` were delivered and later removed."
+    ],
+    "start_alert": 0,
+    "end_alert": 13,
+    "start_entities": [
+      5
+    ],
+    "end_entities": [
+      10
+    ],
+    "shortest_alert_path": [
+      0,
+      4,
+      13
+    ]
+  },
+  {
+    "context": "During an identity-focused security incident, Microsoft Entra ID Protection raised a 'Malicious IP address' alert on 2024-07-18 13:48 UTC, indicating a sign-in from an IP address known to be malicious for the user account with AadUserId `e036dee7-fa23-42ef-a019-468c8d3401f1`.",
+    "question": "Roughly a day earlier, on 2024-07-17, the same compromised user account was also flagged for signing in from an anonymous IP address (such as a Tor browser or anonymizer VPN). What was the IP address recorded in that 'Anonymous IP address' alert?",
+    "answer": "170.54.121.63",
+    "solution": [
+      "A sign-in from an IP address known to be malicious was detected for the user account with AadUserId `e036dee7-fa23-42ef-a019-468c8d3401f1` at 2024-07-18 13:48:02 UTC.",
+      "The same compromised account was also involved in an earlier 'Anonymous IP address' alert at 2024-07-17 11:01:27 UTC, where the sign-in originated from the anonymous IP address `170.54.121.63` (e.g., Tor browser or anonymizer VPN)."
+    ],
+    "start_alert": 23,
+    "end_alert": 11,
+    "start_entities": [
+      9
+    ],
+    "end_entities": [
+      12
+    ],
+    "shortest_alert_path": [
+      23,
+      9,
+      11
+    ]
+  },
+  {
+    "context": "During an investigation, an alert was raised for 'Email messages containing malicious URL removed after delivery' - an email sent from `alyssat@vnevado.alpineskihouse.co` (sender IP `254.241.243.229`) to the mailbox of `raphaelt@vnevado.alpineskihouse.co` contained the malicious URL `https://ms175052280.orangecliff-f53f26fd.eastus.azurecontainerapps.io/`. The message was delivered and later removed. Roughly a day later, a related alert fired indicating that an account tied to this activity was compromised following a password-spray attack, where the user signed in from an unusual location and browser.",
+    "question": "For the follow-up alert about the account compromised after the password-spray attack, what was the IP address from which the suspicious sign-in originated?",
+    "answer": "170.54.121.63",
+    "solution": [
+      "The email account `Nina Park` received an email containing a malicious URL, which was delivered and later removed.",
+      "Following a password-spray attack, the account was compromised with a sign-in from an unusual location and browser originating from IP address `170.54.121.63`."
+    ],
+    "start_alert": 13,
+    "end_alert": 25,
+    "start_entities": [
+      1,
+      2,
+      3,
+      4,
+      10
+    ],
+    "end_entities": [
+      12
+    ],
+    "shortest_alert_path": [
+      13,
+      6,
+      25
+    ]
+  },
+  {
+    "context": "During an investigation, an alert was raised for 'Suspicious inbox manipulation rule', where a user's inbox rules were manipulated in a suspicious manner, possibly indicating an attacker gained access to a mailbox to delete or move messages and exfiltrate data. The activity was associated with cloud application AppId `20893` and originated from IP address `237.7.81.122`.",
+    "question": "An earlier related alert in this incident reported emails containing a malicious URL that were delivered and later removed. What was the recipient email address of those messages?",
+    "answer": "raphaelt@vnevado.alpineskihouse.co",
+    "solution": [
+      "A user account with SID `S-1-5-21-1874151667-3554330288-105586563-1715` had its inbox rules manipulated in a suspicious manner, indicating an attacker gained access to the mailbox and created rules to delete or move messages to exfiltrate data.",
+      "Related to this compromised mailbox activity, emails containing a malicious URL were delivered and later removed, with the mail message recipient being `raphaelt@vnevado.alpineskihouse.co`."
+    ],
+    "start_alert": 14,
+    "end_alert": 13,
+    "start_entities": [
+      15,
+      16
+    ],
+    "end_entities": [
+      1
+    ],
+    "shortest_alert_path": [
+      14,
+      8,
+      13
+    ]
+  },
+  {
+    "context": "During an investigation, an alert for a 'Suspicious inbox manipulation rule' was raised on 2024-07-17, where a user's inbox rules were manipulated in a suspicious manner from the IP address `237.7.81.122` within the cloud application with AppId `20893`. An attacker might have gained access to the user's mailbox and is manipulating rules to delete or move messages in order to exfiltrate data from the organization.",
+    "question": "The affected user account was also involved in a later alert on 2024-07-18 indicating the account was compromised following a password-spray attack, where the sign-in came from an unusual location and browser. What is the source IP address associated with that compromising sign-in?",
+    "answer": "170.54.121.63",
+    "solution": [
+      "The user account `Nina Park` had inbox rules manipulated in a suspicious manner, indicating an attacker may have gained access to the mailbox to hide or exfiltrate messages.",
+      "Following a password-spray attack, the compromised account was signed in from an unusual location and browser originating from the IP address `170.54.121.63`."
+    ],
+    "start_alert": 14,
+    "end_alert": 25,
+    "start_entities": [
+      15,
+      16
+    ],
+    "end_entities": [
+      12
+    ],
+    "shortest_alert_path": [
+      14,
+      6,
+      25
+    ]
+  },
+  {
+    "context": "During an investigation, a potentially malicious URL click was detected on 2024-07-17 \u2014 the user Nina Park (`raphaelt@vnevado.alpineskihouse.co`, SID `S-1-5-21-1874151667-3554330288-105586563-1715`) clicked on `https://ms175052280.orangecliff-f53f26fd.eastus.azurecontainerapps.io/`, delivered in a message sent from `alyssat@vnevado.alpineskihouse.co` (sender IP `254.241.243.229`) to her mailbox. The following day, the same user account was involved in a sign-in alert flagged as originating from an IP address known to be malicious.",
+    "question": "For the subsequent 'Malicious IP address' sign-in alert tied to this same user account, what was the malicious source IP address of the sign-in?",
+    "answer": "170.54.121.63",
+    "solution": [
+      "The user account with AadUserId `e036dee7-fa23-42ef-a019-468c8d3401f1` clicked on a potentially malicious URL on 2024-07-17 10:59:14 UTC.",
+      "Following the credential compromise, a sign-in for that user was observed on 2024-07-18 13:48:02 UTC originating from the known malicious IP address `170.54.121.63`."
+    ],
+    "start_alert": 0,
+    "end_alert": 23,
+    "start_entities": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      10
+    ],
+    "end_entities": [
+      12
+    ],
+    "shortest_alert_path": [
+      0,
+      9,
+      23
+    ]
+  },
+  {
+    "context": "During an investigation, a sign-in was detected from the IP address `170.54.121.63`, which is known to be malicious. This sign-in activity was linked to a compromised user account that was also involved in other alerts in the same incident, including one where emails containing a malicious URL were delivered and later removed from a mailbox.",
+    "question": "For the related alert about email messages containing a malicious URL that were removed after delivery, which mailbox (primary address) received those emails?",
+    "answer": "raphaelt@vnevado.alpineskihouse.co",
+    "solution": [
+      "A sign-in from a known malicious IP address was detected for the user account with AadUserId `e036dee7-fa23-42ef-a019-468c8d3401f1`.",
+      "The mailbox with primary address `raphaelt@vnevado.alpineskihouse.co` received email messages containing a malicious URL, which were removed after delivery."
+    ],
+    "start_alert": 23,
+    "end_alert": 13,
+    "start_entities": [
+      12
+    ],
+    "end_entities": [
+      4
+    ],
+    "shortest_alert_path": [
+      23,
+      9,
+      13
+    ]
+  },
+  {
+    "context": "During an ongoing business email compromise (BEC) investigation, an alert fired for \"Suspicious emails sent by BEC-related user\": the possibly compromised account of Nina Park (`raphaelt@vnevado.alpineskihouse.co`, SID `S-1-5-21-1874151667-3554330288-105586563-1715`) sent suspicious mail from sender IP `237.7.81.122` to the mailbox `nathan@avoriaz.alpineskihouse.co`. About a day later, on 2024-07-18, a related alert in the same incident reported a Password Spray attack tied back to the same compromised identity.",
+    "question": "For the Password Spray alert that is linked to this same compromised account, what source IP address was recorded as conducting the attack?",
+    "answer": "170.54.121.63",
+    "solution": [
+      "A possibly compromised user account with AadUserId `e036dee7-fa23-42ef-a019-468c8d3401f1` sent suspicious emails as part of an ongoing BEC (business email compromise) fraud attempt.",
+      "Following the account compromise activity, a password spray attack was detected originating from the IP address `170.54.121.63`."
+    ],
+    "start_alert": 18,
+    "end_alert": 24,
+    "start_entities": [
+      6,
+      7,
+      8,
+      16,
+      19,
+      20,
+      21,
+      22
+    ],
+    "end_entities": [
+      12
+    ],
+    "shortest_alert_path": [
+      18,
+      9,
+      24
+    ]
+  },
+  {
+    "context": "During an ongoing business email compromise (BEC) investigation, an alert was raised for suspicious emails sent by a possibly compromised user account. The emails were sent from `raphaelt@vnevado.alpineskihouse.co` (sender IP `237.7.81.122`) to the mailbox `nathan@avoriaz.alpineskihouse.co`. This alert was triggered based on a previous BEC-related alert, in which a suspicious inbox rule that hides incoming email messages was created within a risky Azure Active Directory session, indicating an attempt at financial fraud.",
+    "question": "For the earlier 'BEC financial fraud' alert where the hidden-message inbox rule was created, what is the security identifier (SID) of the account involved?",
+    "answer": "S-1-5-21-1874151667-3554330288-105586563-1715",
+    "solution": [
+      "A suspicious inbox rule that hides incoming email messages was created in a risky Azure Active Directory session by the user account with SID `S-1-5-21-1874151667-3554330288-105586563-1715`, indicating a BEC (business email compromise) financial fraud attempt.",
+      "The same possibly compromised user account with SID `S-1-5-21-1874151667-3554330288-105586563-1715` then sent suspicious emails, continuing the ongoing BEC fraud attempt."
+    ],
+    "start_alert": 18,
+    "end_alert": 17,
+    "start_entities": [
+      19,
+      20,
+      21,
+      22
+    ],
+    "end_entities": [
+      8
+    ],
+    "shortest_alert_path": [
+      18,
+      8,
+      17
+    ]
+  },
+  {
+    "context": "During an investigation of a multi-stage identity attack, an alert was raised for 'Account compromised following a password-spray attack', where a user was signed in from an unusual location and browser from the IP address `170.54.121.63`. An attacker might have compromised the user account for unauthorized access to the network.",
+    "question": "This compromise is linked to an earlier 'BEC financial fraud' alert, where a suspicious inbox rule that hides incoming email messages was created in a risky Azure Active Directory session. What was the source IP address associated with that inbox rule creation activity?",
+    "answer": "237.7.81.122",
+    "solution": [
+      "The user account `Nina Park` was compromised following a password-spray attack, with a sign-in from an unusual location and browser.",
+      "Using the compromised account, the attacker created a suspicious inbox rule that hides incoming email messages during a risky Azure Active Directory session, indicating business email compromise (BEC) financial fraud, originating from IP address `237.7.81.122`."
+    ],
+    "start_alert": 25,
+    "end_alert": 17,
+    "start_entities": [
+      12
+    ],
+    "end_entities": [
+      16
+    ],
+    "shortest_alert_path": [
+      25,
+      6,
+      17
+    ]
+  },
+  {
+    "context": "During an investigation, an alert titled \"Account compromised following a password-spray attack\" was raised on 2024-07-18. A user was signed in from an unusual location and browser, originating from the IP address `170.54.121.63`, suggesting an attacker may have compromised the account to gain unauthorized access to the network.",
+    "question": "Roughly a day before this sign-in, a related alert reported that a user clicked on a potentially malicious URL. Which mailbox address sent the email message that delivered that malicious link?",
+    "answer": "alyssat@vnevado.alpineskihouse.co",
+    "solution": [
+      "A user account with AadUserId `e036dee7-fa23-42ef-a019-468c8d3401f1` was compromised following a password-spray attack, with a sign-in from an unusual location and browser.",
+      "Using the compromised account, a potentially malicious URL click was detected, originating from a phishing email sent by the sender `alyssat@vnevado.alpineskihouse.co`."
+    ],
+    "start_alert": 25,
+    "end_alert": 0,
+    "start_entities": [
+      12
+    ],
+    "end_entities": [
+      3
+    ],
+    "shortest_alert_path": [
+      25,
+      9,
+      0
+    ]
+  },
+  {
+    "context": "During an identity-based attack investigation, an 'Anonymous IP address' alert was raised at 2024-07-17 11:01:27 UTC for a sign-in originating from the anonymizing IP `170.54.121.63` (e.g. Tor browser or anonymizer VPN). About 30 minutes later, the same compromised user account triggered a 'Suspicious inbox manipulation rule' alert, indicating an attacker gained access to the mailbox and created rules to delete or move messages in order to exfiltrate data.",
+    "question": "For the follow-up alert about the suspicious inbox manipulation rule, which IP address was recorded as performing the mailbox rule changes?",
+    "answer": "237.7.81.122",
+    "solution": [
+      "A sign-in from an anonymous IP address (e.g., Tor browser or anonymizer VPN) was detected for the user account with AadUserId `e036dee7-fa23-42ef-a019-468c8d3401f1` at `2024-07-17 11:01:27.633644+00:00`.",
+      "Following the compromise of that account, a suspicious inbox manipulation rule was created to delete or move messages, originating from the IP address `237.7.81.122` at `2024-07-17 11:34:48.784934+00:00`."
+    ],
+    "start_alert": 11,
+    "end_alert": 14,
+    "start_entities": [
+      12
+    ],
+    "end_entities": [
+      16
+    ],
+    "shortest_alert_path": [
+      11,
+      9,
+      14
+    ]
+  },
+  {
+    "context": "During an investigation of a business email compromise (BEC) financial fraud incident, analysts found that a suspicious inbox rule designed to hide incoming email messages was created during a risky Azure Active Directory session originating from IP address `237.7.81.122`. Shortly before this, an alert fired for emails containing a malicious URL that were delivered and later removed from a mailbox.",
+    "question": "For the related alert about emails with a malicious URL that were delivered and then removed after delivery, which mailbox address was the recipient of those messages?",
+    "answer": "raphaelt@vnevado.alpineskihouse.co",
+    "solution": [
+      "A suspicious inbox rule that hides incoming email messages was created in a risky Azure AD session by the user with AadUserId `e036dee7-fa23-42ef-a019-468c8d3401f1`, indicating a possible business email compromise (BEC) financial fraud attempt.",
+      "Related to this compromise, emails containing a malicious URL were delivered and later removed from the mailbox of the recipient `raphaelt@vnevado.alpineskihouse.co`."
+    ],
+    "start_alert": 17,
+    "end_alert": 13,
+    "start_entities": [
+      16
+    ],
+    "end_entities": [
+      1
+    ],
+    "shortest_alert_path": [
+      17,
+      9,
+      13
+    ]
+  },
+  {
+    "context": "During an investigation, an alert fired for 'Email messages containing malicious URL removed after delivery' \u2014 an email sent from `alyssat@vnevado.alpineskihouse.co` (sender IP `254.241.243.229`) was delivered to the mailbox `raphaelt@vnevado.alpineskihouse.co` (account name Nina Park, SID S-1-5-21-1874151667-3554330288-105586563-1715) and contained the malicious URL `https://ms175052280.orangecliff-f53f26fd.eastus.azurecontainerapps.io/` before being removed.",
+    "question": "Just minutes before this email alert, the same compromised user account triggered an identity alert for signing in from an anonymous IP address (e.g. Tor browser or anonymizer VPN). What was the source IP address of that anonymous sign-in?",
+    "answer": "170.54.121.63",
+    "solution": [
+      "The account with AadUserId `e036dee7-fa23-42ef-a019-468c8d3401f1` received an email containing a malicious URL, which was later removed after delivery.",
+      "Following that, a sign-in was detected from the anonymous IP address `170.54.121.63` (e.g., Tor browser or anonymizer VPN), indicating the compromised account was accessed while hiding the true source."
+    ],
+    "start_alert": 13,
+    "end_alert": 11,
+    "start_entities": [
+      1,
+      2,
+      3,
+      4,
+      6,
+      7,
+      8,
+      10
+    ],
+    "end_entities": [
+      12
+    ],
+    "shortest_alert_path": [
+      13,
+      9,
+      11
+    ]
+  },
+  {
+    "context": "During this investigation, Microsoft Entra ID Protection raised an 'Anonymous IP address' alert on 2024-07-17, flagging a sign-in originating from the anonymous IP address `170.54.121.63` (e.g., Tor browser or anonymizer VPN). Pivoting on the related sign-in infrastructure led to another alert raised the following day, on 2024-07-18, reporting a password spray attack against the tenant.",
+    "question": "For the Password Spray alert that is linked to this activity, what is the Microsoft Entra (AAD) user ID of the targeted account?",
+    "answer": "e036dee7-fa23-42ef-a019-468c8d3401f1",
+    "solution": [
+      "A sign-in was detected from an anonymous IP address `170.54.121.63` (e.g. Tor browser or anonymizer VPN) at 2024-07-17 11:01:27 UTC.",
+      "Following the anonymous sign-in activity, a password spray attack was detected targeting the user account with AadUserId `e036dee7-fa23-42ef-a019-468c8d3401f1` at 2024-07-18 14:36:59 UTC."
+    ],
+    "start_alert": 11,
+    "end_alert": 24,
+    "start_entities": [
+      12
+    ],
+    "end_entities": [
+      9
+    ],
+    "shortest_alert_path": [
+      11,
+      12,
+      24
+    ]
+  },
+  {
+    "context": "During this multi-stage incident, a password spray attack was detected originating from the IP address `170.54.121.63`, targeting user accounts in the environment. Investigation of the same incident also surfaced an earlier alert, raised on 2024-07-17, for email messages containing a malicious URL that were delivered to a mailbox and later removed by the system.",
+    "question": "Which user account (display name) is associated with the alert about the emails containing a malicious URL that were removed after delivery?",
+    "answer": "Nina Park",
+    "solution": [
+      "A password spray attack was detected against the account with AadUserId `e036dee7-fa23-42ef-a019-468c8d3401f1`.",
+      "The email account `Nina Park` received emails containing a malicious URL, which were delivered and later removed."
+    ],
+    "start_alert": 24,
+    "end_alert": 13,
+    "start_entities": [
+      12
+    ],
+    "end_entities": [
+      6
+    ],
+    "shortest_alert_path": [
+      24,
+      9,
+      13
+    ]
+  },
+  {
+    "context": "A security incident was flagged in our environment beginning with a 'Malicious IP address' alert on 2024-07-18 13:48:02 UTC, which triggers when a sign-in originates from an IP address known to be malicious during or around the time of sign-in. In this case, the sign-in was observed coming from the IP address `170.54.121.63`.",
+    "question": "Following the alert chain from this malicious sign-in, which compromised user account was involved? Please provide the account's Microsoft Entra ID (AAD) user object ID.",
+    "answer": "e036dee7-fa23-42ef-a019-468c8d3401f1",
+    "solution": [
+      "A sign-in was detected originating from an IP address known to be malicious, triggering the \"Malicious IP address\" alert at 2024-07-18 13:48:02 UTC.",
+      "The sign-in attempt from this malicious IP address was associated with the user account having AadUserId `e036dee7-fa23-42ef-a019-468c8d3401f1`, indicating this account was potentially compromised."
+    ],
+    "start_alert": 23,
+    "end_alert": 23,
+    "start_entities": [
+      12
+    ],
+    "end_entities": [
+      9
+    ],
+    "shortest_alert_path": [
+      23
+    ]
+  },
+  {
+    "context": "During this multi-stage incident, a potentially malicious URL click was detected on 2024-07-17. The email delivering the link was sent from `alyssat@vnevado.alpineskihouse.co` (sender IP `254.241.243.229`) to the mailbox of `raphaelt@vnevado.alpineskihouse.co`, and contained the link `https://ms175052280.orangecliff-f53f26fd.eastus.azurecontainerapps.io/`. The following day, a related alert reported that a user account was compromised after being signed in from an unusual location and browser during a password-spray attack.",
+    "question": "For the follow-up alert about the account compromised following the password-spray attack, what was the source IP address of the suspicious sign-in?",
+    "answer": "170.54.121.63",
+    "solution": [
+      "The user account with SID `S-1-5-21-1874151667-3554330288-105586563-1715` clicked on a potentially malicious URL delivered to them.",
+      "Following a password-spray attack, the compromised account was signed in from an unusual location and browser originating from IP address `170.54.121.63`."
+    ],
+    "start_alert": 0,
+    "end_alert": 25,
+    "start_entities": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      10
+    ],
+    "end_entities": [
+      12
+    ],
+    "shortest_alert_path": [
+      0,
+      8,
+      25
+    ]
+  },
+  {
+    "context": "During a business email compromise investigation, an 'Anonymous IP address' alert was triggered for a sign-in originating from the IP address `170.54.121.63` (e.g. Tor browser or anonymizer VPN). Shortly afterwards, a related alert fired indicating that a suspicious inbox rule hiding incoming email messages was created within the same risky Azure Active Directory session, a common technique used to conduct BEC financial fraud.",
+    "question": "Which user account was the suspicious inbox rule associated with the BEC financial fraud alert created for? Provide the account name.",
+    "answer": "Nina Park",
+    "solution": [
+      "A sign-in from an anonymous IP address (e.g., Tor browser or anonymizer VPN) was detected for the account with AadUserId `e036dee7-fa23-42ef-a019-468c8d3401f1` at 2024-07-17 11:01:27 UTC.",
+      "Within the same risky Azure Active Directory session, a suspicious inbox rule that hides incoming email messages was created for the account `Nina Park` at 2024-07-17 11:34:48 UTC, indicating a possible business email compromise (BEC) financial fraud attempt."
+    ],
+    "start_alert": 11,
+    "end_alert": 17,
+    "start_entities": [
+      12
+    ],
+    "end_entities": [
+      6
+    ],
+    "shortest_alert_path": [
+      11,
+      9,
+      17
+    ]
+  }
+]

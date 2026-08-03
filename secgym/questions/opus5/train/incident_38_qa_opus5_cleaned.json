@@ -1,0 +1,102 @@
+[
+  {
+    "context": "During an investigation of a multi-stage incident, a \"Suspicious Application Window Discovery\" alert was raised on 2024-07-04 for the device `vnevado-win11a` (AAD Device ID `39d8c57f-2d08-4888-b0cd-12cd0679337a`). The alert involved the user account `nathans` (AAD User ID `12185914-91dd-4fb9-94f9-3252203b0426`), the remote IP address `72.5.72.208`, and the execution of `powershell.exe` (PID 7472, and PID 4656 launched with `-executionpolicy bypass -encodedcommand ...`). A known tool or technique was used to gather information about the target device or network for later attacks.",
+    "question": "For the user account involved in this discovery activity, what is the on-premises Windows security identifier (SID) recorded in the alert?",
+    "answer": "S-1-5-21-1240151660-3534038288-105586567-4122",
+    "solution": [
+      "A known reconnaissance tool or technique was used on the device to perform Suspicious Application Window Discovery at `2024-07-04 22:35:00.593840+00:00`, indicating an attacker gathering information about the target device or network for later attacks.",
+      "This discovery activity was carried out under the user context of the account with SID `S-1-5-21-1240151660-3534038288-105586567-4122`."
+    ],
+    "start_alert": 0,
+    "end_alert": 0,
+    "start_entities": [
+      8,
+      1,
+      5,
+      4,
+      7,
+      6,
+      3,
+      9
+    ],
+    "end_entities": [
+      2
+    ],
+    "shortest_alert_path": [
+      0
+    ]
+  },
+  {
+    "context": "During an investigation, an alert titled \"Suspicious process injection observed\" was raised on host `vnevado-win11a` (Azure AD device ID `39d8c57f-2d08-4888-b0cd-12cd0679337a`) under the user account `nathans` (SID `S-1-5-21-1240151660-3534038288-105586567-4122`, AAD user ID `12185914-91dd-4fb9-94f9-3252203b0426`). A process abnormally injected code into `notepad.exe` (Process ID 8932, created 2024-06-26T15:49:51.3043595Z), which then reached out to the URL `https://wcdstaticfilesprdeus.blob.core.windows.net/wcdstaticfiles/winatp-intro-fileless.txt`. Injection is often used to hide malicious code execution inside a trusted process, and the target process may then open a listening port or connect to a command-and-control server.",
+    "question": "Following this injection activity, a related alert in the same incident flagged an outbound network connection to an external endpoint. What is the IP address of that remote endpoint?",
+    "answer": "72.5.72.208",
+    "solution": [
+      "A process abnormally injected code into another process, allowing malicious code to run under a trusted process.",
+      "As a result of the suspicious process injection, the compromised process initiated an outbound connection to the command and control server at IP address `72.5.72.208`."
+    ],
+    "start_alert": 10,
+    "end_alert": 10,
+    "start_entities": [
+      11,
+      12,
+      13,
+      1,
+      3,
+      9,
+      8,
+      2
+    ],
+    "end_entities": [
+      4
+    ],
+    "shortest_alert_path": [
+      10
+    ]
+  },
+  {
+    "context": "During this multi-stage incident, an alert was raised for \"Unexpected behavior observed by a process ran with no command line arguments\" on 2024-07-04 at 22:35:01 UTC, where the legitimate process by that name does not normally exhibit such behavior. This activity was associated with the IP address `202.183.149.174`. Such unexpected behavior may result from extraneous code injected into a legitimate process, or from a malicious executable masquerading as a legitimate one by name.",
+    "question": "Roughly a second before this alert, a related 'Suspicious process injection observed' alert fired, where a process abnormally injected code into another process, which then reached out to an external web resource. What is the full URL that was contacted in that injection alert?",
+    "answer": "https://wcdstaticfilesprdeus.blob.core.windows.net/wcdstaticfiles/winatp-intro-fileless.txt",
+    "solution": [
+      "A process named `notepad.exe` ran with no command line arguments and exhibited unexpected behavior, indicating that malicious code was likely injected into the legitimate process or that a malicious executable was masquerading under that name.",
+      "The abnormally injected process then performed suspicious network activity, connecting out to the URL `https://wcdstaticfilesprdeus.blob.core.windows.net/wcdstaticfiles/winatp-intro-fileless.txt`, consistent with command and control communication from the injected code."
+    ],
+    "start_alert": 15,
+    "end_alert": 10,
+    "start_entities": [
+      16
+    ],
+    "end_entities": [
+      13
+    ],
+    "shortest_alert_path": [
+      15,
+      12,
+      10
+    ]
+  },
+  {
+    "context": "During a multi-stage incident, a Suspicious Application Window Discovery alert flagged a known tool or technique used to gather information on a device. The activity involved `powershell.exe` (PID 7472, created 2024-06-26T15:49:15.786Z) and a second PowerShell process (PID 4656, created 2024-06-26T15:49:41.402Z) launched with `-executionpolicy bypass -encodedcommand ...`, whose decoded payload downloads content over HTTPS. Roughly a second later, a related alert fired for unexpected behavior observed by a process that ran with no command line arguments, which may indicate injected code or a malicious executable masquerading as a legitimate one.",
+    "question": "In that follow-up alert about the process running with no command line arguments, what IP address was identified as an entity?",
+    "answer": "202.183.149.174",
+    "solution": [
+      "The account `nathans` was used to run a known tool or technique to perform suspicious application window discovery on the device, gathering information about the target device or network.",
+      "Following the discovery activity, a process running with no command line arguments exhibited unexpected behavior \u2014 likely due to injected code or a masquerading malicious executable \u2014 and communicated with the IP address `202.183.149.174`."
+    ],
+    "start_alert": 0,
+    "end_alert": 15,
+    "start_entities": [
+      5,
+      6,
+      7
+    ],
+    "end_entities": [
+      16
+    ],
+    "shortest_alert_path": [
+      0,
+      1,
+      15
+    ]
+  }
+]

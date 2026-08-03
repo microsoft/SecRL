@@ -1,0 +1,2790 @@
+[
+  {
+    "context": "During an investigation of this intrusion, a 'Suspicious access to LSASS service' alert fired after `mimikatz.exe` was repeatedly executed on the compromised host in the vnevado.alpineskihouse.co domain. The observed command lines included `\"mimikatz.exe\" privilege::debug sekurlsa::logonpasswords exit` (PID 5196), and several pass-the-hash runs such as PID 4112 (`sekurlsa::pth /user:kyleg /ntlm:96def1a633fc6790124d5f8fe31cc72b ... /run:\"powershell.exe dir \\\\vnevado-win10b\\c$\"`), PID 6880 and PID 7092, the latter launching `powershell.exe c:\\m365dattack\\get-krbticket.ps1`. These processes accessed `lsass.exe` (PID 636) to dump credentials.",
+    "question": "A closely related alert, 'Malicious credential theft tool execution detected', fired seconds earlier for another credential theft command that targeted the domain controller's directory replication rather than LSASS memory. What was the process ID, creation time, and full command line of that execution, and which account was targeted?",
+    "answer": "Process ID 4748, created 2024-06-27T14:33:38.0249949Z, command line: `\"mimikatz.exe\" \"lsadump::dcsync /domain:vnevado.alpineskihouse.co /user:xfbzkp\" exit` \u2014 the targeted account was `xfbzkp`.",
+    "solution": [
+      "The account with SID `S-5-7-21-1843151660-3234030288-105586167-1422` performed suspicious access to the LSASS service in an attempt to dump clear-text credentials from memory.",
+      "Using those credentials, the attacker executed the known credential theft tool Mimikatz with the command line `\"mimikatz.exe\" \"lsadump::dcsync /domain:vnevado.alpineskihouse.co /user:xfbzkp\" exit` at `2024-06-27t14:33:38.0249949z`, with Process ID `4748`."
+    ],
+    "start_alert": 102,
+    "end_alert": 26,
+    "start_entities": [
+      17,
+      37,
+      38,
+      40,
+      45,
+      56,
+      67,
+      68,
+      103
+    ],
+    "end_entities": [
+      30
+    ],
+    "shortest_alert_path": [
+      102,
+      28,
+      26
+    ]
+  },
+  {
+    "context": "During an investigation of a multi-stage identity attack, the 'Kekeo' malware family was detected and found active in the environment. The activity involved the credential theft tool `rubeus.exe`, executed under the account `fk8mq` with process ID 2608 and the command line `rubeus.exe dump /service:xfbzkp /user:lucasb`. Follow-on alerts showed Kerberos abuse against the domain controller VNEVADO-DC, including a suspected overpass-the-hash attempt and, shortly after, a suspected identity theft (pass-the-ticket) alert in which an actor stole an IT director's Kerberos ticket from one workstation and replayed it on another to access 4 resources.",
+    "question": "For the suspected identity theft (pass-the-ticket) alert, what is the security identifier (SID) of the compromised user account whose Kerberos ticket was stolen and reused?",
+    "answer": "S-1-0-25-1848151668-3534030238-185306563-542 (the SID of Julian Burke, the IT director)",
+    "solution": [
+      "The 'Kekeo' malware was detected and was active on the device associated with the user account with AadUserId `97e6a954-b6bd-48a5-808c-bd8464cce677`.",
+      "Using Kekeo, an overpass-the-hash (Kerberos) attack was attempted from the host `VNEVADO-Win10V` against VNEVADO-DC, using Emma Clark's (Helpdesk Administrator) credentials.",
+      "From the same host, an actor stole and used a Kerberos ticket belonging to the account with SID `S-1-0-25-1848151668-3534030238-185306563-542` (Julian Burke, IT director) taken from VNEVADO-Win10B, to access 4 resources in a pass-the-ticket identity theft attack."
+    ],
+    "start_alert": 100,
+    "end_alert": 130,
+    "start_entities": [
+      1,
+      7,
+      9,
+      65
+    ],
+    "end_entities": [
+      133
+    ],
+    "shortest_alert_path": [
+      100,
+      3,
+      119,
+      116,
+      130
+    ]
+  },
+  {
+    "context": "During an investigation, a malicious credential theft tool execution was detected on an endpoint: the process `mimikatz.exe` (Process ID 5196, created 2024-06-27T14:32:35.4061023Z) was launched with the command line `\"mimikatz.exe\" privilege::debug sekurlsa::logonpasswords exit`, indicating an intent to dump users' credentials from memory. A second, nearly identical credential theft alert was raised on the same device shortly afterwards.",
+    "question": "For the second credential theft tool execution on the same device, what was the process ID and full command line used, and which domain and user account were targeted?",
+    "answer": "Process ID 4748 (created 2024-06-27T14:33:38.0249949Z) ran `\"mimikatz.exe\" \"lsadump::dcsync /domain:vnevado.alpineskihouse.co /user:xfbzkp\" exit`, targeting the domain vnevado.alpineskihouse.co and the user account xfbzkp via a DCSync attack.",
+    "solution": [
+      "A known credential theft tool execution was detected on the host with AadDeviceId `4d8d23e9-a77d-4e33-9435-b8c457e57ca1`.",
+      "On that host, the attacker ran the credential theft tool Mimikatz with the command line `\"mimikatz.exe\" \"lsadump::dcsync /domain:vnevado.alpineskihouse.co /user:xfbzkp\" exit`, with Process ID `4748` at `2024-06-27t14:33:38.0249949z`, attempting to dump credentials via a DCSync attack."
+    ],
+    "start_alert": 89,
+    "end_alert": 26,
+    "start_entities": [
+      67
+    ],
+    "end_entities": [
+      30
+    ],
+    "shortest_alert_path": [
+      89,
+      33,
+      26
+    ]
+  },
+  {
+    "context": "During this incident, a suspicious service was launched on a device: the process `psexesvc.exe` (Process ID 7668, created 2024-06-27T14:34:10.0201983Z) was started by `services.exe` (Process ID 652, created 2024-06-19T12:56:00.7201251Z). Attackers often abuse services to launch malicious commands or programs in order to maintain persistence or elevate privileges. Almost at the same time, a SID history injection was detected on the same device, where attackers typically modify the SID history attribute of an existing domain user to an SID with elevated privileges.",
+    "question": "Which user account was targeted in the SID history injection alert associated with this device?",
+    "answer": "lucasb",
+    "solution": [
+      "A suspicious service was launched on the host `vnevado-dc`, potentially used by attackers to run malicious commands for persistence or privilege elevation.",
+      "A SID history injection was detected involving the account `lucasb`, where the SID history attribute was modified to grant elevated privileges."
+    ],
+    "start_alert": 86,
+    "end_alert": 72,
+    "start_entities": [
+      5,
+      61,
+      87,
+      88
+    ],
+    "end_entities": [
+      13
+    ],
+    "shortest_alert_path": [
+      86,
+      20,
+      72
+    ]
+  },
+  {
+    "context": "During an investigation, a malicious credential theft tool execution was detected on host `vnevado-win10v` (Azure AD device ID `4d8d23e9-a77d-4e33-9435-b8c457e57ca1`), where the account `tgs2z` ran `mimikatz.exe` with the command line `\"mimikatz.exe\" privilege::debug sekurlsa::logonpasswords exit` (Process ID 5196, created 2024-06-27T14:32:35Z). Follow-on activity on the same device showed multiple dual-purpose tools being dropped, and shortly afterwards one of those suspicious files was registered as a Windows service, likely for persistence.",
+    "question": "For the alert reporting that a suspicious file was registered as a service, what is the security identifier (SID) of the account associated with that activity?",
+    "answer": "S-1-5-21-1540151660-3530000288-105586595-1517",
+    "solution": [
+      "A known credential theft tool was executed on the host with AadDeviceId `4d8d23e9-a77d-4e33-9435-b8c457e57ca1`, indicating an attempt to dump users' credentials, keys, and plain-text passwords.",
+      "Multiple dual-purpose tools were dropped on the device, including the file `psexesvc.exe`, which can be used for credential theft, privilege escalation, and lateral movement.",
+      "The account with SID `S-1-5-21-1540151660-3530000288-105586595-1517` registered the suspicious file as a service, likely for persistence."
+    ],
+    "start_alert": 89,
+    "end_alert": 21,
+    "start_entities": [
+      27,
+      28,
+      29,
+      31,
+      32,
+      33,
+      67
+    ],
+    "end_entities": [
+      2
+    ],
+    "shortest_alert_path": [
+      89,
+      33,
+      62,
+      24,
+      21
+    ]
+  },
+  {
+    "context": "During this multi-stage incident, an alert fired for \"PsExec launched a command on a remote device\" on the host with AAD device ID `4d8d23e9-a77d-4e33-9435-b8c457e57ca1`. The activity was tied to the account `tgs2z` (SID `S-5-7-21-1843151660-3234030288-105586167-1422`) and included processes such as `powershell.exe -executionpolicy bypass -file c:\\users\\tgs2z\\downloads\\domaindominance27\\domaindominance27.ps1`, `powershell.exe c:\\m365dattack\\get-krbticket.ps1`, and remote commands like `\"psexec.exe\" \\\\vnevado-win10b -accepteula cmd /c \"powershell -command set-mppreference -disablerealtimemonitoring 1\"` and `\"psexec.exe\" \\\\vnevado-win10b -accepteula cmd /c \"c:\\temp\\rubeus.exe dump /service:xfbzkp /user:lucasb > c:\\temp\\adminticket.txt\"`. Shortly before these events, related alerts for SID history injection and a suspicious service launch were also raised on the affected devices.",
+    "question": "For the related \"Suspicious service launched\" alert, which service executable was started, and what were its process ID and creation time?",
+    "answer": "The service executable was `psexesvc.exe`, with Process ID 7668, created at 2024-06-27T14:34:10.0201983Z.",
+    "solution": [
+      "PsExec was used to launch a command on a remote device, executing the process `net.exe` remotely to move laterally in the organization.",
+      "A SID history injection was detected on the host `vnevado-dc`, where an attacker modified the SID history attribute to gain elevated privileges.",
+      "A suspicious service was launched on the device with Process ID `7668` at `2024-06-27t14:34:10.0201983z` running the command line `psexesvc.exe`, the PsExec service used to maintain persistence and execute remote commands."
+    ],
+    "start_alert": 95,
+    "end_alert": 86,
+    "start_entities": [
+      33,
+      69,
+      49,
+      50,
+      37,
+      29,
+      97,
+      27,
+      28,
+      36
+    ],
+    "end_entities": [
+      61
+    ],
+    "shortest_alert_path": [
+      95,
+      18,
+      93,
+      20,
+      86
+    ]
+  },
+  {
+    "context": "During an investigation, a SID history injection was detected on a device where `powershell.exe` ran the command `powershell.exe -command \"net.exe stop ntds /y; add-addbsidhistory -samaccountname bdadmin -sidhistory \\\"s-1-5-32-544\\\" -databasepath (get-itemproperty -path registry::hklm\\system\\currentcontrolset\\services\\ntds\\parameters).\\\"dsa database file\\\" -force; net.exe start ntds\"` (Process ID 3780), along with a child process `net1 stop ntds /y` (Process ID 7712) and a suspicious file `dkwj.mze`. Related alerts show a file being dropped and launched from a remote location, and a sign-in attempt made with a deceptive (decoy) user account on the device.",
+    "question": "For the related alert about the sign-in attempt with a deceptive user account, what is the name of the account that was used?",
+    "answer": "kyleg",
+    "solution": [
+      "A SID history injection was detected involving the account with SID `S-1-5-21-1440151660-4837038288-105596163-1120`, where the attacker modified the SID history attribute to gain elevated privileges.",
+      "A remote session from IP address `141.216.110.153` dropped a file on the device and executed it, indicating lateral movement or malware propagation.",
+      "A sign-in attempt was detected using the deceptive user account `kyleg`, which the attacker likely used as a decoy account for lateral movement and accessing sensitive data."
+    ],
+    "start_alert": 72,
+    "end_alert": 75,
+    "start_entities": [
+      16,
+      17,
+      18,
+      73,
+      74
+    ],
+    "end_entities": [
+      42
+    ],
+    "shortest_alert_path": [
+      72,
+      14,
+      60,
+      25,
+      75
+    ]
+  },
+  {
+    "context": "During this multi-stage incident, an alert for a 'Suspicious service launched' was raised, showing that `services.exe` (Process ID 652, created 2024-06-19T12:56:00.7201251Z) started a suspicious service with `psexesvc.exe` (Process ID 7668, created 2024-06-27T14:34:10.0201983Z). Attackers commonly use services in this way to launch malicious commands or programs in order to maintain persistence or elevate privileges. Related alerts on the same device include a SID history injection and an alert indicating that multiple known public dual-purpose tools were dropped, which could be used for credential theft, privilege escalation, and lateral movement.",
+    "question": "In the related alert reporting that multiple dual-purpose tools were dropped on this device, what is the name of the dropped PowerShell script file?",
+    "answer": "domaindominance27.ps1",
+    "solution": [
+      "A suspicious service was launched on the host `vnevado-dc`, indicating attackers using services to run malicious commands for persistence or privilege escalation.",
+      "On that device, a SID history injection was detected involving the process `powershell.exe`, used to grant an existing domain user elevated privileges.",
+      "Multiple dual-purpose tools were dropped on the device, including the file `domaindominance27.ps1`, which can be used for credential theft, privilege escalation, and lateral movement."
+    ],
+    "start_alert": 86,
+    "end_alert": 76,
+    "start_entities": [
+      61,
+      87,
+      88
+    ],
+    "end_entities": [
+      66
+    ],
+    "shortest_alert_path": [
+      86,
+      20,
+      93,
+      17,
+      76
+    ]
+  },
+  {
+    "context": "A \"Potential human-operated malicious activity\" alert was raised on device `vnevado-win10b` (AAD device ID `fafdcd65-46c6-45a6-aa85-ec9b77ca0bcb`), where a sequence of suspicious behaviors was observed, including execution of `psexesvc.exe` (PID 5512, created 2024-06-27T14:33:27Z), the presence of the file `rubeus.exe`, activity from IP `141.216.110.153`, and involvement of accounts such as `kyleg` and `fk8mq` (SID S-1-5-21-1540151660-3530000288-105586595-1517). This type of activity can lead to ransomware or other payloads being deployed.",
+    "question": "Moments later, a related alert flagged the possible use of the Rubeus kerberoasting tool on this endpoint. What is the Microsoft Entra ID (Azure AD) user ID of the account associated with that Rubeus alert?",
+    "answer": "1d94aaf6-efe6-4e76-ad56-ffd7d1257bc1",
+    "solution": [
+      "A sequence of alerts indicative of human-operated malicious activity was observed on the device, involving the process file `rubeus.exe`.",
+      "The Rubeus kerberoasting tool was possibly used by the account with AadUserId `1d94aaf6-efe6-4e76-ad56-ffd7d1257bc1`, potentially requesting Kerberos service tickets to extract credentials or perform pass-the-ticket attacks."
+    ],
+    "start_alert": 105,
+    "end_alert": 107,
+    "start_entities": [
+      42,
+      1,
+      4,
+      5,
+      25,
+      23,
+      11,
+      10,
+      65,
+      2
+    ],
+    "end_entities": [
+      29
+    ],
+    "shortest_alert_path": [
+      105,
+      7,
+      107
+    ]
+  },
+  {
+    "context": "During a multi-stage incident, an alert for \"Anomalous account lookups\" was raised on host `vnevado-win10v` (AAD Device ID `4d8d23e9-a77d-4e33-9435-b8c457e57ca1`) under account `tgs2z`. A script named `domaindominance27.ps1` repeatedly launched `net.exe` with discovery commands such as `\"net.exe\" user /domain`, `\"net.exe\" group /domain`, `\"net.exe\" group \"domain admins\" /domain`, `\"net.exe\" group \"enterprise admins\" /domain`, and `\"net.exe\" user fk8mq /domain`, suggesting an attacker was gathering information about potential targets.",
+    "question": "A few days later, a related reconnaissance alert was triggered from this same endpoint, where SMB sessions were enumerated on the domain controller VNEVADO-DC to retrieve the recent IP addresses of two accounts. What is the display name of the user account that performed this SMB reconnaissance?",
+    "answer": "Ethan Brooks (Account Executive)",
+    "solution": [
+      "An anomalous chain of user account lookups was observed from the account with AadUserId `1d94aaf6-efe6-4e76-ad56-ffd7d1257bc1`, indicating the attacker was gathering information about potential targets.",
+      "The account `Ethan Brooks` (Account Executive) on VNEVADO-Win10V then performed user and IP address reconnaissance by enumerating SMB sessions on VNEVADO-DC, retrieving recent IP addresses of 2 accounts."
+    ],
+    "start_alert": 94,
+    "end_alert": 114,
+    "start_entities": [
+      27,
+      32,
+      33,
+      18,
+      81,
+      83,
+      66,
+      80,
+      82,
+      84
+    ],
+    "end_entities": [
+      117
+    ],
+    "shortest_alert_path": [
+      94,
+      29,
+      114
+    ]
+  },
+  {
+    "context": "During an investigation, a suspicious account creation alert was raised: a PowerShell process (PID 4676) ran with the command line `\"powershell.exe\" -executionpolicy bypass -file c:\\users\\tgs2z\\downloads\\domaindominance27\\domaindominance27.ps1`, which subsequently spawned `net.exe` (PID 3624) with the command line `\"net.exe\" user /add bdadmin password1! /domain`. Creating a new user account this way can establish secondary or backup access, suggesting an attacker attempting to maintain persistence in the organization.",
+    "question": "Following this activity, a related alert was triggered for a sign-in attempt using a deceptive (decoy) user account on the same device. What is the security identifier (SID) of the account used in that sign-in attempt?",
+    "answer": "S-0-6-5",
+    "solution": [
+      "A suspicious new user account was created on host `vnevado-win10v`, likely to establish backup/persistent access to the device or organization.",
+      "A sign-in attempt with the deceptive user account `kyleg` was detected on that device, suggesting an attacker used a fake or decoy account for lateral movement or data access.",
+      "The deceptive account used in the sign-in attempt corresponds to the account with SID `S-0-6-5`."
+    ],
+    "start_alert": 48,
+    "end_alert": 75,
+    "start_entities": [
+      17,
+      18,
+      49,
+      50,
+      51
+    ],
+    "end_entities": [
+      23
+    ],
+    "shortest_alert_path": [
+      48,
+      32,
+      41,
+      42,
+      75
+    ]
+  },
+  {
+    "context": "In a multi-stage incident, an active 'Kekeo' malware detection was raised on the host `vnevado-win10b` (AAD device ID `fafdcd65-46c6-45a6-aa85-ec9b77ca0bcb`). The alert involved the credential-theft tool `rubeus.exe` running as process ID 2608 with the command line `rubeus.exe dump /service:xfbzkp /user:lucasb`, executed under the local account `fk8mq` (SID `S-1-5-21-1540151660-3530000288-105586595-1517`). Because the malware was active, follow-on activity linked to the targeted user account was also flagged elsewhere in the incident.",
+    "question": "Following this Kekeo/Rubeus credential dumping activity, the targeted user account was involved in related alerts in the cloud. What is the Microsoft Entra ID (Azure AD) user ID of that account?",
+    "answer": "97e6a954-b6bd-48a5-808c-bd8464cce677",
+    "solution": [
+      "An active 'Kekeo' malware was detected running on the machine, associated with the user account with AadUserId `97e6a954-b6bd-48a5-808c-bd8464cce677`."
+    ],
+    "start_alert": 106,
+    "end_alert": 106,
+    "start_entities": [
+      10,
+      11,
+      9,
+      1,
+      2,
+      7
+    ],
+    "end_entities": [
+      3
+    ],
+    "shortest_alert_path": [
+      106
+    ]
+  },
+  {
+    "context": "During an investigation, an alert titled 'Malicious credential theft tool execution detected' was raised after a known credential theft tool command line was observed: process ID 5196 created at 2024-06-27T14:32:35.4061023Z running `\"mimikatz.exe\" privilege::debug sekurlsa::logonpasswords exit`. This activity is tied to a compromised user account that also triggered a nearly simultaneous credential theft tool detection.",
+    "question": "In the closely related credential theft tool execution alert triggered by the same account, what was the name of the script file involved?",
+    "answer": "get-krbticket.ps1",
+    "solution": [
+      "A known credential theft tool execution command line was detected in the context of the user account with AadUserId `1d94aaf6-efe6-4e76-ad56-ffd7d1257bc1`.",
+      "The credential theft activity involved the execution of the file `get-krbticket.ps1`, a script used to dump Kerberos tickets and users' credentials."
+    ],
+    "start_alert": 89,
+    "end_alert": 44,
+    "start_entities": [
+      67
+    ],
+    "end_entities": [
+      38
+    ],
+    "shortest_alert_path": [
+      89,
+      29,
+      44
+    ]
+  },
+  {
+    "context": "During an investigation, an alert titled 'File dropped and launched from remote location' fired on host `vnevado-win10b` (AAD Device ID `fafdcd65-46c6-45a6-aa85-ec9b77ca0bcb`), where a remote session from IP `141.216.110.153` dropped and executed `psexesvc.exe` (process IDs 5512 and 5912) under the account `fk8mq` (SID `S-1-5-21-1540151660-3530000288-105586595-1517`). This behavior suggests an attacker or malware attempting to move laterally or propagate.",
+    "question": "A closely related alert on the same device reported that a suspicious service was launched, a technique often used for persistence or privilege escalation. Which process was responsible for launching that service, and what were its process ID and creation time?",
+    "answer": "The service was launched by `services.exe`, with Process ID 652, created at 2024-06-19T12:56:00.7201251Z.",
+    "solution": [
+      "A remote session dropped and executed the file `psexesvc.exe` on the device, indicating a lateral movement attempt using PsExec.",
+      "The dropped PsExec service binary caused a suspicious service to be launched via the process `services.exe` with Process ID `652` at `2024-06-19t12:56:00.7201251z`."
+    ],
+    "start_alert": 58,
+    "end_alert": 86,
+    "start_entities": [
+      1,
+      2,
+      3,
+      4,
+      10,
+      11,
+      23,
+      25,
+      59
+    ],
+    "end_entities": [
+      87
+    ],
+    "shortest_alert_path": [
+      58,
+      5,
+      86
+    ]
+  },
+  {
+    "context": "During an investigation on host `vnevado-win10v` (AAD Device ID `4d8d23e9-a77d-4e33-9435-b8c457e57ca1`), an alert was raised for suspicious access to the LSASS service (process `636__2024-06-26t10:41:49.7079347z__lsass.exe`). Attackers commonly read LSASS memory to recover clear-text or hashed credentials for lateral movement. On this device, `mimikatz.exe` was executed multiple times with pass-the-hash commands such as `\"mimikatz.exe\" privilege::debug \"sekurlsa::pth /user:fk8mq /ntlm:96def1a633fc6790124d5f8fe21cc72b /domain:vnevado.alpineskihouse.co /run:\\\"powershell.exe c:\\m365dattack\\get-krbticket.ps1\\\"\" exit -wait`, and accounts such as `kyleg`, `fk8mq` and `tgs2z` were referenced.",
+    "question": "Just moments before the LSASS access alert, a related alert fired on the same device for a suspicious service being launched, a technique often used for persistence or privilege escalation. Which user account name was associated with that suspicious service launch alert?",
+    "answer": "lucasb",
+    "solution": [
+      "A suspicious access to the LSASS service was detected, performed by the process `powershell.exe` (ExtractedFileName: `powershell.exe`), indicating an attempt to dump credentials from LSASS memory.",
+      "Following the credential theft attempt, a suspicious service was launched on the same device under the account with Name `lucasb`, likely to maintain persistence or elevate privileges."
+    ],
+    "start_alert": 102,
+    "end_alert": 12,
+    "start_entities": [
+      38,
+      103,
+      40,
+      32,
+      45,
+      68,
+      27,
+      31,
+      37,
+      33
+    ],
+    "end_entities": [
+      13
+    ],
+    "shortest_alert_path": [
+      102,
+      17,
+      12
+    ]
+  },
+  {
+    "context": "During an investigation, a known credential theft tool was executed: the file `mimikatz.exe` ran with process ID 5176 and the command line `\"mimikatz.exe\" privilege::debug \"kerberos::ptt c:\\m365dattack\\admin-tickets\" exit`, indicating an intent to dump or pass users' credentials and Kerberos tickets. Around the same time on the same device, an alert was raised for a sign-in attempt using a deceptive (decoy) user account, which attackers commonly leverage for lateral movement and access to sensitive data.",
+    "question": "For the related 'Sign-in attempt with deceptive user account' alert, what is the security identifier (SID) of the account involved?",
+    "answer": "S-0-6-5",
+    "solution": [
+      "A known credential theft tool was executed on host `vnevado-win10v`, with a command line indicating intent to dump users' credentials, keys, and plain-text passwords.",
+      "Following the credential theft, a sign-in attempt was detected using the deceptive user account named `kyleg` on that device.",
+      "The same deceptive sign-in attempt is associated with the account SID `S-0-6-5`, which the attacker may use for lateral movement and accessing sensitive data."
+    ],
+    "start_alert": 85,
+    "end_alert": 75,
+    "start_entities": [
+      31,
+      71
+    ],
+    "end_entities": [
+      23
+    ],
+    "shortest_alert_path": [
+      85,
+      32,
+      41,
+      42,
+      75
+    ]
+  },
+  {
+    "context": "During this investigation, a \"Suspicious remote activity\" alert was raised on a device after activity initiated remotely was observed. The alert involved the service binary `psexesvc.exe` (process ID 5512, created 2024-06-27T14:33:27Z) executing under the `LocalSystem` account (SID S-0-6-5), along with the user account `fk8mq` (SID S-1-5-21-1540151660-3530000288-105586595-1517, Entra ID 97e6a954-b6bd-48a5-808c-bd8464cce677), and a remote source IP address of `141.216.110.153`. This activity is typical of PsExec being used to launch interactive sessions or commands from another machine.",
+    "question": "Roughly at the same time (about two seconds earlier), a related \"Possible lateral movement\" alert was triggered by Microsoft Defender for Endpoint on the basis of a suspicious network event. Which IP address was recorded in that lateral movement alert?",
+    "answer": "35.202.74.47",
+    "solution": [
+      "Suspicious remote activity was observed on the host with AadDeviceId `fafdcd65-46c6-45a6-aa85-ec9b77ca0bcb`, indicating an attacker initiated actions such as interactive sessions, file modifications, WMI commands, or scheduled tasks from a remote machine.",
+      "In close time proximity, possible lateral movement was detected involving the remote IP address `35.202.74.47`, suggesting the attacker used this address to move laterally across devices to gather data or elevate privileges."
+    ],
+    "start_alert": 101,
+    "end_alert": 57,
+    "start_entities": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      22,
+      23,
+      24,
+      25
+    ],
+    "end_entities": [
+      43
+    ],
+    "shortest_alert_path": [
+      101,
+      11,
+      57
+    ]
+  },
+  {
+    "context": "During an investigation, a sequence of alerts indicative of potential human-operated malicious activity was observed on the device `vnevado-win10b` (AAD device ID `fafdcd65-46c6-45a6-aa85-ec9b77ca0bcb`), involving the accounts `fk8mq` (SID S-1-5-21-1540151660-3530000288-105586595-1517) and `kyleg`. This kind of activity often precedes ransomware or other payloads being installed on target devices. Moments earlier in the same attack chain, a remote session dropped and executed a file, and before that a suspicious service was started on the device, a technique attackers commonly use to maintain persistence or elevate privileges.",
+    "question": "For the 'Suspicious service launched' alert in this attack chain, what was the process ID and the full command line of the process that was started?",
+    "answer": "Process ID: 3780 (created 2024-06-27T14:34:10.5477279Z), Command line: `powershell.exe -command \"net.exe stop ntds /y; add-addbsidhistory -samaccountname bdadmin -sidhistory \\\"s-1-5-32-544\\\" -databasepath (get-itemproperty -path registry::hklm\\system\\currentcontrolset\\services\\ntds\\parameters).\\\"dsa database file\\\" -force; net.exe start ntds\"`",
+    "solution": [
+      "Potential human-operated malicious activity was observed originating from the IP address `141.216.110.153`.",
+      "From that remote session, a file was dropped and launched on the host `vnevado-dc`, indicating lateral movement.",
+      "On that host, a suspicious service was launched: the process with Process ID `3780`, created at `2024-06-27t14:34:10.5477279z`, ran the command line `powershell.exe -command \"net.exe stop ntds /y; add-addbsidhistory -samaccountname bdadmin -sidhistory \\\"s-1-5-32-544\\\" -databasepath (get-itemproperty -path registry::hklm\\system\\currentcontrolset\\services\\ntds\\parameters).\\\"dsa database file\\\" -force; net.exe start ntds\"`, stopping the NTDS service to inject SID history for privilege escalation and persistence."
+    ],
+    "start_alert": 109,
+    "end_alert": 12,
+    "start_entities": [
+      1,
+      2,
+      3,
+      10,
+      11,
+      23,
+      42
+    ],
+    "end_entities": [
+      16
+    ],
+    "shortest_alert_path": [
+      109,
+      25,
+      60,
+      20,
+      12
+    ]
+  },
+  {
+    "context": "During an investigation, an alert from Microsoft Defender for Office 365 showed that a user clicked on a link, `https://ac27145722.livelygrass-8d4c4013.eastus2.azurecontainerapps.io/`, inside an email that had already been quarantined by zero-hour auto purge (ZAP). Follow-on activity from this compromise included reconnaissance of SMB sessions against the domain controller VNEVADO-DC, and later a suspected identity theft where an actor stole a Kerberos ticket from one workstation and replayed it on another to access several resources.",
+    "question": "For the suspected pass-the-ticket (identity theft) alert in this incident, what is the security identifier (SID) of the account whose Kerberos ticket was stolen and reused?",
+    "answer": "S-1-5-21-1440151660-4837038288-105596163-1120 (Julian Burke, IT director)",
+    "solution": [
+      "The user with email `tgs2z@vnevado.alpineskihouse.co` clicked on a link in an email that had been quarantined by zero-hour auto purge (ZAP).",
+      "From the compromised endpoint, user and IP address reconnaissance over SMB was performed against the domain controller host `VNEVADO-DC`, enumerating SMB sessions and retrieving recent IP addresses of 2 accounts.",
+      "The attacker then stole a Kerberos ticket belonging to the IT director account with SID `S-1-5-21-1440151660-4837038288-105596163-1120` from VNEVADO-Win10B and replayed it (pass-the-ticket) on VNEVADO-Win10V to access 4 resources."
+    ],
+    "start_alert": 141,
+    "end_alert": 130,
+    "start_entities": [
+      137
+    ],
+    "end_entities": [
+      14
+    ],
+    "shortest_alert_path": [
+      141,
+      118,
+      114,
+      115,
+      130
+    ]
+  },
+  {
+    "context": "During an investigation, a \"Suspected identity theft (pass-the-ticket)\" alert was raised: an actor stole the Kerberos ticket of Julian Burke (IT director), whose account details include SID `S-1-5-21-1440151660-4837038288-105596163-1120`, Azure AD user ID `7fcf9695-68fc-4258-864d-e1e5b166c66f` and email `lucasb@vnevado.alpineskihouse.co`, from the host `VNEVADO-Win10B` and reused it on another workstation to access 4 resources. Pivoting from that workstation, a \"Suspected overpass-the-hash attack (Kerberos)\" alert shows a Helpdesk Administrator account attempting to authenticate against VNEVADO-DC, and that same user identity is also tied to an earlier defense evasion attempt where the Microsoft Defender Antivirus service was tampered with to evade detection.",
+    "question": "For the Microsoft Defender Antivirus tampering alert linked to this attack chain, what is the account name (username) recorded on that alert?",
+    "answer": "fk8mq",
+    "solution": [
+      "A suspected identity theft (pass-the-ticket) attack was detected on host `VNEVADO-DC`, where Julian Burke's Kerberos ticket was stolen from VNEVADO-Win10B and reused on VNEVADO-Win10V to access 4 resources.",
+      "A suspected overpass-the-hash (Kerberos) attack followed, in which the account with AadUserId `97e6a954-b6bd-48a5-808c-bd8464cce677` (Emma Clark, Helpdesk Administrator) on VNEVADO-Win10V attempted to authenticate against VNEVADO-DC.",
+      "Using the compromised access, the account with Name `fk8mq` attempted to disable the Microsoft Defender Antivirus service, indicating antivirus tampering to evade detection."
+    ],
+    "start_alert": 130,
+    "end_alert": 98,
+    "start_entities": [
+      14,
+      15,
+      123,
+      124,
+      131,
+      132,
+      133
+    ],
+    "end_entities": [
+      1
+    ],
+    "shortest_alert_path": [
+      130,
+      115,
+      119,
+      3,
+      98
+    ]
+  },
+  {
+    "context": "During an investigation, a known credential theft tool `mimikatz.exe` was executed with the command line `\"mimikatz.exe\" privilege::debug \"kerberos::ptt c:\\m365dattack\\admin-tickets\" exit` (Process ID 5176, created 2024-06-27T14:33:32.4282796Z), indicating an intent to dump or reuse users' credentials and Kerberos tickets. Shortly after, a related alert showed PsExec being used to launch a command on a remote device, a technique attackers use to move laterally within an organization.",
+    "question": "In the related PsExec lateral movement alert, what was the name of the script file that was launched on the remote device?",
+    "answer": "get-krbticket.ps1",
+    "solution": [
+      "The user account with AadUserId `1d94aaf6-efe6-4e76-ad56-ffd7d1257bc1` executed a known malicious credential theft tool, indicating an attempt to dump credentials, keys, and plain-text passwords.",
+      "Using the stolen credentials, the attacker leveraged PsExec to launch a command on a remote device, executing the file `get-krbticket.ps1` to obtain Kerberos tickets and move laterally in the organization."
+    ],
+    "start_alert": 85,
+    "end_alert": 95,
+    "start_entities": [
+      31,
+      71
+    ],
+    "end_entities": [
+      37
+    ],
+    "shortest_alert_path": [
+      85,
+      29,
+      95
+    ]
+  },
+  {
+    "context": "During this multi-stage intrusion, the account `lucasb` (SID `S-1-5-21-1440151660-4837038288-105596163-1120`, AAD user ID `7fcf9695-68fc-4258-864d-e1e5b166c66f`) triggered a 'Suspicious service launched' alert. The activity involved PowerShell stopping and restarting the NTDS service while injecting SID history for an account (process 3780, command line: `powershell.exe -command \"net.exe stop ntds /y; add-addbsidhistory -samaccountname bdadmin -sidhistory \\\"s-1-5-32-544\\\" ... ; net.exe start ntds\"`, followed by process 3400 running `\"net.exe\" start ntds`). Shortly afterwards, the Mimikatz credential theft hacktool was detected, and moments later an alert fired for 'Malicious credential theft tool execution detected', where the process or its command line indicated intent to dump users' credentials, keys and plain-text passwords.",
+    "question": "In that final credential theft tool execution alert, what network target (URL/FQDN) was referenced by the malicious command line?",
+    "answer": "vnevado-dc.vnevado.alpineskihouse.co",
+    "solution": [
+      "A suspicious service was started on the device, launching the process `powershell.exe` (ExtractedFileName: `powershell.exe`), which attackers commonly use for persistence or privilege escalation.",
+      "The Mimikatz credential theft tool was then detected on the host with HostName `vnevado-win10v`, indicating an attempt to harvest plaintext passwords, hashes, and Kerberos tickets.",
+      "A malicious credential theft tool execution command line was detected targeting the domain controller at URL `vnevado-dc.vnevado.alpineskihouse.co`, showing intent to dump credentials from that host."
+    ],
+    "start_alert": 12,
+    "end_alert": 111,
+    "start_entities": [
+      13,
+      14,
+      15,
+      16,
+      19
+    ],
+    "end_entities": [
+      112
+    ],
+    "shortest_alert_path": [
+      12,
+      17,
+      108,
+      32,
+      111
+    ]
+  },
+  {
+    "context": "During an investigation, a suspected overpass-the-hash (Kerberos) attack was detected where the account `Emma Clark` (email `fk8mq@vnevado.alpineskihouse.co`, SID `S-1-5-21-1540151660-3530000288-105586595-1517`) attempted to authenticate against VNEVADO-DC. This activity is linked through a shared compromised device and user account to further reconnaissance activity, including an alert about an anomalous chain of attempts to look up user account information, suggesting an attacker gathering information about potential targets.",
+    "question": "In the related alert regarding the anomalous chain of user account lookups, what was the name of the file involved in that activity?",
+    "answer": "domaindominance27.ps1",
+    "solution": [
+      "A suspected overpass-the-hash attack (Kerberos) was detected, where Emma Clark (Helpdesk Administrator) on VNEVADO-Win10V attempted to authenticate against the domain controller host `VNEVADO-DC`.",
+      "From the same source device, user and IP address reconnaissance (SMB) was performed against VNEVADO-DC by the account with AadUserId `1d94aaf6-efe6-4e76-ad56-ffd7d1257bc1` (Ethan Brooks, Account Executive), enumerating SMB sessions and retrieving recent IP addresses of 2 accounts.",
+      "The reconnaissance continued with an anomalous chain of user account lookups, which was carried out by the malicious script file `domaindominance27.ps1`."
+    ],
+    "start_alert": 119,
+    "end_alert": 94,
+    "start_entities": [
+      2,
+      3,
+      120,
+      121
+    ],
+    "end_entities": [
+      66
+    ],
+    "shortest_alert_path": [
+      119,
+      115,
+      114,
+      29,
+      94
+    ]
+  },
+  {
+    "context": "During an investigation, an alert was raised for a file dropped and launched from a remote location: the file `psexesvc.exe` (Process ID 7668, created 2024-06-27T14:34:10.0201983Z) was dropped by a remote session originating from IP address `141.216.110.153` and then executed, which may indicate an attacker or malware attempting to move laterally or propagate.",
+    "question": "Shortly after this remote execution, a related alert was triggered for a process suspiciously stopping services on the same device, under the same user account. What was the full command line of that process and its process ID?",
+    "answer": "Command line: `\"net.exe\" stop ntds /y`, Process ID: 6428 (created 2024-06-27T14:34:10.8607851Z)",
+    "solution": [
+      "The account with SID `S-1-5-21-1440151660-4837038288-105596163-1120` used a remote session to drop a file and execute it on the device, indicating lateral movement.",
+      "The attacker then ran the command `\"net.exe\" stop ntds /y` with Process ID `6428` at `2024-06-27t14:34:10.8607851z` to suspiciously stop the NTDS service and evade detection or hinder recovery."
+    ],
+    "start_alert": 60,
+    "end_alert": 46,
+    "start_entities": [
+      5,
+      25,
+      61
+    ],
+    "end_entities": [
+      47
+    ],
+    "shortest_alert_path": [
+      60,
+      14,
+      46
+    ]
+  },
+  {
+    "context": "During an investigation, the Mimikatz credential theft tool was detected on a device, with the process command line `4748__2024-06-27t14:33:38.0249949z__\"mimikatz.exe\" \"lsadump::dcsync /domain:vnevado.alpineskihouse.co /user:xfbzkp\" exit`. This activity is linked to another alert on the same device where multiple known dual-purpose tools were dropped, which attackers may use for credential theft, privilege escalation, and lateral movement.",
+    "question": "A related alert on this same device flagged suspicious activity that was initiated remotely (such as interactive sessions, file modifications, WMI commands, or scheduled task creation). Which account name was associated with that suspicious remote activity alert?",
+    "answer": "fk8mq",
+    "solution": [
+      "The credential theft tool `mimikatz.exe` was detected running on the device, indicating an attempt to harvest plaintext passwords, hashes, and Kerberos tickets.",
+      "Multiple dual-purpose tools were dropped on the same device, including the file `psexesvc.exe`, which enables remote command execution and lateral movement.",
+      "Using the stolen credentials and remote execution tooling, suspicious remotely initiated activity was observed on the machine, performed by the account with Name `fk8mq`."
+    ],
+    "start_alert": 108,
+    "end_alert": 101,
+    "start_entities": [
+      30
+    ],
+    "end_entities": [
+      1
+    ],
+    "shortest_alert_path": [
+      108,
+      31,
+      62,
+      24,
+      101
+    ]
+  },
+  {
+    "context": "During an investigation, a \"Possible lateral movement\" alert was raised by Microsoft Defender for Endpoint after lateral movement on another device was observed in close time proximity to a suspicious network event involving the IP address `35.202.74.47`. This could indicate an attacker attempting to move across devices to gather data or elevate privileges.",
+    "question": "Seconds after this activity, a related alert fired on the same device reporting an attempt to disable the Microsoft Defender Antivirus service (antivirus tampering, a defense evasion technique). Which user account name was associated with that tampering attempt?",
+    "answer": "fk8mq",
+    "solution": [
+      "Possible lateral movement was observed on host `vnevado-win10b`, suggesting an attacker is moving across devices to gather data or elevate privileges.",
+      "Shortly after, an attempt to disable the Microsoft Defender Antivirus service (antivirus tampering) was made by the account with Name `fk8mq`."
+    ],
+    "start_alert": 57,
+    "end_alert": 98,
+    "start_entities": [
+      43
+    ],
+    "end_entities": [
+      1
+    ],
+    "shortest_alert_path": [
+      57,
+      10,
+      98
+    ]
+  },
+  {
+    "context": "During an investigation, a sign-in attempt with a deceptive user account was detected: the account `kyleg` (SID `S-0-6-5`) was used from the IP address `141.216.110.153`. A potential attacker might be leveraging this fake or decoy account for activities such as lateral movement and accessing sensitive data. Closely related in time on the same device, another alert was raised for possible lateral movement, indicating an attacker may be moving across devices to gather data or elevate privileges.",
+    "question": "In the related possible lateral movement alert, which IP address was involved in the suspicious network event?",
+    "answer": "35.202.74.47",
+    "solution": [
+      "A sign-in attempt with a deceptive (decoy) user account was detected on the host `vnevado-win10b`, suggesting an attacker is using a fake account for lateral movement or data access.",
+      "Following that activity, possible lateral movement was observed involving the IP address `35.202.74.47`, indicating the attacker attempted to move across devices from this network endpoint."
+    ],
+    "start_alert": 75,
+    "end_alert": 57,
+    "start_entities": [
+      23,
+      25,
+      42
+    ],
+    "end_entities": [
+      43
+    ],
+    "shortest_alert_path": [
+      75,
+      10,
+      57
+    ]
+  },
+  {
+    "context": "During this incident, an alert for \"Suspicious remote activity\" fired on host `vnevado-win10b` (AAD device ID `fafdcd65-46c6-45a6-aa85-ec9b77ca0bcb`) at 2024-07-04 22:35:03 UTC. The activity was initiated remotely from IP `141.216.110.153` and involved the process `psexesvc.exe` (PID 5512) running under the `LocalSystem` account, with the user account `fk8mq` (SID S-1-5-21-1540151660-3530000288-105586595-1517) also observed. Roughly one second earlier, a related alert on the same device reported that multiple known public dual-purpose tools \u2014 which attackers often use for credential theft, privilege escalation, and lateral movement \u2014 had been dropped.",
+    "question": "In that closely related alert about dual-purpose tools being dropped on the device, what is the name of the PowerShell script file involved?",
+    "answer": "get-krbticket.ps1",
+    "solution": [
+      "Suspicious remote activity was observed on the machine, involving the file `psexesvc.exe`, indicating a remote PsExec service was used to initiate commands on the device.",
+      "Following the remote access, multiple dual-purpose tools were dropped on the device, including the file `get-krbticket.ps1`, a known public script that can be used for Kerberos ticket harvesting and credential theft."
+    ],
+    "start_alert": 101,
+    "end_alert": 62,
+    "start_entities": [
+      25,
+      2,
+      4,
+      3,
+      11,
+      1,
+      22,
+      23,
+      5,
+      10
+    ],
+    "end_entities": [
+      38
+    ],
+    "shortest_alert_path": [
+      101,
+      24,
+      62
+    ]
+  },
+  {
+    "context": "During a multi-stage incident, an alert titled 'User and IP address reconnaissance (SMB)' was raised after the user Ethan Brooks (Account Executive), working from the host `VNEVADO-Win10V`, enumerated SMB sessions on the domain controller `VNEVADO-DC` and retrieved recent IP addresses of 2 accounts. Almost simultaneously, another alert fired indicating that one of the users clicked on a link that was found to be malicious.",
+    "question": "For the nearly simultaneous alert about a potentially malicious URL click, what was the full URL that the user clicked on?",
+    "answer": "https://ac27145722.livelygrass-8d4c4013.eastus2.azurecontainerapps.io/",
+    "solution": [
+      "The account with AadUserId `1d94aaf6-efe6-4e76-ad56-ffd7d1257bc1` (Ethan Brooks) on VNEVADO-Win10V performed user and IP address reconnaissance (SMB) by enumerating SMB sessions on VNEVADO-DC.",
+      "The same user then clicked on a potentially malicious URL `https://ac27145722.livelygrass-8d4c4013.eastus2.azurecontainerapps.io/`."
+    ],
+    "start_alert": 114,
+    "end_alert": 134,
+    "start_entities": [
+      115,
+      116
+    ],
+    "end_entities": [
+      137
+    ],
+    "shortest_alert_path": [
+      114,
+      29,
+      134
+    ]
+  },
+  {
+    "context": "During this multi-stage intrusion, PsExec was used to launch commands on remote devices from a compromised machine (AAD device ID `4d8d23e9-a77d-4e33-9435-b8c457e57ca1`). Observed command lines include `\"psexec.exe\" \\\\vnevado-win10b -accepteula cmd /c \"powershell -command set-mppreference -disablerealtimemonitoring 1\"`, `\"psexec.exe\" \\\\vnevado-win10b -accepteula cmd /c \"c:\\temp\\rubeus.exe dump /service:xfbzkp /user:lucasb > c:\\temp\\adminticket.txt\"`, and `\"psexec.exe\" \\\\vnevado-dc -accepteula cmd /c \"powershell.exe -command \"net.exe stop ntds /y; add-addbsidhistory ...\"\"`, along with scripts such as `domaindominance27.ps1` and `get-krbticket.ps1`. This Kerberos ticket abuse activity later escalated into a credential-based authentication attack against the domain controller.",
+    "question": "Following this Rubeus/Kerberos ticket activity, an alert was raised for a suspected overpass-the-hash (Kerberos) attack where a Helpdesk Administrator account on VNEVADO-Win10V attempted to authenticate against VNEVADO-DC. What is the email address of the account used in that authentication attempt?",
+    "answer": "fk8mq@vnevado.alpineskihouse.co",
+    "solution": [
+      "PsExec was used to launch a command on a remote device, extracting/writing the file `adminticket.txt` (process entity ExtractedFileName: `adminticket.txt`), indicating lateral movement using a stolen Kerberos ticket.",
+      "The Rubeus kerberoasting tool was observed running under the account with SID `S-1-5-21-1540151660-3530000288-105586595-1517`, used to request and harvest Kerberos service tickets.",
+      "The harvested credentials were then used in a suspected overpass-the-hash (Kerberos) attack from VNEVADO-Win10V against VNEVADO-DC by the account with Email `fk8mq@vnevado.alpineskihouse.co` (Emma Clark, Helpdesk Administrator)."
+    ],
+    "start_alert": 95,
+    "end_alert": 119,
+    "start_entities": [
+      49,
+      96,
+      37,
+      50,
+      69,
+      18,
+      33,
+      36,
+      17,
+      97
+    ],
+    "end_entities": [
+      121
+    ],
+    "shortest_alert_path": [
+      95,
+      8,
+      0,
+      2,
+      119
+    ]
+  },
+  {
+    "context": "During this incident, the Mimikatz credential theft tool was detected on a device in the vnevado.alpineskihouse.co domain. The tool was executed multiple times, including `\"mimikatz.exe\" privilege::debug sekurlsa::logonpasswords exit` (PID 5196), several pass-the-hash attempts such as `\"mimikatz.exe\" privilege::debug \"sekurlsa::pth /user:fk8mq /ntlm:96def1a633fc6790124d5f8fe21cc72b /domain:vnevado.alpineskihouse.co /run:\\\"powershell.exe dir \\\\vnevado-win10b\\c$\\\"\" exit`, a Kerberos ticket injection using `kerberos::ptt c:\\m365dattack\\admin-tickets`, execution of `get-krbticket.ps1` via powershell.exe, and a DCSync attempt with `lsadump::dcsync`. These actions indicate an attacker harvesting credentials to impersonate valid users on the network.",
+    "question": "Following this credential theft activity, a related alert was raised for a sign-in attempt using a deceptive (decoy) user account at 2024-07-04 22:35:02 UTC. What was the source IP address associated with that sign-in attempt?",
+    "answer": "141.216.110.153",
+    "solution": [
+      "The Mimikatz credential theft tool was detected on the device under the account with SID `S-5-7-21-1843151660-3234030288-105586167-1422`, indicating an attacker was harvesting credentials such as plaintext passwords, hashes, and Kerberos tickets.",
+      "Using the stolen credentials, a sign-in attempt was detected with the deceptive (decoy) user account `kyleg`, suggesting the attacker was attempting lateral movement or access to sensitive data.",
+      "The deceptive account sign-in attempt originated from the IP address `141.216.110.153`, which is the attacker's source address."
+    ],
+    "start_alert": 108,
+    "end_alert": 75,
+    "start_entities": [
+      68,
+      37,
+      67,
+      40,
+      31,
+      45,
+      64,
+      30,
+      71,
+      17
+    ],
+    "end_entities": [
+      25
+    ],
+    "shortest_alert_path": [
+      108,
+      28,
+      41,
+      42,
+      75
+    ]
+  },
+  {
+    "context": "A high-priority incident flagged \"Potential human-operated malicious activity\" on the device `vnevado-win10b` (AAD Device ID `fafdcd65-46c6-45a6-aa85-ec9b77ca0bcb`), where a sequence of alerts indicative of hands-on-keyboard attacker activity was observed involving the account `kyleg` and the source IP address `141.216.110.153`. Such activity often precedes ransomware or other payload deployment. Pivoting from this device, the investigation surfaced a related identity-based alert: a suspected overpass-the-hash attack (Kerberos) in which a Helpdesk Administrator account on VNEVADO-Win10V attempted to authenticate against the domain controller VNEVADO-DC.",
+    "question": "For that suspected overpass-the-hash (Kerberos) alert, what is the email address (UPN) of the account used in the authentication attempt against VNEVADO-DC?",
+    "answer": "fk8mq@vnevado.alpineskihouse.co",
+    "solution": [
+      "A sequence of alerts indicative of human-operated malicious activity was observed involving the account with AadUserId `97e6a954-b6bd-48a5-808c-bd8464cce677`, which might lead to ransomware or other payloads being installed on target devices.",
+      "Following that activity, a suspected overpass-the-hash attack (Kerberos) was detected, where Emma Clark (Helpdesk Administrator) on device VNEVADO-Win10V attempted to authenticate against the domain controller VNEVADO-DC.",
+      "The compromised account involved in this Kerberos overpass-the-hash attempt is identified by the email `fk8mq@vnevado.alpineskihouse.co`."
+    ],
+    "start_alert": 109,
+    "end_alert": 119,
+    "start_entities": [
+      1,
+      10,
+      11,
+      23,
+      25,
+      42
+    ],
+    "end_entities": [
+      121
+    ],
+    "shortest_alert_path": [
+      109,
+      3,
+      119
+    ]
+  },
+  {
+    "context": "During an investigation, a known credential theft tool execution was detected. The process (ProcessId 5176, created 2024-06-27T14:33:32.4282796Z) ran the command line `\"mimikatz.exe\" privilege::debug \"kerberos::ptt c:\\m365dattack\\admin-tickets\" exit`, indicating an intent to dump users' credentials, keys and plain-text passwords, as well as to inject Kerberos tickets.",
+    "question": "A second, nearly simultaneous alert for malicious credential theft tool execution was raised on the same compromised account. What was the name of the file (process) that was executed in that related alert?",
+    "answer": "powershell.exe",
+    "solution": [
+      "The account `tgs2z` was detected executing a known credential theft tool intended to dump users' credentials, keys, and plain-text passwords.",
+      "The credential theft tool execution was carried out through the process with file name `powershell.exe`."
+    ],
+    "start_alert": 85,
+    "end_alert": 39,
+    "start_entities": [
+      71
+    ],
+    "end_entities": [
+      17
+    ],
+    "shortest_alert_path": [
+      85,
+      27,
+      39
+    ]
+  },
+  {
+    "context": "During an investigation, an alert was raised showing that Ethan Brooks (Account Executive), with email `tgs2z@vnevado.alpineskihouse.co`, performed SMB session enumeration from the device `VNEVADO-Win10V` against the domain controller `VNEVADO-DC`, retrieving recent IP addresses of 2 accounts. This user and IP address reconnaissance activity is linked to earlier credential theft activity in the same incident, where a well-known credential harvesting hacktool associated with the Storm-0875 actor was detected on a device.",
+    "question": "For the related credential theft detection linked to this reconnaissance activity, what is the name of the malicious file that was detected on the device?",
+    "answer": "mimikatz.exe",
+    "solution": [
+      "The account with SID `S-5-7-21-1843151660-3234030288-105586167-1422` (Ethan Brooks) performed user and IP address reconnaissance (SMB) from VNEVADO-Win10V, enumerating SMB sessions on VNEVADO-DC.",
+      "The credential theft tool file `mimikatz.exe` was then detected on the device, indicating the attacker attempted to harvest credentials such as plaintext passwords, hashes, and Kerberos tickets."
+    ],
+    "start_alert": 114,
+    "end_alert": 108,
+    "start_entities": [
+      115,
+      116,
+      117,
+      118
+    ],
+    "end_entities": [
+      64
+    ],
+    "shortest_alert_path": [
+      114,
+      28,
+      108
+    ]
+  },
+  {
+    "context": "During an investigation, a 'Suspicious remote activity' alert was raised on host `vnevado-win10b` (AAD device ID `fafdcd65-46c6-45a6-aa85-ec9b77ca0bcb`), where activity initiated remotely was observed. The alert involved the process `psexesvc.exe` (Process ID 5512, created 2024-06-27T14:33:27Z) running under the `LocalSystem` account (SID `S-0-6-5`), as well as the user account `fk8mq` (SID `S-1-5-21-1540151660-3530000288-105586595-1517`, AAD user ID `97e6a954-b6bd-48a5-808c-bd8464cce677`). This chain also included a remote session that dropped and executed a file, suggesting lateral movement or malware propagation.",
+    "question": "Following this activity, a SID history injection was detected on the same device at nearly the same time, where an attacker may have modified the SID history of a user to obtain elevated privileges. What is the name of the file associated with that SID history injection alert?",
+    "answer": "dkwj.mze",
+    "solution": [
+      "Suspicious remote activity was observed involving the process `psexesvc.exe`, indicating a remote session was initiated on the machine.",
+      "The account with SID `S-1-5-21-1440151660-4837038288-105596163-1120` used the remote session to drop and launch a file from a remote location, attempting lateral movement.",
+      "A SID history injection was then detected on the device, associated with the file `dkwj.mze`, indicating the attacker attempted to elevate privileges and establish persistence."
+    ],
+    "start_alert": 101,
+    "end_alert": 72,
+    "start_entities": [
+      1,
+      2,
+      3,
+      4,
+      10,
+      11,
+      22,
+      23
+    ],
+    "end_entities": [
+      73
+    ],
+    "shortest_alert_path": [
+      101,
+      5,
+      60,
+      14,
+      72
+    ]
+  },
+  {
+    "context": "During an incident investigation, a suspected overpass-the-hash (Kerberos) attack was detected where the account `Emma Clark` (Helpdesk Administrator, email `fk8mq@vnevado.alpineskihouse.co`) on host `VNEVADO-Win10V` attempted to authenticate against `VNEVADO-DC`. Pivoting from the compromised account's SID leads to a device where active 'Kekeo' malware was detected, and on that same device an alert was raised for a suspicious service being launched, which attackers may use to maintain persistence or elevate privileges.",
+    "question": "For the 'Suspicious service launched' alert on that device, what was the process ID, creation time, and command line of the process involved?",
+    "answer": "Process ID: 684, Created Time (UTC): 2024-06-26T17:11:52.8075185Z, Command Line: services.exe",
+    "solution": [
+      "The account with SID `S-1-5-21-1540151660-3530000288-105586595-1517` (Emma Clark, Helpdesk Administrator) was used in a suspected overpass-the-hash (Kerberos) attack, authenticating from VNEVADO-Win10V against VNEVADO-DC at 2024-07-10 11:24:45 UTC.",
+      "On the host with HostName `vnevado-win10b`, an active 'Kekeo' malware (a Kerberos ticket abuse tool used for overpass-the-hash) was detected running at 2024-07-04 22:35:03 UTC.",
+      "On that host, a suspicious service was launched for persistence/privilege escalation: the process `services.exe` with Process ID `684`, created at `2024-06-26t17:11:52.8075185z`."
+    ],
+    "start_alert": 119,
+    "end_alert": 90,
+    "start_entities": [
+      115,
+      116,
+      120,
+      121
+    ],
+    "end_entities": [
+      91
+    ],
+    "shortest_alert_path": [
+      119,
+      2,
+      106,
+      10,
+      90
+    ]
+  },
+  {
+    "context": "During this multi-stage incident, a SID history injection was detected on host `vnevado-dc`, tied to the account `lucasb` (SID `S-1-5-21-1440151660-4837038288-105596163-1120`, AAD ID `7fcf9695-68fc-4258-864d-e1e5b166c66f`). The offending process (PID 3780, created 2024-06-27T14:34:10Z) ran: `powershell.exe -command \"net.exe stop ntds /y; add-addbsidhistory -samaccountname bdadmin -sidhistory \\\"s-1-5-32-544\\\" -databasepath (get-itemproperty -path registry::hklm\\system\\currentcontrolset\\services\\ntds\\parameters).\\\"dsa database file\\\" -force; net.exe start ntds\"`. Attackers typically use such tools to change the SID history of an existing domain user to an SID with elevated privileges, enabling access to sensitive files, persistence, and system modification. This activity is linked through shared entities to other alerts in the incident, including one raised by Microsoft Defender for Office 365 about a user who clicked a link inside an email that had been quarantined by zero-hour auto purge (ZAP).",
+    "question": "For the related alert where a user clicked a link in an email that zero-hour auto purge (ZAP) had quarantined, what is the email address of the account that accessed that link?",
+    "answer": "tgs2z@vnevado.alpineskihouse.co",
+    "solution": [
+      "A SID history injection was detected involving the process `powershell.exe`, where attackers modified the SID history attribute to gain elevated privileges.",
+      "Multiple dual-purpose tools were dropped on the device under the account with SID `S-5-7-21-1843151660-3234030288-105586167-1422`.",
+      "The user with email `tgs2z@vnevado.alpineskihouse.co` clicked on a link in an email that had been quarantined by zero-hour auto purge (ZAP)."
+    ],
+    "start_alert": 93,
+    "end_alert": 141,
+    "start_entities": [
+      13,
+      14,
+      15,
+      16,
+      20
+    ],
+    "end_entities": [
+      118
+    ],
+    "shortest_alert_path": [
+      93,
+      17,
+      76,
+      28,
+      141
+    ]
+  },
+  {
+    "context": "During an investigation, an alert for \"Suspicious access to LSASS service\" was raised, indicating an attempt to decrypt user passwords from the LSASS service's memory. The alert involved `lsass.exe` (Process ID 636) and multiple executions of `mimikatz.exe`, including Process ID 5196 with the command line `\"mimikatz.exe\" privilege::debug sekurlsa::logonpasswords exit`, and Process ID 7092 running a pass-the-hash command that launched `powershell.exe c:\\m365dattack\\get-krbticket.ps1` for user `fk8mq` in domain `vnevado.alpineskihouse.co`.",
+    "question": "A related alert, 'Malicious credential theft tool execution detected', was triggered at nearly the same time. What is the Microsoft Entra ID (Azure AD) user ID of the account associated with that alert?",
+    "answer": "1d94aaf6-efe6-4e76-ad56-ffd7d1257bc1",
+    "solution": [
+      "The account with SID `S-5-7-21-1843151660-3234030288-105586167-1422` was used to suspiciously access the LSASS service in order to decrypt and obtain clear-text user passwords from its memory.",
+      "The same compromised user, identified by AadUserId `1d94aaf6-efe6-4e76-ad56-ffd7d1257bc1`, executed a known malicious credential theft tool whose command line indicated an intent to dump credentials, keys, and plain-text passwords."
+    ],
+    "start_alert": 102,
+    "end_alert": 39,
+    "start_entities": [
+      37,
+      38,
+      45,
+      56,
+      67,
+      68,
+      103
+    ],
+    "end_entities": [
+      29
+    ],
+    "shortest_alert_path": [
+      102,
+      28,
+      39
+    ]
+  },
+  {
+    "context": "A multi-stage incident began with an alert for \"Potential human-operated malicious activity\" observed on device `vnevado-win10b` (AadDeviceId `fafdcd65-46c6-45a6-aa85-ec9b77ca0bcb`), involving the account `fk8mq` (SID `S-0-6-5`) and the IP address `141.216.110.153`. This sequence of alerts may lead to ransomware or other payloads being installed on target devices. Following this activity, the attack progressed to identity-based techniques against the domain controller VNEVADO-DC, including a suspected overpass-the-hash (Kerberos) attempt and reconnaissance activity in which SMB sessions on VNEVADO-DC were enumerated to retrieve recent IP addresses of two accounts.",
+    "question": "For the alert covering the SMB session enumeration performed against VNEVADO-DC, what is the email address of the user account tied to that reconnaissance activity?",
+    "answer": "tgs2z@vnevado.alpineskihouse.co",
+    "solution": [
+      "A sequence of alerts indicative of human-operated malicious activity was observed involving the user account with AadUserId `97e6a954-b6bd-48a5-808c-bd8464cce677`, which might lead to ransomware or other payloads being installed.",
+      "From the compromised device VNEVADO-Win10V, a suspected overpass-the-hash (Kerberos) attack was performed by Emma Clark (Helpdesk Administrator) attempting to authenticate against the domain controller host `VNEVADO-DC`.",
+      "On the same domain controller, Ethan Brooks (Account Executive) enumerated SMB sessions and retrieved recent IP addresses of 2 accounts, exposing the account with email `tgs2z@vnevado.alpineskihouse.co`."
+    ],
+    "start_alert": 109,
+    "end_alert": 114,
+    "start_entities": [
+      1,
+      10,
+      11,
+      23,
+      25
+    ],
+    "end_entities": [
+      118
+    ],
+    "shortest_alert_path": [
+      109,
+      3,
+      119,
+      115,
+      114
+    ]
+  },
+  {
+    "context": "During an investigation, a malicious credential theft tool execution was detected on an endpoint: the process `mimikatz.exe` (Process ID 5176, created 2024-06-27T14:33:32.4282796Z) was launched with the command line `\"mimikatz.exe\" privilege::debug \"kerberos::ptt c:\\m365dattack\\admin-tickets\" exit`, indicating a Kerberos ticket pass-the-ticket attempt. A related alert of the same type was raised under the same user account (SID) at nearly the same time.",
+    "question": "For the related credential theft tool execution alert triggered under the same user account, what was the process ID and the exact command line used to dump plain-text credentials from memory?",
+    "answer": "Process ID: 5196, Command line: `\"mimikatz.exe\" privilege::debug sekurlsa::logonpasswords exit` (created 2024-06-27T14:32:35.4061023Z)",
+    "solution": [
+      "The account with SID `S-5-7-21-1843151660-3234030288-105586167-1422` was detected executing a known credential theft tool.",
+      "That account launched the credential theft tool mimikatz with the command line `\"mimikatz.exe\" privilege::debug sekurlsa::logonpasswords exit` at `2024-06-27t14:32:35.4061023z`, with Process ID `5196`, in order to dump users' credentials and plain-text passwords."
+    ],
+    "start_alert": 85,
+    "end_alert": 89,
+    "start_entities": [
+      71
+    ],
+    "end_entities": [
+      67
+    ],
+    "shortest_alert_path": [
+      85,
+      28,
+      89
+    ]
+  },
+  {
+    "context": "During this multi-stage intrusion, the 'Kekeo' malware was detected and found active on host `vnevado-win10b` (AAD Device ID `fafdcd65-46c6-45a6-aa85-ec9b77ca0bcb`), where the account `fk8mq` ran a credential-theft tool with the command line `2608__2024-06-27t14:33:27.7927134z__rubeus.exe dump /service:xfbzkp /user:lucasb`. The activity later expanded to Kerberos abuse and domain reconnaissance against the domain controller VNEVADO-DC.",
+    "question": "Following this activity, an alert was raised for User and IP address reconnaissance (SMB), where SMB sessions were enumerated on VNEVADO-DC to retrieve recent IP addresses of accounts. What is the email address of the compromised account associated with that reconnaissance alert?",
+    "answer": "tgs2z@vnevado.alpineskihouse.co",
+    "solution": [
+      "The 'Kekeo' malware was detected and was active on the device associated with the user account with AadUserId `97e6a954-b6bd-48a5-808c-bd8464cce677`.",
+      "Using the Kekeo tool, a suspected overpass-the-hash attack (Kerberos) was performed by Emma Clark (Helpdesk Administrator) from VNEVADO-Win10V against the domain controller host `VNEVADO-DC`.",
+      "From the same compromised host, user and IP address reconnaissance (SMB) was performed against VNEVADO-DC, enumerating SMB sessions and retrieving recent IP addresses of accounts, including the account with email `tgs2z@vnevado.alpineskihouse.co`."
+    ],
+    "start_alert": 100,
+    "end_alert": 114,
+    "start_entities": [
+      1,
+      9,
+      10,
+      11
+    ],
+    "end_entities": [
+      118
+    ],
+    "shortest_alert_path": [
+      100,
+      3,
+      119,
+      115,
+      114
+    ]
+  },
+  {
+    "context": "During an incident, alerts flagged possible use of the Rubeus kerberoasting tool on host `vnevado-win10v` (AAD device ID `4d8d23e9-a77d-4e33-9435-b8c457e57ca1`). The activity involved account `tgs2z` running `powershell.exe c:\\m365dattack\\get-krbticket.ps1` (PID 6636) and `psexec.exe` (PID 5924) with the command line `\"psexec.exe\" \\\\vnevado-win10b -accepteula cmd /c \"c:\\temp\\rubeus.exe dump /service:xfbzkp /user:lucasb > c:\\temp\\adminticket.txt\"`. Shortly after, a related alert reported that a suspicious service was started on a device, a technique attackers use to launch malicious commands and maintain persistence or elevate privileges.",
+    "question": "In the related 'Suspicious service launched' alert, what is the name of the parent process file responsible for starting the suspicious service?",
+    "answer": "services.exe",
+    "solution": [
+      "The Rubeus kerberoasting tool was used on the endpoint, producing an output file `adminticket.txt` containing the harvested Kerberos ticket.",
+      "The Rubeus activity was observed on the host with AadDeviceId `fafdcd65-46c6-45a6-aa85-ec9b77ca0bcb`.",
+      "On that same device, a suspicious service was launched via the process `services.exe`, which attackers use to run malicious commands for persistence or privilege escalation."
+    ],
+    "start_alert": 107,
+    "end_alert": 90,
+    "start_entities": [
+      17,
+      36,
+      37,
+      29,
+      28,
+      27,
+      33,
+      32,
+      70,
+      97
+    ],
+    "end_entities": [
+      88
+    ],
+    "shortest_alert_path": [
+      107,
+      8,
+      0,
+      11,
+      90
+    ]
+  },
+  {
+    "context": "During an investigation, an alert for 'Anomalous account lookups' was triggered when a chain of reconnaissance commands was executed on a device, including `\"net.exe\" user /domain` (PID 2720), `\"net.exe\" group /domain` (PID 6264), `\"net.exe\" group \"domain admins\" /domain` (PID 6252), `\"net.exe\" group \"enterprise admins\" /domain` (PID 1700), and `\"net.exe\" user fk8mq /domain` (PID 3560), all around 2024-06-27 14:32 UTC. Follow-on alerts on the same device chain showed multiple dual-purpose tools being dropped and 'Kekeo' malware detected during lateral movement, as well as a 'Suspicious service launched' alert.",
+    "question": "For the 'Suspicious service launched' alert in this same chain, what was the executable name of the service that was started, along with its process ID and creation time?",
+    "answer": "Executable: psexesvc.exe, Process ID: 5912, Created Time (UTC): 2024-06-27T14:32:53.2267179Z",
+    "solution": [
+      "The account with AadUserId `1d94aaf6-efe6-4e76-ad56-ffd7d1257bc1` performed an anomalous chain of user account lookups, indicating reconnaissance on potential targets.",
+      "Multiple dual-purpose tools were dropped on the device, including the credential theft tool file `rubeus.exe`.",
+      "The 'Kekeo' malware was detected on host `vnevado-win10b`, indicating lateral movement to this device from another device on the network.",
+      "A suspicious service was launched on the device with Process ID `5912` at `2024-06-27t14:32:53.2267179z` using the command line `psexesvc.exe`, showing the attacker used PsExec to execute commands remotely for persistence or privilege escalation."
+    ],
+    "start_alert": 94,
+    "end_alert": 90,
+    "start_entities": [
+      80,
+      81,
+      82,
+      83,
+      84
+    ],
+    "end_entities": [
+      59
+    ],
+    "shortest_alert_path": [
+      94,
+      29,
+      62,
+      65,
+      110,
+      10,
+      90
+    ]
+  },
+  {
+    "context": "During this incident, an alert titled \"File dropped and launched from remote location\" fired on host `vnevado-dc`, indicating that a remote session dropped a file and executed it \u2014 a possible sign of lateral movement or malware propagation. The alert involved the process `psexesvc.exe` (Process ID 7668, created 2024-06-27T14:34:10.0201983Z, command line `psexesvc.exe`) and the account `lucasb` (SID `S-1-5-21-1440151660-4837038288-105596163-1120`, Azure AD User ID `7fcf9695-68fc-4258-864d-e1e5b166c66f`). This activity was linked through a shared remote IP address to another alert raised at nearly the same time.",
+    "question": "In the closely related alert where a suspicious file was registered as a service for persistence, which account name was observed performing the service registration?",
+    "answer": "fk8mq",
+    "solution": [
+      "A remote session from IP address `141.216.110.153` dropped a file and executed it, indicating possible lateral movement.",
+      "The account `fk8mq` registered the suspicious file as a service for persistence."
+    ],
+    "start_alert": 60,
+    "end_alert": 21,
+    "start_entities": [
+      5,
+      13,
+      14,
+      15,
+      20,
+      61
+    ],
+    "end_entities": [
+      1
+    ],
+    "shortest_alert_path": [
+      60,
+      25,
+      21
+    ]
+  },
+  {
+    "context": "During a multi-stage intrusion, a sequence of alerts indicative of potential human-operated malicious activity was observed on the device `vnevado-win10b` (AAD Device ID `fafdcd65-46c6-45a6-aa85-ec9b77ca0bcb`), involving the accounts `fk8mq` and `kyleg` (SID `S-0-6-5`). This type of activity often precedes ransomware or other payload deployment, and the attacker was seen dropping and executing files over a remote session to move laterally. Later in the same incident, a suspected DCSync attack (replication of directory services) was detected, where a single directory replication request was sent from the host VNEVADO-Win10V to the domain controller VNEVADO-DC.",
+    "question": "Which user account (display name) was responsible for issuing the directory replication request to VNEVADO-DC in the suspected DCSync alert?",
+    "answer": "Julian Burke (the IT director account)",
+    "solution": [
+      "A sequence of alerts indicative of human-operated malicious activity was observed originating from the IP address `141.216.110.153`.",
+      "During a remote session from that address, the account with SID `S-1-5-21-1440151660-4837038288-105596163-1120` dropped a file and launched it from a remote location, indicating lateral movement.",
+      "The compromised account `Julian Burke` (IT director) on VNEVADO-Win10V then performed a suspected DCSync attack, sending a directory services replication request to VNEVADO-DC."
+    ],
+    "start_alert": 109,
+    "end_alert": 122,
+    "start_entities": [
+      1,
+      10,
+      11,
+      23,
+      42
+    ],
+    "end_entities": [
+      123
+    ],
+    "shortest_alert_path": [
+      109,
+      25,
+      60,
+      14,
+      122
+    ]
+  },
+  {
+    "context": "During an investigation, a known credential theft tool execution was detected: the process `mimikatz.exe` (Process ID 4748, created 2024-06-27T14:33:38.0249949Z) was run with the command line `\"mimikatz.exe\" \"lsadump::dcsync /domain:vnevado.alpineskihouse.co /user:xfbzkp\" exit`, targeting `vnevado-dc.vnevado.alpineskihouse.co` and associated with IP address `65.233.23.156`. This activity is linked through shared entities to other alerts on the same device, including dropped dual-purpose tools, 'Kekeo' malware detection, and a suspicious service launch used for persistence or privilege escalation.",
+    "question": "For the related 'Suspicious service launched' alert on this device, what was the process ID, creation time, and command line of the service process involved?",
+    "answer": "Process ID: 684, Created Time (UTC): 2024-06-26T17:11:52.8075185Z, Command line: services.exe",
+    "solution": [
+      "The account with SID `S-5-7-21-1843151660-3234030288-105586167-1422` executed a known malicious credential theft tool, indicating intent to dump users' credentials, keys, and plain-text passwords.",
+      "Multiple dual-purpose tools were dropped on the device, including the file `rubeus.exe`, which can be used for credential theft, privilege escalation, and lateral movement.",
+      "The 'Kekeo' malware was detected and was active on the host with AadDeviceId `fafdcd65-46c6-45a6-aa85-ec9b77ca0bcb`.",
+      "A suspicious service was launched on that device via the process `services.exe` with Process ID `684`, created at `2024-06-26t17:11:52.8075185z`, likely used to maintain persistence or elevate privileges."
+    ],
+    "start_alert": 111,
+    "end_alert": 90,
+    "start_entities": [
+      30,
+      112,
+      113
+    ],
+    "end_entities": [
+      91
+    ],
+    "shortest_alert_path": [
+      111,
+      28,
+      62,
+      65,
+      100,
+      11,
+      90
+    ]
+  },
+  {
+    "context": "During an investigation, a 'Suspicious remote activity' alert was raised on a device where the file `psexesvc.exe` was executed under the `LocalSystem` account (Process ID 5512, created 2024-06-27T14:33:27.3525354Z). This alert flags remotely initiated activities such as interactive sessions, file modifications, WMI commands, or scheduled task creation.",
+    "question": "Immediately after this alert, a related alert titled 'Potential human-operated malicious activity' was raised on the same device, indicating a sequence of behaviors that could lead to ransomware deployment. Which user account name was associated with that follow-up alert?",
+    "answer": "kyleg",
+    "solution": [
+      "Suspicious remote activity was initiated on the machine by the account with Name `fk8mq`, indicating an attacker attempting remote interactive sessions, file modifications, or remote command execution.",
+      "The activity escalated into a sequence of alerts indicative of potential human-operated malicious activity on the device, performed under the account with Name `kyleg`, which could lead to ransomware or other payloads being installed."
+    ],
+    "start_alert": 101,
+    "end_alert": 109,
+    "start_entities": [
+      4,
+      5,
+      22,
+      24
+    ],
+    "end_entities": [
+      42
+    ],
+    "shortest_alert_path": [
+      101,
+      1,
+      109
+    ]
+  },
+  {
+    "context": "During this multi-stage intrusion, an alert titled \"Multiple dual-purpose tools were dropped\" fired on a device after several known public tools that can be abused for malicious purposes \u2014 including `mimikatz.exe`, `psexec.exe`, `domaindominance27.ps1`, and `get-krbticket.ps1` \u2014 were copied to it. Follow-on activity showed `mimikatz.exe` being run repeatedly with commands such as `privilege::debug sekurlsa::logonpasswords exit`, pass-the-hash commands targeting users `fk8mq` and `kyleg` in the `vnevado.alpineskihouse.co` domain (process IDs 6880 and 4112), and `kerberos::ptt c:\\m365dattack\\admin-tickets` (process ID 5176). Related alerts in the same incident include \"Possible use of the Rubeus kerberoasting tool\" and \"File dropped and launched from remote location\", the latter indicating a remote session dropped a file and executed it, suggesting lateral movement.",
+    "question": "For the related alert \"File dropped and launched from remote location\", which user account (identified by its security identifier, SID) was involved in dropping and executing the file?",
+    "answer": "S-1-5-21-1540151660-3530000288-105586595-1517",
+    "solution": [
+      "The account with SID `S-5-7-21-1843151660-3234030288-105586167-1422` dropped multiple dual-purpose tools on the device, which could be used for credential theft, privilege escalation, and lateral movement.",
+      "Among the dropped tools, the process with extracted file name `rubeus.exe` was executed, indicating possible use of the Rubeus kerberoasting tool to request and abuse Kerberos tickets.",
+      "Using the stolen Kerberos credentials, a remote session under the account with SID `S-1-5-21-1540151660-3530000288-105586595-1517` dropped a file and launched it from a remote location, indicating lateral movement."
+    ],
+    "start_alert": 62,
+    "end_alert": 34,
+    "start_entities": [
+      67,
+      68,
+      40,
+      66,
+      31,
+      63,
+      45,
+      38,
+      64,
+      71
+    ],
+    "end_entities": [
+      2
+    ],
+    "shortest_alert_path": [
+      62,
+      28,
+      107,
+      7,
+      34
+    ]
+  },
+  {
+    "context": "During an investigation, a script `domaindominance27.ps1` was executed via `powershell.exe` (Process ID 4676, command line: `\"powershell.exe\" -executionpolicy bypass -file c:\\users\\tgs2z\\downloads\\domaindominance27\\domaindominance27.ps1`) under the account `tgs2z` on host `vnevado-win10v` (AAD Device ID `4d8d23e9-a77d-4e33-9435-b8c457e57ca1`). This activity dropped multiple dual-purpose tools, including `psexec.exe` and `mimikatz.exe`, which attackers commonly use for credential theft, privilege escalation, and lateral movement. Following this, 'Kekeo' malware was detected on the same device, and shortly after, a suspected overpass-the-hash (Kerberos) attack was raised where a Helpdesk Administrator on VNEVADO-Win10V attempted to authenticate against VNEVADO-DC.",
+    "question": "What is the email address of the account associated with the suspected overpass-the-hash (Kerberos) alert?",
+    "answer": "fk8mq@vnevado.alpineskihouse.co",
+    "solution": [
+      "Multiple dual-purpose tools were dropped on the device, including the file `rubeus.exe`, which can be used for credential theft and privilege escalation.",
+      "The 'Kekeo' malware was detected during lateral movement, associated with the account with SID `S-1-5-21-1540151660-3530000288-105586595-1517`.",
+      "A suspected overpass-the-hash (Kerberos) attack was performed by the compromised account with email `fk8mq@vnevado.alpineskihouse.co` (Emma Clark, Helpdesk Administrator) on VNEVADO-Win10V against VNEVADO-DC."
+    ],
+    "start_alert": 76,
+    "end_alert": 119,
+    "start_entities": [
+      17,
+      27,
+      32,
+      33,
+      49,
+      50,
+      63,
+      64,
+      66
+    ],
+    "end_entities": [
+      121
+    ],
+    "shortest_alert_path": [
+      76,
+      65,
+      110,
+      2,
+      119
+    ]
+  },
+  {
+    "context": "During an investigation, a sign-in attempt with a deceptive user account was detected on host `vnevado-win10v` (AAD device ID `4d8d23e9-a77d-4e33-9435-b8c457e57ca1`), involving accounts such as `tgs2z` (SID `S-5-7-21-1843151660-3234030288-105586167-1422`) and `kyleg`, with sign-in activity from IP address `35.202.74.47`. This activity was followed within seconds by a sequence of alerts indicative of potential human-operated malicious activity on the same device.",
+    "question": "A related alert in this incident reported a successful logon using overpass-the-hash with potentially stolen credentials. Which file (process image) was identified as the source from which the credentials were likely harvested in that alert?",
+    "answer": "lsass.exe",
+    "solution": [
+      "A sign-in attempt was detected using a deceptive (decoy) user account named `kyleg`, suggesting an attacker was probing the device with a fake account.",
+      "A sequence of alerts indicative of potential human-operated malicious activity was observed involving the user with AadUserId `97e6a954-b6bd-48a5-808c-bd8464cce677`, which could lead to ransomware or other payloads being deployed.",
+      "A successful logon using overpass-the-hash with potentially stolen credentials was detected, where the password hash was obtained from the memory of the process file `lsass.exe` and used to obtain a Kerberos ticket for authenticating to network resources."
+    ],
+    "start_alert": 41,
+    "end_alert": 52,
+    "start_entities": [
+      27,
+      28,
+      29,
+      32,
+      33,
+      42,
+      43
+    ],
+    "end_entities": [
+      54
+    ],
+    "shortest_alert_path": [
+      41,
+      42,
+      109,
+      3,
+      52
+    ]
+  },
+  {
+    "context": "During this incident, a known credential theft tool was executed: the process `mimikatz.exe` ran with process ID 5196 using the command line `\"mimikatz.exe\" privilege::debug sekurlsa::logonpasswords exit`, indicating an intent to dump users' credentials, keys and plain-text passwords. The same compromised user account (identified by its Azure AD user ID) is also linked to a subsequent alert where PsExec was used to launch a command on a remote device, suggesting lateral movement in the organization.",
+    "question": "In the related PsExec lateral movement alert, what is the name of the file referenced by the process involved?",
+    "answer": "adminticket.txt",
+    "solution": [
+      "The account with AadUserId `1d94aaf6-efe6-4e76-ad56-ffd7d1257bc1` executed a known credential theft tool, indicating an intent to dump users' credentials, keys, and plain-text passwords.",
+      "Using the stolen credentials, PsExec was leveraged to launch a command on a remote device for lateral movement, involving the file `adminticket.txt`."
+    ],
+    "start_alert": 89,
+    "end_alert": 95,
+    "start_entities": [
+      31,
+      67
+    ],
+    "end_entities": [
+      8
+    ],
+    "shortest_alert_path": [
+      89,
+      29,
+      95
+    ]
+  },
+  {
+    "context": "During an investigation, a suspected overpass-the-hash (Kerberos) attack was detected in which the account `Emma Clark` (Helpdesk Administrator, email `fk8mq@vnevado.alpineskihouse.co`) on host `VNEVADO-Win10V` attempted to authenticate against the domain controller `VNEVADO-DC`.",
+    "question": "An earlier related alert flagged suspicious activity initiated remotely on a machine, such as attempts to start interactive sessions, modify files, pass WMI commands, or create scheduled tasks. What is the security identifier (SID) of the account involved in that suspicious remote activity alert?",
+    "answer": "S-0-6-5",
+    "solution": [
+      "A suspected overpass-the-hash attack (Kerberos) was detected, where the account `Emma Clark` (Helpdesk Administrator) with SID `S-1-5-21-1540151660-3530000288-105586595-1517` on VNEVADO-Win10V attempted to authenticate against VNEVADO-DC.",
+      "Using the stolen credentials, suspicious remote activity was then observed on the machine, initiated remotely by the account with SID `S-0-6-5`."
+    ],
+    "start_alert": 119,
+    "end_alert": 101,
+    "start_entities": [
+      115,
+      116,
+      120,
+      121
+    ],
+    "end_entities": [
+      23
+    ],
+    "shortest_alert_path": [
+      119,
+      2,
+      101
+    ]
+  },
+  {
+    "context": "During an investigation of a multi-stage incident, a sequence of alerts indicative of potential human-operated malicious activity was observed on a device (AAD Device ID `fafdcd65-46c6-45a6-aa85-ec9b77ca0bcb`). The activity included the execution of `powershell -command set-mppreference -disablerealtimemonitoring 1` (PID 6968), credential theft with `cmd /c \"c:\\temp\\rubeus.exe dump /service:xfbzkp /user:lucasb > c:\\temp\\adminticket.txt\"` (PID 7644), and lateral movement via PsExec launching commands on a remote device, involving account `fk8mq` (AAD User ID 97e6a954-b6bd-48a5-808c-bd8464cce677) and IP address 141.216.110.153.",
+    "question": "Tracing this activity chain further, one of the related alerts shows a user clicked on a link inside an email that had been quarantined by zero-hour auto purge (ZAP). What was the full URL that the user accessed?",
+    "answer": "https://ac27145722.livelygrass-8d4c4013.eastus2.azurecontainerapps.io/",
+    "solution": [
+      "A sequence of human-operated malicious activity was detected on the device, involving the credential theft tool process `rubeus.exe` (ExtractedFileName: `rubeus.exe`) at 2024-07-04 22:35:03 UTC.",
+      "The account with SID `S-5-7-21-1843151660-3234030288-105586167-1422` used PsExec to launch a command on a remote device, indicating lateral movement.",
+      "That same user later clicked a link in an email that had been quarantined by zero-hour auto purge (ZAP), accessing the malicious URL `https://ac27145722.livelygrass-8d4c4013.eastus2.azurecontainerapps.io/` at 2024-07-10 11:24:45 UTC."
+    ],
+    "start_alert": 105,
+    "end_alert": 141,
+    "start_entities": [
+      9,
+      23,
+      6,
+      3,
+      1,
+      99,
+      2,
+      25,
+      5,
+      11
+    ],
+    "end_entities": [
+      137
+    ],
+    "shortest_alert_path": [
+      105,
+      7,
+      95,
+      28,
+      141
+    ]
+  },
+  {
+    "context": "During this incident, PsExec was observed launching commands on remote devices, including `psexec.exe \\\\vnevado-dc -accepteula cmd /c \"powershell.exe -command \"net.exe stop ntds /y; add-addbsidhistory -samaccountname bdadmin ...\"\"` (PID 5612) and `psexec.exe \\\\vnevado-win10b -accepteula cmd /c \"powershell -command set-mppreference -disablerealtimemonitoring 1\"` (PID 6264), along with scripts such as `domaindominance27.ps1` and `get-krbticket.ps1`. PsExec is a tool used to launch programs on remote or local devices, and an attacker might be leveraging it to move laterally in the organization.",
+    "question": "Shortly before the PsExec activity, another alert in this incident flagged a sign-in attempt using a deceptive (decoy) user account. What was the source IP address associated with that sign-in attempt?",
+    "answer": "35.202.74.47",
+    "solution": [
+      "PsExec was used to launch a command on a remote device identified by AadDeviceId `4d8d23e9-a77d-4e33-9435-b8c457e57ca1`, indicating possible lateral movement in the organization.",
+      "A sign-in attempt with a deceptive (decoy) user account was detected originating from the IP address `35.202.74.47`."
+    ],
+    "start_alert": 95,
+    "end_alert": 41,
+    "start_entities": [
+      50,
+      37,
+      8,
+      96,
+      36,
+      49,
+      18,
+      70,
+      69,
+      17
+    ],
+    "end_entities": [
+      43
+    ],
+    "shortest_alert_path": [
+      95,
+      33,
+      41
+    ]
+  },
+  {
+    "context": "In this multi-stage incident, an attacker successfully logged on using an overpass-the-hash attack with potentially stolen credentials, involving the account `fk8mq` (SID S-1-5-21-1540151660-3530000288-105586595-1517) on host `vnevado-win10b`, where the process `lsass.exe` (PID 692) was accessed. Shortly afterwards, a remote session dropped a file and executed it, and then a SID history injection was detected on a device \u2014 SID history is an attribute supporting migration scenarios that attackers modify to grant an existing domain user an SID with elevated privileges.",
+    "question": "For the SID history injection alert that followed, what is the name of the file associated with that detection?",
+    "answer": "dkwj.mze",
+    "solution": [
+      "An attacker performed a successful logon using overpass-the-hash with potentially stolen credentials from the IP address `141.216.110.153`.",
+      "From that remote session, a file was dropped and launched on the host `vnevado-dc`, indicating lateral movement.",
+      "A SID history injection was detected on the device, associated with the dropped file named `dkwj.mze`."
+    ],
+    "start_alert": 52,
+    "end_alert": 72,
+    "start_entities": [
+      1,
+      2,
+      3,
+      10,
+      11,
+      53,
+      54,
+      55
+    ],
+    "end_entities": [
+      73
+    ],
+    "shortest_alert_path": [
+      52,
+      25,
+      60,
+      20,
+      72
+    ]
+  },
+  {
+    "context": "During an investigation, a sign-in attempt with a deceptive user account was detected on host `vnevado-win10b` (AAD Device ID `fafdcd65-46c6-45a6-aa85-ec9b77ca0bcb`) involving the account `kyleg` (SID `S-0-6-5`). This activity appears to be part of a broader attack chain that also included a remote session dropping and launching a file, as well as a process suspiciously stopping services on the device \u2014 a technique attackers use to avoid detection, prevent malware removal, and block recovery, often alongside data encryption or destruction.",
+    "question": "For the alert about a process suspiciously stopping services on the device, what is the file name of the process that stopped the services?",
+    "answer": "powershell.exe",
+    "solution": [
+      "A sign-in attempt with a deceptive (decoy) user account was detected originating from the IP address `141.216.110.153`, indicating a potential attacker attempting lateral movement.",
+      "Using the compromised account with Name `lucasb`, a remote session dropped a file and executed it, showing the attacker attempting to move laterally or propagate.",
+      "The dropped payload led to execution of the process with ExtractedFileName `powershell.exe`, which suspiciously stopped services on the device to evade detection and prevent recovery."
+    ],
+    "start_alert": 75,
+    "end_alert": 46,
+    "start_entities": [
+      10,
+      11,
+      23,
+      42
+    ],
+    "end_entities": [
+      17
+    ],
+    "shortest_alert_path": [
+      75,
+      25,
+      60,
+      13,
+      46
+    ]
+  },
+  {
+    "context": "During a multi-stage incident, an alert titled 'User and IP address reconnaissance (SMB)' was raised: the account of Ethan Brooks (Account Executive) on host `VNEVADO-Win10V` enumerated SMB sessions on the domain controller `VNEVADO-DC`, retrieving recent IP addresses of 2 accounts. Around the same time, a related alert fired for email messages containing a malicious URL that were delivered to a mailbox and later removed.",
+    "question": "For the related alert about emails with a malicious URL that were delivered and then removed, what was the sender IP address of those messages?",
+    "answer": "118.254.65.186",
+    "solution": [
+      "The account with email `tgs2z@vnevado.alpineskihouse.co` was involved in user and IP address reconnaissance (SMB), enumerating SMB sessions on VNEVADO-DC from VNEVADO-Win10V.",
+      "Related to this activity, email messages containing a malicious URL were delivered and later removed, sent from the sender IP address `118.254.65.186`."
+    ],
+    "start_alert": 114,
+    "end_alert": 138,
+    "start_entities": [
+      115,
+      116
+    ],
+    "end_entities": [
+      139
+    ],
+    "shortest_alert_path": [
+      114,
+      118,
+      138
+    ]
+  },
+  {
+    "context": "During a multi-stage incident, activity indicating use of the Rubeus tool was observed on an endpoint. The process `psexesvc.exe` (PID 5512) was seen, followed by `cmd /c \"c:\\temp\\rubeus.exe dump /service:xfbzkp /user:lucasb > c:\\temp\\adminticket.txt\"` (PID 7644) and `rubeus.exe dump /service:xfbzkp /user:lucasb` (PID 2608). Rubeus can perform kerberoasting, pass-the-ticket, and other attacks abusing Kerberos authentication.",
+    "question": "A related alert reported a successful logon using overpass-the-hash with potentially stolen credentials on the same device. Which file was flagged in that alert as the source from which the credential material (password hash) was likely harvested?",
+    "answer": "lsass.exe",
+    "solution": [
+      "The Rubeus kerberoasting tool was used on the host with AadDeviceId `fafdcd65-46c6-45a6-aa85-ec9b77ca0bcb`, requesting Kerberos tickets for service principal names.",
+      "Using the stolen credentials, the attacker performed a successful overpass-the-hash logon, with the password hash obtained from memory via the process file `lsass.exe`."
+    ],
+    "start_alert": 0,
+    "end_alert": 52,
+    "start_entities": [
+      4,
+      5,
+      6,
+      7,
+      8,
+      9
+    ],
+    "end_entities": [
+      54
+    ],
+    "shortest_alert_path": [
+      0,
+      11,
+      52
+    ]
+  },
+  {
+    "context": "During this incident, a suspicious service was launched on host `vnevado-dc` by the account `lucasb` (SID S-1-5-21-1440151660-4837038288-105596163-1120, AAD user ID 7fcf9695-68fc-4258-864d-e1e5b166c66f). The activity included process 3780 running `powershell.exe -command \"net.exe stop ntds /y; add-addbsidhistory -samaccountname bdadmin -sidhistory \\\"s-1-5-32-544\\\" -databasepath (get-itemproperty -path registry::hklm\\system\\currentcontrolset\\services\\ntds\\parameters).\\\"dsa database file\\\" -force; net.exe start ntds\"` and process 3400 running `\"net.exe\" start ntds`, followed by an anomalous chain of user account lookups on the same device.",
+    "question": "Around the same time on this same host, a 'Kekeo' malware detection was raised. What is the name of the file that triggered that malware detection?",
+    "answer": "rubeus.exe",
+    "solution": [
+      "A suspicious service was launched using the process `net.exe`, indicating an attacker may be using services to run malicious commands for persistence or privilege escalation.",
+      "On the host `vnevado-win10v`, an anomalous chain of account lookups was observed, suggesting the attacker was gathering information about potential target accounts.",
+      "The 'Kekeo' malware was detected on the device in the file `rubeus.exe`, a known Kerberos ticket abuse tool used for credential theft and lateral movement."
+    ],
+    "start_alert": 12,
+    "end_alert": 92,
+    "start_entities": [
+      13,
+      14,
+      15,
+      16,
+      19,
+      20
+    ],
+    "end_entities": [
+      65
+    ],
+    "shortest_alert_path": [
+      12,
+      18,
+      94,
+      32,
+      92
+    ]
+  },
+  {
+    "context": "During this multi-stage incident, an alert titled \"User and IP address reconnaissance (SMB)\" was raised on 2024-07-10, indicating that the account `Ethan Brooks` (email: `tgs2z@vnevado.alpineskihouse.co`), an Account Executive working from VNEVADO-Win10V, enumerated SMB sessions on VNEVADO-DC and retrieved recent IP addresses of 2 accounts. This reconnaissance activity is linked, through shared entities, to earlier activity on 2024-07-04 that included an anomalous chain of user account lookups and, just before it, an alert reporting that a suspicious service was started on a device \u2014 a technique attackers commonly use to launch malicious commands, maintain persistence, or elevate privileges.",
+    "question": "For the earlier alert reporting the suspicious service being launched, which user account was involved in starting that service?",
+    "answer": "lucasb",
+    "solution": [
+      "The account with SID `S-5-7-21-1843151660-3234030288-105586167-1422` (Ethan Brooks) performed user and IP address reconnaissance (SMB) from VNEVADO-Win10V against VNEVADO-DC at 2024-07-10 11:24:45 UTC.",
+      "An anomalous chain of account lookups was observed, carried out by the process `net.exe` at 2024-07-04 22:35:03 UTC, indicating the attacker was gathering information about potential targets.",
+      "A suspicious service was launched on the device under the account named `lucasb` at 2024-07-04 22:35:00 UTC, likely used to maintain persistence or elevate privileges."
+    ],
+    "start_alert": 114,
+    "end_alert": 12,
+    "start_entities": [
+      117,
+      118
+    ],
+    "end_entities": [
+      13
+    ],
+    "shortest_alert_path": [
+      114,
+      28,
+      94,
+      18,
+      12
+    ]
+  },
+  {
+    "context": "During an investigation, an alert fired for a suspicious file registered as a service: the file `psexesvc.exe` was registered as a service under the `LocalSystem` account, suggesting an attacker may be establishing persistence. Shortly afterward, on the same device, a related alert reported that 'Kekeo' malware was detected during lateral movement, indicating an attacker might be attempting to move laterally to this device from another device on the network.",
+    "question": "For the 'Kekeo' malware detection during lateral movement on that same device, what is the name of the file that was flagged?",
+    "answer": "rubeus.exe",
+    "solution": [
+      "A suspicious file was registered as a service for persistence on the host with AadDeviceId `fafdcd65-46c6-45a6-aa85-ec9b77ca0bcb`.",
+      "On that same device, 'Kekeo' malware was detected during lateral movement, involving the file named `rubeus.exe`."
+    ],
+    "start_alert": 21,
+    "end_alert": 110,
+    "start_entities": [
+      22,
+      24
+    ],
+    "end_entities": [
+      65
+    ],
+    "shortest_alert_path": [
+      21,
+      11,
+      110
+    ]
+  },
+  {
+    "context": "During an investigation, a malicious credential theft tool execution was detected: the process `mimikatz.exe` was run with process ID 6880 at 2024-06-27T14:32:37.7041174Z using the command line `\"mimikatz.exe\" privilege::debug \"sekurlsa::pth /user:fk8mq /ntlm:96def1a633fc6790124d5f8fe21cc72b /domain:vnevado.alpineskihouse.co /run:\\\"powershell.exe dir \\\\vnevado-win10b\\c$\\\"\" exit`, indicating a pass-the-hash attempt against a remote share.",
+    "question": "A nearly identical credential theft tool execution was detected about a second earlier on the same machine, impersonating a different account. What was the process ID of that earlier execution, and which user account was specified in its pass-the-hash command line?",
+    "answer": "Process ID 4112 (created 2024-06-27T14:32:36.6706405Z), targeting the user account `kyleg` (NTLM hash 96def1a633fc6790124d5f8fe31cc72b, domain vnevado.alpineskihouse.co)",
+    "solution": [
+      "A known credential theft tool execution was detected on host `vnevado-win10v`.",
+      "On that host, the attacker ran the credential theft tool Mimikatz with the command line `\"mimikatz.exe\" privilege::debug \"sekurlsa::pth /user:kyleg /ntlm:96def1a633fc6790124d5f8fe31cc72b /domain:vnevado.alpineskihouse.co /run:\\\"powershell.exe dir \\\\vnevado-win10b\\c$\\\"\" exit` at `2024-06-27t14:32:36.6706405z`, with Process ID `4112`, performing a pass-the-hash attack for user `kyleg` to access `vnevado-win10b`."
+    ],
+    "start_alert": 104,
+    "end_alert": 39,
+    "start_entities": [
+      68
+    ],
+    "end_entities": [
+      40
+    ],
+    "shortest_alert_path": [
+      104,
+      32,
+      39
+    ]
+  },
+  {
+    "context": "On 2024-07-04 at approximately 22:35:02 UTC, an alert titled \"Sign-in attempt with deceptive user account\" was raised on the device `vnevado-win10b` (AadDeviceId `fafdcd65-46c6-45a6-aa85-ec9b77ca0bcb`), involving the local system context account with SID `S-0-6-5` and the IP address `141.216.110.153`. The alert indicates a potential attacker might be using a fake or decoy user account on this device to perform activities such as lateral movement or access to sensitive data.",
+    "question": "A nearly simultaneous sign-in attempt with the same deceptive user account was detected about one second earlier on this device. What is the security identifier (SID) of the deceptive user account that was used in that sign-in attempt?",
+    "answer": "S-5-7-21-1843151660-3234030288-105586167-1422",
+    "solution": [
+      "A sign-in attempt with a deceptive (decoy) user account named `kyleg` was detected on the device at 2024-07-04 22:35:02 UTC, indicating a potential attacker using a fake account for lateral movement or data access.",
+      "The same deceptive sign-in activity was associated with the account identified by SID `S-5-7-21-1843151660-3234030288-105586167-1422`, confirming the decoy account used in the attack attempt."
+    ],
+    "start_alert": 75,
+    "end_alert": 41,
+    "start_entities": [
+      10,
+      11,
+      23,
+      25
+    ],
+    "end_entities": [
+      28
+    ],
+    "shortest_alert_path": [
+      75,
+      42,
+      41
+    ]
+  },
+  {
+    "context": "During this multi-stage incident, an alert titled \"Suspicious process stopping services\" fired on host `vnevado-dc` in the context of account `lucasb` (SID S-1-5-21-1440151660-4837038288-105596163-1120). The activity involved PowerShell (PID 3780) running the command `powershell.exe -command \"net.exe stop ntds /y; add-addbsidhistory -samaccountname bdadmin -sidhistory \\\"s-1-5-32-544\\\" -databasepath (get-itemproperty -path registry::hklm\\system\\currentcontrolset\\services\\ntds\\parameters).\\\"dsa database file\\\" -force; net.exe start ntds\"`, which spawned `net.exe` (PID 6428) to stop the NTDS service. This activity chains to further alerts in the same incident, including one where emails containing a malicious URL were delivered and later removed.",
+    "question": "For the related alert about email messages containing a malicious URL that were removed after delivery, what was the recipient's email address?",
+    "answer": "tgs2z@vnevado.alpineskihouse.co",
+    "solution": [
+      "A suspicious process `powershell.exe` stopped services running on the device, likely to avoid detection or prepare for data encryption/destruction.",
+      "The account with SID `S-5-7-21-1843151660-3234030288-105586167-1422` ran a suspicious sequence of Windows exploration commands used to identify valuable assets and coordinate lateral movement.",
+      "The mailbox recipient `tgs2z@vnevado.alpineskihouse.co` received email messages containing a malicious URL that were removed after delivery."
+    ],
+    "start_alert": 46,
+    "end_alert": 138,
+    "start_entities": [
+      13,
+      14,
+      15,
+      16,
+      20,
+      47
+    ],
+    "end_entities": [
+      135
+    ],
+    "shortest_alert_path": [
+      46,
+      17,
+      77,
+      28,
+      138
+    ]
+  },
+  {
+    "context": "During a multi-stage intrusion, an alert titled 'Multiple dual-purpose tools were dropped' fired on a device, showing that publicly available tools that can be abused for credential theft, privilege escalation, and lateral movement were staged there. Observed activity included `powershell.exe` running `c:\\users\\tgs2z\\downloads\\domaindominance27\\domaindominance27.ps1` (PID 4676), `mimikatz.exe` executed with `privilege::debug sekurlsa::logonpasswords exit` (PID 5196) and pass-the-hash commands against domain vnevado.alpineskihouse.co, plus `get-krbticket.ps1` and `rubeus.exe`.",
+    "question": "A related alert on the same device flagged an anomalous chain of user account lookups, suggesting the attacker was enumerating potential targets. What was the process ID, creation time, and full command line of the process responsible for that account enumeration?",
+    "answer": "Process ID: 6264, Created Time (UTC): 2024-06-27T14:32:22.2653632Z, Command line: \"net.exe\" group /domain",
+    "solution": [
+      "Multiple dual-purpose tools were dropped on the device, including the file `domaindominance27.ps1`.",
+      "The dropped tooling led to an anomalous chain of account lookups, executed by the process with Process ID `6264` created at `2024-06-27t14:32:22.2653632z` with command line `\"net.exe\" group /domain`."
+    ],
+    "start_alert": 62,
+    "end_alert": 94,
+    "start_entities": [
+      31,
+      36,
+      37,
+      67,
+      49,
+      40,
+      50,
+      68,
+      65,
+      17
+    ],
+    "end_entities": [
+      83
+    ],
+    "shortest_alert_path": [
+      62,
+      66,
+      94
+    ]
+  },
+  {
+    "context": "During an investigation of a multi-stage intrusion in the vnevado.alpineskihouse.co environment, an alert titled \"User and IP address reconnaissance (SMB)\" was raised: the account `Ethan Brooks` (Account Executive, email `tgs2z@vnevado.alpineskihouse.co`) working from a compromised workstation enumerated SMB sessions on the domain controller VNEVADO-DC and retrieved recent IP addresses for 2 accounts. This reconnaissance is linked, through the affected device and subsequent Kerberos overpass-the-hash activity, to an earlier alert reporting a sequence of events indicative of human-operated malicious activity that could lead to ransomware or other payloads being deployed.",
+    "question": "For that earlier alert about potential human-operated malicious activity, what is the security identifier (SID) of the account associated with it?",
+    "answer": "S-0-6-5",
+    "solution": [
+      "On host `VNEVADO-Win10V`, an SMB session enumeration (user and IP address reconnaissance) was performed against VNEVADO-DC, retrieving recent IP addresses of 2 accounts.",
+      "From that same host, the account with AadUserId `97e6a954-b6bd-48a5-808c-bd8464cce677` (Emma Clark, Helpdesk Administrator) was used in a suspected overpass-the-hash (Kerberos) attack to authenticate against VNEVADO-DC.",
+      "This sequence escalated into potential human-operated malicious activity on the device, associated with the account with SID `S-0-6-5`."
+    ],
+    "start_alert": 114,
+    "end_alert": 105,
+    "start_entities": [
+      117,
+      118
+    ],
+    "end_entities": [
+      23
+    ],
+    "shortest_alert_path": [
+      114,
+      116,
+      119,
+      3,
+      105
+    ]
+  },
+  {
+    "context": "During a lateral movement incident, 'Kekeo' malware was detected on a device where the service binary `psexesvc.exe` was executed (Process ID 5512, created 2024-06-27T14:33:27.3525354Z) under SID `S-0-6-5`, with associated remote IP address `141.216.110.153`. Moments earlier on the same host, a related alert flagged an active 'Kekeo' malware detection, indicating the malware was running or had established persistence.",
+    "question": "For the related alert reporting the active 'Kekeo' malware, what was the process ID, and what command line (including the tool name and its arguments) was executed?",
+    "answer": "Process ID: 2608, Command line: `rubeus.exe dump /service:xfbzkp /user:lucasb` (created 2024-06-27T14:33:27.7927134Z)",
+    "solution": [
+      "'Kekeo' malware was detected on the host `vnevado-win10b` during lateral movement, indicating an attacker was attempting to move to this device from another device on the network.",
+      "On that host, an active 'Kekeo' malware was detected running as the process `rubeus.exe dump /service:xfbzkp /user:lucasb` with Process ID `2608` at `2024-06-27t14:33:27.7927134z`, used to dump Kerberos tickets for the user `lucasb`."
+    ],
+    "start_alert": 110,
+    "end_alert": 106,
+    "start_entities": [
+      4,
+      5,
+      23,
+      25
+    ],
+    "end_entities": [
+      9
+    ],
+    "shortest_alert_path": [
+      110,
+      10,
+      106
+    ]
+  },
+  {
+    "context": "During an investigation, a suspicious service was started on a device, where `psexesvc.exe` was launched by `services.exe` (parent process ID 684, created 2024-06-26T17:11:52). The psexesvc.exe processes were created with process IDs 5912 and 5512 on 2024-06-27. Attackers often use services like this to launch malicious commands, maintain persistence, or elevate privileges. On the same device, a nearly simultaneous alert reported a sign-in attempt using a deceptive (fake or decoy) user account, which attackers commonly leverage for lateral movement and access to sensitive data.",
+    "question": "For the sign-in attempt involving the deceptive user account, what source IP address was recorded?",
+    "answer": "141.216.110.153",
+    "solution": [
+      "A suspicious service was launched on the device with AadDeviceId `fafdcd65-46c6-45a6-aa85-ec9b77ca0bcb`, likely used by the attacker to run malicious commands and maintain persistence or elevate privileges.",
+      "From that same device, a sign-in attempt using a deceptive (decoy) user account was detected originating from the IP address `141.216.110.153`, indicating potential lateral movement by the attacker."
+    ],
+    "start_alert": 90,
+    "end_alert": 75,
+    "start_entities": [
+      4,
+      5,
+      59,
+      88,
+      91
+    ],
+    "end_entities": [
+      25
+    ],
+    "shortest_alert_path": [
+      90,
+      11,
+      75
+    ]
+  },
+  {
+    "context": "On the domain controller `vnevado-dc`, a SID history injection was detected: the account `lucasb` (AAD user ID `7fcf9695-68fc-4258-864d-e1e5b166c66f`) ran process ID 3780 with the command line `powershell.exe -command \"net.exe stop ntds /y; add-addbsidhistory -samaccountname bdadmin -sidhistory \\\"s-1-5-32-544\\\" -databasepath (get-itemproperty -path registry::hklm\\system\\currentcontrolset\\services\\ntds\\parameters).\\\"dsa database file\\\" -force; net.exe start ntds\"`. SID history is an attribute supporting migration scenarios, and attackers commonly abuse it to grant an existing domain user an SID with elevated privileges for persistence and access to sensitive data. Shortly afterwards, related detections in this incident flagged the Mimikatz credential theft hacktool and a known credential theft tool execution command line intended to dump users' credentials, keys, and plain-text passwords.",
+    "question": "For the 'Malicious credential theft tool execution detected' alert in this incident, which account security identifier (SID) was reported as involved?",
+    "answer": "S-5-7-21-1843151660-3234030288-105586167-1422",
+    "solution": [
+      "A SID history injection was detected, carried out via the process `powershell.exe`, where the attacker modified the SID history attribute of a domain user to gain elevated privileges.",
+      "The Mimikatz credential theft tool, process `mimikatz.exe`, was detected running on the device to harvest plaintext passwords, hashes, and Kerberos tickets.",
+      "The malicious credential theft tool execution was performed under the account with SID `S-5-7-21-1843151660-3234030288-105586167-1422`."
+    ],
+    "start_alert": 93,
+    "end_alert": 26,
+    "start_entities": [
+      13,
+      14,
+      15,
+      16,
+      20
+    ],
+    "end_entities": [
+      28
+    ],
+    "shortest_alert_path": [
+      93,
+      17,
+      108,
+      31,
+      26
+    ]
+  },
+  {
+    "context": "During an investigation of a multi-stage incident, an alert for \"Potential human-operated malicious activity\" was raised on the device `vnevado-win10b` (Azure AD device ID `fafdcd65-46c6-45a6-aa85-ec9b77ca0bcb`), involving the account `fk8mq` (SID `S-1-5-21-1540151660-3530000288-105586595-1517`, AAD user ID `97e6a954-b6bd-48a5-808c-bd8464cce677`) and the IP address `141.216.110.153`. This sequence of alerts may indicate hands-on-keyboard attacker activity that could lead to ransomware or other payloads being deployed. Follow-on activity on the same device included a sign-in attempt using a deceptive (decoy) user account, and shortly afterwards a known credential theft tool was executed, with its process or command line indicating intent to dump users' credentials, keys and plain-text passwords.",
+    "question": "For the alert reporting the malicious credential theft tool execution, which IP address was recorded as an entity of that alert?",
+    "answer": "65.233.23.156",
+    "solution": [
+      "A sequence of alerts indicating potential human-operated malicious activity was observed involving the account `kyleg`.",
+      "A sign-in attempt with a deceptive (decoy) user account with SID `S-5-7-21-1843151660-3234030288-105586167-1422` was detected on the device.",
+      "A known malicious credential theft tool was executed to dump users' credentials, associated with the IP address `65.233.23.156`."
+    ],
+    "start_alert": 109,
+    "end_alert": 111,
+    "start_entities": [
+      1,
+      2,
+      3,
+      10,
+      11,
+      23,
+      25
+    ],
+    "end_entities": [
+      113
+    ],
+    "shortest_alert_path": [
+      109,
+      42,
+      41,
+      28,
+      111
+    ]
+  },
+  {
+    "context": "During an investigation, a known credential theft tool was executed on a device: the process `mimikatz.exe` ran with process ID 4748 at 2024-06-27T14:33:38Z using the command line `\"mimikatz.exe\" \"lsadump::dcsync /domain:vnevado.alpineskihouse.co /user:xfbzkp\" exit`, indicating an intent to dump user credentials from the domain.",
+    "question": "Shortly after this credential theft activity on the same device, an alert fired for a suspicious new user account being created for persistence. What was the full command line used to create that account, and what was its process ID?",
+    "answer": "Process ID: 3624, Command line: `\"net.exe\" user /add bdadmin password1! /domain` (created at 2024-06-27T14:33:43.4299474Z)",
+    "solution": [
+      "A known credential theft tool was executed on the host with AadDeviceId `4d8d23e9-a77d-4e33-9435-b8c457e57ca1`, indicating an intent to dump users' credentials, keys, and plain-text passwords.",
+      "Following the credential theft, a suspicious account creation was performed via the process with Process ID `3624` at `2024-06-27t14:33:43.4299474z`, running the command line `\"net.exe\" user /add bdadmin password1! /domain` to establish backup access to the domain."
+    ],
+    "start_alert": 26,
+    "end_alert": 48,
+    "start_entities": [
+      30,
+      31
+    ],
+    "end_entities": [
+      51
+    ],
+    "shortest_alert_path": [
+      26,
+      33,
+      48
+    ]
+  },
+  {
+    "context": "During an investigation, a suspected overpass-the-hash (Kerberos) attack was flagged involving the account `Emma Clark` (Helpdesk Administrator, email `fk8mq@vnevado.alpineskihouse.co`, SID `S-1-5-21-1540151660-3530000288-105586595-1517`, AAD user ID `97e6a954-b6bd-48a5-808c-bd8464cce677`), who attempted to authenticate against VNEVADO-DC from VNEVADO-Win10V. This activity is linked, through the affected device and a related user account performing SMB user and IP address reconnaissance, to another alert in the same incident where a user clicked a link that was found to be malicious.",
+    "question": "In the related alert about a potentially malicious URL click, what is the full URL that was clicked?",
+    "answer": "https://ac27145722.livelygrass-8d4c4013.eastus2.azurecontainerapps.io/",
+    "solution": [
+      "A suspected overpass-the-hash attack (Kerberos) was detected on host `VNEVADO-Win10V`, where Emma Clark (Helpdesk Administrator) attempted to authenticate against VNEVADO-DC.",
+      "From the same host, the account with AadUserId `1d94aaf6-efe6-4e76-ad56-ffd7d1257bc1` (Ethan Brooks, Account Executive) performed user and IP address reconnaissance (SMB), enumerating SMB sessions on VNEVADO-DC and retrieving recent IP addresses of 2 accounts.",
+      "The compromised user then clicked on a potentially malicious URL `https://ac27145722.livelygrass-8d4c4013.eastus2.azurecontainerapps.io/`."
+    ],
+    "start_alert": 119,
+    "end_alert": 134,
+    "start_entities": [
+      2,
+      3,
+      120,
+      121
+    ],
+    "end_entities": [
+      137
+    ],
+    "shortest_alert_path": [
+      119,
+      116,
+      114,
+      29,
+      134
+    ]
+  },
+  {
+    "context": "During a lateral movement stage of an incident, 'Kekeo' malware was detected on a device. The alert included the process `psexesvc.exe` (Process ID 5512, created 2024-06-27T14:33:27.3525354Z), the file `rubeus.exe`, and remote IP address `141.216.110.153`. Shortly before this, an attempt to disable the Microsoft Defender Antivirus service was detected on the same device, likely as a defense evasion technique.",
+    "question": "For the Microsoft Defender Antivirus tampering alert, what was the exact command line executed and the process ID of the process that attempted to disable the antivirus protection?",
+    "answer": "Command line: `powershell -command set-mppreference -disablerealtimemonitoring 1`, Process ID: 6968 (created 2024-06-27T14:33:05.7932439Z)",
+    "solution": [
+      "The account with SID `S-1-5-21-1540151660-3530000288-105586595-1517` was involved in a 'Kekeo' malware detection during lateral movement to this device.",
+      "The attacker then attempted to disable Microsoft Defender Antivirus by running the process with Process ID `6968` at `2024-06-27t14:33:05.7932439z` with command line `powershell -command set-mppreference -disablerealtimemonitoring 1`."
+    ],
+    "start_alert": 110,
+    "end_alert": 98,
+    "start_entities": [
+      4,
+      5,
+      23,
+      25,
+      65
+    ],
+    "end_entities": [
+      99
+    ],
+    "shortest_alert_path": [
+      110,
+      2,
+      98
+    ]
+  },
+  {
+    "context": "During this incident, a suspected DCSync attack (replication of directory services) was detected, where Julian Burke (IT director, `lucasb@vnevado.alpineskihouse.co`) on VNEVADO-Win10V sent a replication request to VNEVADO-DC. Tracing this activity back further, a suspicious service was launched on a device, which in turn led to the detection of a known credential theft tool execution whose command line indicated an intent to dump users' credentials, keys, and plain-text passwords.",
+    "question": "For the alert about the malicious credential theft tool execution, what is the name of the account associated with that activity?",
+    "answer": "tgs2z",
+    "solution": [
+      "A suspected DCSync attack (replication of directory services) was detected, where the account with AadUserId `7fcf9695-68fc-4258-864d-e1e5b166c66f` (Julian Burke, IT director) on VNEVADO-Win10V sent a replication request to VNEVADO-DC.",
+      "On the compromised device, a suspicious service was launched using the process `powershell.exe`, which attackers commonly use to run malicious commands and maintain persistence or elevate privileges.",
+      "That activity led to the execution of a known credential theft tool, detected under the account named `tgs2z`, indicating an attempt to dump users' credentials, keys, and plain-text passwords."
+    ],
+    "start_alert": 122,
+    "end_alert": 104,
+    "start_entities": [
+      123,
+      124
+    ],
+    "end_entities": [
+      27
+    ],
+    "shortest_alert_path": [
+      122,
+      15,
+      12,
+      17,
+      104
+    ]
+  },
+  {
+    "context": "During an investigation of a lateral movement incident, an alert titled \"File dropped and launched from remote location\" was raised after a remote session dropped and executed a file. The process involved was recorded as `7668__2024-06-27t14:34:10.0201983z__psexesvc.exe`. Follow-on alerts on the same device included a process suspiciously stopping services, multiple dual-purpose tools being dropped, and finally the detection of a known credential theft tool execution command line intended to dump users' credentials, keys and plain-text passwords.",
+    "question": "For the alert reporting the malicious credential theft tool execution, what is the Microsoft Entra ID (AAD) user identifier of the account associated with that activity?",
+    "answer": "1d94aaf6-efe6-4e76-ad56-ffd7d1257bc1",
+    "solution": [
+      "The account `lucasb` was used in a remote session that dropped a file and launched it on the device, indicating lateral movement.",
+      "On that device, the process `powershell.exe` was used to suspiciously stop running services, likely to evade detection and prevent recovery.",
+      "The account with SID `S-5-7-21-1843151660-3234030288-105586167-1422` dropped multiple dual-purpose tools on the device for credential theft, privilege escalation, and lateral movement.",
+      "The same compromised user, identified by AadUserId `1d94aaf6-efe6-4e76-ad56-ffd7d1257bc1`, executed a known malicious credential theft tool to dump users' credentials and plain-text passwords."
+    ],
+    "start_alert": 60,
+    "end_alert": 26,
+    "start_entities": [
+      61
+    ],
+    "end_entities": [
+      29
+    ],
+    "shortest_alert_path": [
+      60,
+      13,
+      46,
+      17,
+      62,
+      28,
+      26
+    ]
+  },
+  {
+    "context": "During this multi-stage incident, a known credential theft tool was executed on an endpoint: the process `mimikatz.exe` (Process ID 4748, created 2024-06-27T14:33:38Z) ran the command line `\"mimikatz.exe\" \"lsadump::dcsync /domain:vnevado.alpineskihouse.co /user:xfbzkp\" exit`, indicating an attempt to dump user credentials. On the same device, multiple dual-purpose tools were dropped, and a related alert shows a suspicious file being registered as a service, likely for persistence.",
+    "question": "For the alert about the suspicious file registered as a service, what is the security identifier (SID) of the account associated with that activity?",
+    "answer": "S-0-6-5",
+    "solution": [
+      "A known credential theft tool was executed on the host `vnevado-win10v`, with a command line indicating intent to dump users' credentials, keys, and plain-text passwords.",
+      "On that same device, multiple dual-purpose tools were dropped, including the file `psexesvc.exe`, which attackers commonly use for lateral movement and remote execution.",
+      "The suspicious file was then registered as a service for persistence by the account with SID `S-0-6-5`."
+    ],
+    "start_alert": 26,
+    "end_alert": 21,
+    "start_entities": [
+      30
+    ],
+    "end_entities": [
+      23
+    ],
+    "shortest_alert_path": [
+      26,
+      32,
+      62,
+      24,
+      21
+    ]
+  },
+  {
+    "context": "During a security incident, an alert was raised for a sign-in attempt with a deceptive user account. The sign-in involved the account `kyleg` (SID `S-0-6-5`) from IP address `141.216.110.153`, suggesting a potential attacker might be using a fake or decoy user account on the device to perform lateral movement or access sensitive data. Roughly one second later, on the same device, 'Kekeo' malware was detected and found to be active.",
+    "question": "For the related 'Kekeo' malware detection that occurred on the same device, which user account name was associated with that malware activity?",
+    "answer": "fk8mq",
+    "solution": [
+      "A sign-in attempt with a deceptive (decoy) user account was detected on the device with AadDeviceId `fafdcd65-46c6-45a6-aa85-ec9b77ca0bcb` at 2024-07-04 22:35:02 UTC, indicating a potential attacker using a fake account for lateral movement.",
+      "On that same device, the 'Kekeo' malware was detected and found active at 2024-07-04 22:35:03 UTC, associated with the compromised user account with Name `fk8mq`."
+    ],
+    "start_alert": 75,
+    "end_alert": 100,
+    "start_entities": [
+      23,
+      25,
+      42
+    ],
+    "end_entities": [
+      1
+    ],
+    "shortest_alert_path": [
+      75,
+      11,
+      100
+    ]
+  },
+  {
+    "context": "On host `vnevado-win10b` (AAD device ID `fafdcd65-46c6-45a6-aa85-ec9b77ca0bcb`), a sequence of alerts indicative of potential human-operated malicious activity was observed. Among the observed activity, PowerShell was used to disable real-time monitoring (`powershell -command set-mppreference -disablerealtimemonitoring 1`, PID 6968), followed by `cmd /c \"c:\\temp\\rubeus.exe dump /service:xfbzkp /user:lucasb > c:\\temp\\adminticket.txt\"` (PID 7644) and `rubeus.exe dump /service:xfbzkp /user:lucasb` (PID 2608). Accounts such as `kyleg` and `fk8mq` (SID S-1-5-21-1540151660-3530000288-105586595-1517) were involved. This activity is linked to the dropping of multiple dual-purpose tools and further credential/privilege escalation attempts on the same device.",
+    "question": "Following this activity, a SID history injection was detected on the same device. What is the name of the file associated with that SID history injection alert?",
+    "answer": "dkwj.mze",
+    "solution": [
+      "Human-operated malicious activity was detected on the device, where the credential theft tool file `rubeus.exe` was dropped.",
+      "Multiple dual-purpose tools were dropped on the same device using the process `powershell.exe`, which could be used for credential theft, privilege escalation, and lateral movement.",
+      "The activity escalated to a SID history injection on the device, associated with the suspicious file `dkwj.mze`, which was used to grant an existing domain user elevated privileges for persistence and access to sensitive resources."
+    ],
+    "start_alert": 105,
+    "end_alert": 72,
+    "start_entities": [
+      6,
+      3,
+      11,
+      42,
+      1,
+      10,
+      23,
+      2,
+      99,
+      9
+    ],
+    "end_entities": [
+      73
+    ],
+    "shortest_alert_path": [
+      105,
+      65,
+      76,
+      17,
+      72
+    ]
+  },
+  {
+    "context": "During this multi-stage lateral movement incident, an alert titled \"File dropped and launched from remote location\" was raised on 2024-07-04 at 22:35:00 UTC, indicating that a remote session dropped a file and executed it. The activity was tied to the account `fk8mq` (SID `S-1-5-21-1540151660-3530000288-105586595-1517`, AAD user ID `97e6a954-b6bd-48a5-808c-bd8464cce677`) on the host `vnevado-win10b` (AAD device ID `fafdcd65-46c6-45a6-aa85-ec9b77ca0bcb`), with the credential-theft tool executed as `rubeus.exe dump /service:xfbzkp /user:lucasb` (PID 2608), and a connection from IP address `141.216.110.153`.",
+    "question": "Seconds later, a related alert reported that PsExec was used to launch a command on a remote device. Which account security identifier (SID) was reported in that PsExec alert?",
+    "answer": "S-5-7-21-1843151660-3234030288-105586167-1422",
+    "solution": [
+      "A remote session dropped and executed the file `rubeus.exe`, indicating an attempt at lateral movement or propagation.",
+      "The account with SID `S-5-7-21-1843151660-3234030288-105586167-1422` used PsExec to launch a command on a remote device, continuing the lateral movement in the organization."
+    ],
+    "start_alert": 34,
+    "end_alert": 95,
+    "start_entities": [
+      1,
+      2,
+      3,
+      9,
+      10,
+      11,
+      23,
+      25
+    ],
+    "end_entities": [
+      28
+    ],
+    "shortest_alert_path": [
+      34,
+      7,
+      95
+    ]
+  },
+  {
+    "context": "During an investigation of a multi-stage intrusion, a 'Possible lateral movement' alert was raised at 2024-07-04 22:35:01 UTC after suspicious network activity involving the IP address `35.202.74.47` was observed on a device, in close time proximity to lateral movement seen on another device. Pivoting from the affected device, an almost simultaneous alert titled 'File dropped and launched from remote location' was raised, indicating that a remote session dropped a file and executed it in an attempt to move laterally or propagate.",
+    "question": "For the closely related alert where a file was dropped and launched from a remote location, what is the IP address associated with that alert?",
+    "answer": "141.216.110.153",
+    "solution": [
+      "Possible lateral movement was observed on the device with AadDeviceId `fafdcd65-46c6-45a6-aa85-ec9b77ca0bcb`, indicating an attacker may be moving across devices to gather data or elevate privileges.",
+      "A remote session originating from the IP address `141.216.110.153` dropped a file and executed it on the device, showing the attacker's lateral movement or propagation attempt."
+    ],
+    "start_alert": 57,
+    "end_alert": 34,
+    "start_entities": [
+      43
+    ],
+    "end_entities": [
+      25
+    ],
+    "shortest_alert_path": [
+      57,
+      11,
+      34
+    ]
+  },
+  {
+    "context": "During this incident, a known credential theft tool execution was detected: `mimikatz.exe` was run with the command line `\"mimikatz.exe\" privilege::debug \"sekurlsa::pth /user:fk8mq /ntlm:96def1a633fc6790124d5f8fe21cc72b /domain:vnevado.alpineskihouse.co /run:\\\"powershell.exe c:\\m365dattack\\get-krbticket.ps1\\\"\" exit -wait` (Process ID 7092), which launched PowerShell to run the script `get-krbticket.ps1`. Seconds later, on the same compromised account (linked by the account SID), another alert fired for an anomalous chain of attempts to look up user account information, suggesting the attacker was enumerating potential targets.",
+    "question": "In the subsequent 'Anomalous account lookups' alert linked to the same account, which script file was involved in the account enumeration activity?",
+    "answer": "domaindominance27.ps1",
+    "solution": [
+      "An account with SID `S-5-7-21-1843151660-3234030288-105586167-1422` executed a known credential theft tool, attempting to dump users' credentials, keys, and plain-text passwords.",
+      "Following the credential theft, an anomalous chain of account lookups was performed using the script file `domaindominance27.ps1`, indicating the attacker was gathering information about potential targets."
+    ],
+    "start_alert": 44,
+    "end_alert": 94,
+    "start_entities": [
+      17,
+      31,
+      37,
+      38,
+      45
+    ],
+    "end_entities": [
+      66
+    ],
+    "shortest_alert_path": [
+      44,
+      28,
+      94
+    ]
+  },
+  {
+    "context": "During this incident, the Mimikatz credential theft tool was detected on host `vnevado-win10v` (AAD device ID `4d8d23e9-a77d-4e33-9435-b8c457e57ca1`). Multiple `mimikatz.exe` processes were observed, including pass-the-hash commands such as `\"mimikatz.exe\" privilege::debug \"sekurlsa::pth /user:fk8mq /ntlm:96def1a633fc6790124d5f8fe21cc72b /domain:vnevado.alpineskihouse.co /run:\\\"powershell.exe c:\\m365dattack\\get-krbticket.ps1\\\"\" exit -wait` (PID 7092) and a Kerberos ticket pass-the-ticket command (PID 5176), indicating an attacker harvesting credentials and impersonating valid users.",
+    "question": "A related alert on the same device shows SMB session enumeration against the domain controller VNEVADO-DC, retrieving recent IP addresses of accounts. What is the email address of the account that performed this user and IP address reconnaissance?",
+    "answer": "tgs2z@vnevado.alpineskihouse.co",
+    "solution": [
+      "The Mimikatz credential theft tool was detected running under the account with SID `S-5-7-21-1843151660-3234030288-105586167-1422`, indicating an attempt to harvest credentials such as plaintext passwords, hashes, and Kerberos tickets.",
+      "Using the stolen credentials, the attacker performed user and IP address reconnaissance (SMB) from VNEVADO-Win10V against VNEVADO-DC, enumerating SMB sessions and exposing the account with email `tgs2z@vnevado.alpineskihouse.co`."
+    ],
+    "start_alert": 108,
+    "end_alert": 114,
+    "start_entities": [
+      71,
+      33,
+      31,
+      37,
+      45,
+      68,
+      32,
+      40,
+      27,
+      67
+    ],
+    "end_entities": [
+      118
+    ],
+    "shortest_alert_path": [
+      108,
+      28,
+      114
+    ]
+  },
+  {
+    "context": "During this multi-stage incident, an alert fired for \"Email messages containing malicious URL removed after delivery\" \u2014 emails carrying the malicious URL `https://ac27145722.livelygrass-8d4c4013.eastus2.azurecontainerapps.io/` were delivered to the mailbox of user `Ethan Brooks` and later removed. The messages were sent from `k1pt7ez@vnevado.alpineskihouse.co` originating from sender IP `118.254.65.186`.",
+    "question": "Pivoting from this compromised user (they share the same Microsoft Entra user ID), an earlier endpoint alert reported a suspicious sequence of exploration activities where a process ran a set of Windows discovery commands. What is the account name (username) associated with that exploration activity alert?",
+    "answer": "tgs2z",
+    "solution": [
+      "The user account with AadUserId `1d94aaf6-efe6-4e76-ad56-ffd7d1257bc1` received an email containing a malicious URL, which was later removed after delivery.",
+      "Following the compromise, a suspicious sequence of exploration activities (a process calling a set of Windows discovery commands) was performed under the account named `tgs2z`."
+    ],
+    "start_alert": 138,
+    "end_alert": 77,
+    "start_entities": [
+      117,
+      118,
+      136,
+      137,
+      139,
+      140
+    ],
+    "end_entities": [
+      27
+    ],
+    "shortest_alert_path": [
+      138,
+      29,
+      77
+    ]
+  },
+  {
+    "context": "During this multi-stage incident, an alert was raised for email messages containing a malicious URL that were delivered and later removed. The email was sent from `k1pt7ez@vnevado.alpineskihouse.co` (sender IP `118.254.65.186`) to the mailbox of Ethan Brooks (`tgs2z@vnevado.alpineskihouse.co`) and contained the URL `https://ac27145722.livelygrass-8d4c4013.eastus2.azurecontainerapps.io/`. Pivoting on the affected user account, the investigation also surfaces earlier activity on a device where multiple dual-purpose tools were dropped, followed by a detection of the 'Kekeo' malware that was active on that device.",
+    "question": "For the alert reporting the active 'Kekeo' malware detection, what is the Microsoft Entra ID (AAD) user ID of the associated account?",
+    "answer": "97e6a954-b6bd-48a5-808c-bd8464cce677",
+    "solution": [
+      "The user account with AadUserId `1d94aaf6-efe6-4e76-ad56-ffd7d1257bc1` received email messages containing a malicious URL, which were removed after delivery.",
+      "Multiple dual-purpose tools were dropped on the device, including the file named `rubeus.exe`, which can be used for credential theft and lateral movement.",
+      "The 'Kekeo' malware was detected and was active under the user account with AadUserId `97e6a954-b6bd-48a5-808c-bd8464cce677`."
+    ],
+    "start_alert": 138,
+    "end_alert": 100,
+    "start_entities": [
+      117,
+      118,
+      135,
+      136,
+      137,
+      139,
+      140
+    ],
+    "end_entities": [
+      3
+    ],
+    "shortest_alert_path": [
+      138,
+      29,
+      76,
+      65,
+      100
+    ]
+  },
+  {
+    "context": "During this multi-stage incident, on host `vnevado-dc` the account `lucasb` ran a suspicious PowerShell command (process ID 3780) that stopped the NTDS service using `net.exe stop ntds /y` and attempted to add SID history for an account, which is a technique attackers use to avoid detection and elevate privileges. Related alerts later showed an actor stealing IT director Julian Burke's Kerberos ticket (pass-the-ticket) and using it to access additional resources.",
+    "question": "A related alert in this incident flagged possible lateral movement based on a Microsoft Defender for Endpoint detection, triggered by a suspicious network event occurring in close time proximity on another device. Which device (host name) was that alert raised on?",
+    "answer": "vnevado-win10b",
+    "solution": [
+      "A user account with AadUserId `7fcf9695-68fc-4258-864d-e1e5b166c66f` ran a suspicious process that stopped services on the device, likely to evade detection and prevent recovery.",
+      "Suspected identity theft (pass-the-ticket) was detected from IP address `35.202.74.47`, where an actor stole Julian Burke's (IT director) Kerberos ticket and reused it to access 4 resources.",
+      "Possible lateral movement was observed on host `vnevado-win10b`, the device from which the Kerberos ticket was stolen, indicating the attacker is moving laterally across devices to gather data or elevate privileges."
+    ],
+    "start_alert": 46,
+    "end_alert": 57,
+    "start_entities": [
+      13,
+      16,
+      17,
+      18,
+      20,
+      47
+    ],
+    "end_entities": [
+      10
+    ],
+    "shortest_alert_path": [
+      46,
+      15,
+      130,
+      43,
+      57
+    ]
+  },
+  {
+    "context": "During an investigation on the device `vnevado-win10b` (Azure AD device ID `fafdcd65-46c6-45a6-aa85-ec9b77ca0bcb`), an alert was raised for a suspicious file registered as a service, an action often used by attackers to gain persistence. The activity was associated with the user account `fk8mq` (SID `S-1-5-21-1540151660-3530000288-105586595-1517`, AAD user ID `97e6a954-b6bd-48a5-808c-bd8464cce677`), the `LocalSystem` account (SID `S-0-6-5`), and the IP address `141.216.110.153`. Around the same time, multiple known dual-purpose tools were dropped on the same device, and an attempt to disable the Microsoft Defender Antivirus service was detected, suggesting the attacker was trying to evade detection.",
+    "question": "For the Microsoft Defender Antivirus tampering alert on this device, what is the name of the file associated with that tampering attempt?",
+    "answer": "get-krbticket.ps1",
+    "solution": [
+      "The attacker registered the suspicious file `psexesvc.exe` as a service on the device for persistence and remote execution.",
+      "The account with SID `S-5-7-21-1843151660-3234030288-105586167-1422` dropped multiple dual-purpose tools on the device, which could be used for credential theft, privilege escalation, and lateral movement.",
+      "The file `get-krbticket.ps1` was involved in an attempt to disable the Microsoft Defender Antivirus service, indicating antivirus tampering to evade detection."
+    ],
+    "start_alert": 21,
+    "end_alert": 35,
+    "start_entities": [
+      1,
+      2,
+      3,
+      10,
+      11,
+      22,
+      23,
+      25
+    ],
+    "end_entities": [
+      38
+    ],
+    "shortest_alert_path": [
+      21,
+      24,
+      62,
+      28,
+      35
+    ]
+  },
+  {
+    "context": "During a multi-stage incident, a 'Possible lateral movement' alert was raised on host `vnevado-win10b` (AAD Device ID `fafdcd65-46c6-45a6-aa85-ec9b77ca0bcb`), indicating an attacker may be moving across devices to gather data or elevate privileges. Following this, a sign-in attempt with a deceptive (decoy) user account was detected, and shortly afterwards a known credential theft tool execution command line was detected, whose process or command line showed intent to dump users' credentials, keys and plain-text passwords.",
+    "question": "In the alert about the malicious credential theft tool execution, which remote host/URL was referenced as the target of the credential dumping activity?",
+    "answer": "vnevado-dc.vnevado.alpineskihouse.co",
+    "solution": [
+      "Possible lateral movement was observed involving a suspicious network event with IP address `35.202.74.47`.",
+      "A sign-in attempt with a deceptive user account was detected for the account with SID `S-5-7-21-1843151660-3234030288-105586167-1422`.",
+      "A malicious credential theft tool execution was detected, targeting the domain controller at URL `vnevado-dc.vnevado.alpineskihouse.co`."
+    ],
+    "start_alert": 57,
+    "end_alert": 111,
+    "start_entities": [
+      10,
+      11
+    ],
+    "end_entities": [
+      112
+    ],
+    "shortest_alert_path": [
+      57,
+      43,
+      41,
+      28,
+      111
+    ]
+  },
+  {
+    "context": "During an investigation of a lateral movement incident, an alert fired for \"PsExec launched a command on a remote device\" on the device with AAD Device ID `4d8d23e9-a77d-4e33-9435-b8c457e57ca1`. The activity was performed under the local account named `tgs2z`, which first ran `powershell.exe -executionpolicy bypass -file c:\\users\\tgs2z\\downloads\\domaindominance27\\domaindominance27.ps1` (PID 4676) and then used psexec.exe to disable real-time monitoring on `vnevado-win10b`, dump Kerberos tickets with `rubeus.exe`, and stop/start the NTDS service on `vnevado-dc` while injecting SID history.",
+    "question": "For the identity behind this PsExec-based lateral movement activity, what is the Microsoft Entra ID (Azure AD) user object ID recorded for that account?",
+    "answer": "1d94aaf6-efe6-4e76-ad56-ffd7d1257bc1",
+    "solution": [
+      "The user account with AadUserId `1d94aaf6-efe6-4e76-ad56-ffd7d1257bc1` used PsExec to launch a command on a remote device at 2024-07-04 22:35:03 UTC, indicating possible lateral movement in the organization."
+    ],
+    "start_alert": 95,
+    "end_alert": 95,
+    "start_entities": [
+      33,
+      27,
+      97,
+      37,
+      18,
+      50,
+      69,
+      7,
+      96,
+      49
+    ],
+    "end_entities": [
+      29
+    ],
+    "shortest_alert_path": [
+      95
+    ]
+  },
+  {
+    "context": "During an investigation, a known credential theft tool execution was detected on an endpoint: the process `mimikatz.exe` (Process ID 4748, created 2024-06-27T14:33:38Z) was run with the command line `\"mimikatz.exe\" \"lsadump::dcsync /domain:vnevado.alpineskihouse.co /user:xfbzkp\" exit`. Following this, PsExec was used to launch a command on a remote device, and around the same time activity indicating use of the Rubeus tool (capable of kerberoasting and pass-the-ticket attacks) was observed on the endpoint.",
+    "question": "For the alert reporting possible use of the Rubeus kerberoasting tool, which account name was involved?",
+    "answer": "fk8mq",
+    "solution": [
+      "A known credential theft tool was executed on the host with AadDeviceId `4d8d23e9-a77d-4e33-9435-b8c457e57ca1`, indicating an intent to dump users' credentials, keys, and plain-text passwords.",
+      "PsExec was then used to launch a command on a remote device, involving the extracted file `adminticket.txt`, suggesting lateral movement using stolen ticket material.",
+      "The activity was associated with the account `fk8mq`, which showed possible use of the Rubeus kerberoasting tool to request and abuse Kerberos tickets."
+    ],
+    "start_alert": 26,
+    "end_alert": 0,
+    "start_entities": [
+      30,
+      31
+    ],
+    "end_entities": [
+      1
+    ],
+    "shortest_alert_path": [
+      26,
+      33,
+      95,
+      8,
+      0
+    ]
+  },
+  {
+    "context": "During this multi-stage incident, Microsoft Defender flagged an attempt to disable the Microsoft Defender Antivirus service (antivirus tampering) as a possible detection-evasion technique. The activity was tied to the account `tgs2z` on host `vnevado-win10v` (AAD device ID `4d8d23e9-a77d-4e33-9435-b8c457e57ca1`), where `powershell.exe` was observed executing the script `get-krbticket.ps1` with the command line `powershell.exe c:\\m365dattack\\get-krbticket.ps1` (Process ID 6636, created 2024-06-27T14:32:46Z).",
+    "question": "Linked to this incident, a later alert on 2024-07-10 reported that a user clicked on a link found to be malicious. What is the display name of the user account associated with that potentially malicious URL click?",
+    "answer": "Ethan Brooks",
+    "solution": [
+      "The account with SID `S-5-7-21-1843151660-3234030288-105586167-1422` attempted to disable the Microsoft Defender Antivirus service, indicating antivirus tampering for defense evasion.",
+      "The user account `Ethan Brooks` clicked on a potentially malicious URL that was detected in the environment."
+    ],
+    "start_alert": 35,
+    "end_alert": 134,
+    "start_entities": [
+      17,
+      27,
+      32,
+      33,
+      36,
+      37,
+      38
+    ],
+    "end_entities": [
+      117
+    ],
+    "shortest_alert_path": [
+      35,
+      28,
+      134
+    ]
+  },
+  {
+    "context": "During a multi-stage incident, activity indicating use of the Rubeus tool was observed on an endpoint. PowerShell was used to run `c:\\m365dattack\\get-krbticket.ps1` (PID 6636), and psexec.exe was then used to run `\"psexec.exe\" \\\\vnevado-win10b -accepteula cmd /c \"c:\\temp\\rubeus.exe dump /service:xfbzkp /user:lucasb > c:\\temp\\adminticket.txt\"` (PID 5924). This tool can perform kerberoasting, pass-the-ticket, and other Kerberos-based attack techniques. The activity was linked, through a shared account SID, to another alert raised at nearly the same time for an anomalous chain of attempts to look up user account information, suggesting an attacker gathering information about potential targets.",
+    "question": "In the related alert about anomalous account lookups, what was the name of the script file involved?",
+    "answer": "domaindominance27.ps1",
+    "solution": [
+      "The account with SID `S-5-7-21-1843151660-3234030288-105586167-1422` was observed using the Rubeus kerberoasting tool to request and harvest Kerberos service tickets for credential theft.",
+      "Using that access, the attacker executed the script file `domaindominance27.ps1`, which performed an anomalous chain of user account lookups to enumerate potential targets in the domain."
+    ],
+    "start_alert": 107,
+    "end_alert": 94,
+    "start_entities": [
+      7,
+      8,
+      17,
+      36,
+      37,
+      70,
+      97
+    ],
+    "end_entities": [
+      66
+    ],
+    "shortest_alert_path": [
+      107,
+      28,
+      94
+    ]
+  },
+  {
+    "context": "During a multi-stage incident, 'Kekeo' malware was detected on host `vnevado-win10b` (AAD device ID `fafdcd65-46c6-45a6-aa85-ec9b77ca0bcb`) as part of lateral movement activity. Related activity included the account `fk8mq` (SID `S-1-5-21-1540151660-3530000288-105586595-1517`), the tool `rubeus.exe`, the process `psexesvc.exe` (PID 5512, created 2024-06-27T14:33:27Z), and the IP address `141.216.110.153`. Shortly before this detection, multiple known public dual-purpose tools were dropped on the same device, and a sign-in attempt was also detected using a deceptive (fake or decoy) user account on the device.",
+    "question": "What is the name of the deceptive user account that was used in the sign-in attempt on this device?",
+    "answer": "kyleg",
+    "solution": [
+      "The 'Kekeo' malware file `rubeus.exe` was detected on the device during lateral movement.",
+      "Multiple dual-purpose tools were dropped on the device under the account `tgs2z`, potentially for credential theft, privilege escalation, and lateral movement.",
+      "A sign-in attempt with the deceptive user account `kyleg` was detected on the device, indicating the attacker used a fake or decoy account for lateral movement and access to sensitive data."
+    ],
+    "start_alert": 110,
+    "end_alert": 41,
+    "start_entities": [
+      1,
+      65,
+      25,
+      10,
+      5,
+      2,
+      11,
+      3,
+      23,
+      4
+    ],
+    "end_entities": [
+      42
+    ],
+    "shortest_alert_path": [
+      110,
+      65,
+      62,
+      27,
+      41
+    ]
+  },
+  {
+    "context": "During a multi-stage attack on the domain controller `vnevado-dc`, a SID history injection was detected. The account `lucasb` (SID `S-1-5-21-1440151660-4837038288-105596163-1120`) was observed running the process `3780__2024-06-27t14:34:10.5477279z__powershell.exe -command \"net.exe stop ntds /y; add-addbsidhistory -samaccountname bdadmin -sidhistory \\\"s-1-5-32-544\\\" -databasepath (get-itemproperty -path registry::hklm\\system\\currentcontrolset\\services\\ntds\\parameters).\\\"dsa database file\\\" -force; net.exe start ntds\"`. SID history is an attribute that supports migration scenarios, and attackers typically abuse it to grant an existing domain user an SID with elevated privileges for persistence and access to sensitive resources.",
+    "question": "Just seconds before this SID history injection, a related alert flagged a suspicious new user account being created on the same device, likely for backup access. What is the Microsoft Entra ID (Azure AD) user ID of that newly created account?",
+    "answer": "1d94aaf6-efe6-4e76-ad56-ffd7d1257bc1",
+    "solution": [
+      "A SID history injection was detected on the device, carried out through the process `powershell.exe`, which modified the SID history attribute to gain elevated privileges.",
+      "Using those elevated privileges, a new suspicious user account was created for persistence, identified by AadUserId `1d94aaf6-efe6-4e76-ad56-ffd7d1257bc1`."
+    ],
+    "start_alert": 93,
+    "end_alert": 48,
+    "start_entities": [
+      13,
+      14,
+      15,
+      16,
+      20
+    ],
+    "end_entities": [
+      29
+    ],
+    "shortest_alert_path": [
+      93,
+      17,
+      48
+    ]
+  },
+  {
+    "context": "During this multi-stage incident, an alert titled \"File dropped and launched from remote location\" was raised on host `vnevado-dc`, where a remote session dropped and executed `psexesvc.exe` (Process ID 7668, created 2024-06-27T14:34:10Z) under the account `lucasb` (SID `S-1-5-21-1440151660-4837038288-105596163-1120`, AAD User ID `7fcf9695-68fc-4258-864d-e1e5b166c66f`). This activity was followed by a sequence of alerts indicative of potential human-operated malicious activity on the same device, ultimately leading to a detection of active 'Kekeo' malware.",
+    "question": "For the alert reporting the active 'Kekeo' malware detection, which user account security identifier (SID) was associated with it?",
+    "answer": "S-1-5-21-1540151660-3530000288-105586595-1517",
+    "solution": [
+      "A remote session from IP address `141.216.110.153` dropped a file on the device and executed it, indicating possible lateral movement.",
+      "The dropped payload was launched as a credential theft tool: process ID `2608` created at `2024-06-27t14:33:27.7927134z` with command line `rubeus.exe dump /service:xfbzkp /user:lucasb`, part of a sequence of alerts indicating potential human-operated malicious activity.",
+      "This activity was associated with an active 'Kekeo' malware detection on the account with SID `S-1-5-21-1540151660-3530000288-105586595-1517`."
+    ],
+    "start_alert": 60,
+    "end_alert": 106,
+    "start_entities": [
+      13,
+      14,
+      15,
+      20,
+      61
+    ],
+    "end_entities": [
+      2
+    ],
+    "shortest_alert_path": [
+      60,
+      25,
+      105,
+      9,
+      106
+    ]
+  },
+  {
+    "context": "During an investigation, a malicious credential theft tool execution was detected on an endpoint: the process `mimikatz.exe` was launched (Process ID 6880, created 2024-06-27T14:32:37.7041174Z) with the command line `\"mimikatz.exe\" privilege::debug \"sekurlsa::pth /user:fk8mq /ntlm:96def1a633fc6790124d5f8fe21cc72b /domain:vnevado.alpineskihouse.co /run:\\\"powershell.exe dir \\\\vnevado-win10b\\c$\\\"\" exit`, indicating a pass-the-hash attempt that spawned `powershell.exe`. A second, closely related credential theft tool alert was raised about a minute later, tied to the same user SID.",
+    "question": "In the related follow-up credential theft alert, what was the process ID and the full command line used by the attacker's mimikatz execution?",
+    "answer": "Process ID 5176 (created 2024-06-27T14:33:32.4282796Z), command line: `\"mimikatz.exe\" privilege::debug \"kerberos::ptt c:\\m365dattack\\admin-tickets\" exit` \u2014 a pass-the-ticket operation importing Kerberos admin tickets.",
+    "solution": [
+      "A known credential theft tool execution was detected under the user account with SID `S-5-7-21-1843151660-3234030288-105586167-1422`.",
+      "That account executed the credential theft tool Mimikatz with the command line `\"mimikatz.exe\" privilege::debug \"kerberos::ptt c:\\m365dattack\\admin-tickets\" exit`, Process ID `5176`, created at `2024-06-27t14:33:32.4282796z`, to dump credentials and pass-the-ticket with stolen admin Kerberos tickets."
+    ],
+    "start_alert": 104,
+    "end_alert": 85,
+    "start_entities": [
+      17,
+      68
+    ],
+    "end_entities": [
+      71
+    ],
+    "shortest_alert_path": [
+      104,
+      28,
+      85
+    ]
+  },
+  {
+    "context": "During an investigation, the 'Kekeo' malware was detected and found active in the environment. Related telemetry showed the account `fk8mq` (SID `S-1-5-21-1540151660-3530000288-105586595-1517`) associated with the execution of `rubeus.exe` using the command line `rubeus.exe dump /service:xfbzkp /user:lucasb` (Process ID 2608, created 2024-06-27T14:33:27Z). Around the same time, on the same affected device, another alert fired for a sign-in attempt made with a deceptive (fake or decoy) user account, which attackers often use for lateral movement or accessing sensitive data.",
+    "question": "For the related 'Sign-in attempt with deceptive user account' alert, what was the IP address involved in that sign-in attempt?",
+    "answer": "141.216.110.153",
+    "solution": [
+      "The 'Kekeo' malware was detected and was active on the host with HostName `vnevado-win10b`.",
+      "On that same device, a sign-in attempt was detected using a deceptive (fake or decoy) user account, originating from the IP address `141.216.110.153`."
+    ],
+    "start_alert": 100,
+    "end_alert": 75,
+    "start_entities": [
+      1,
+      2,
+      3,
+      7,
+      9,
+      65
+    ],
+    "end_entities": [
+      25
+    ],
+    "shortest_alert_path": [
+      100,
+      10,
+      75
+    ]
+  },
+  {
+    "context": "During this multi-stage incident, an alert titled \"Suspicious process stopping services\" fired when a PowerShell process (PID 3780) ran the command `powershell.exe -command \"net.exe stop ntds /y; add-addbsidhistory -samaccountname bdadmin -sidhistory \\\"s-1-5-32-544\\\" -databasepath (get-itemproperty -path registry::hklm\\system\\currentcontrolset\\services\\ntds\\parameters).\\\"dsa database file\\\" -force; net.exe start ntds\"`, spawning `net.exe` (PID 6428) to stop the NTDS service. Attackers often stop services to evade detection or hinder recovery. This activity is linked, through the affected device and a remote source address that dropped and launched a file, to another alert reporting a successful logon using overpass-the-hash with potentially stolen credentials.",
+    "question": "In the overpass-the-hash logon alert connected to this activity, which file was flagged as the entity associated with the credential theft (i.e., the process memory the password hash was likely harvested from)?",
+    "answer": "lsass.exe",
+    "solution": [
+      "A suspicious process stopped services running on the host `vnevado-dc`, likely to avoid detection and prevent recovery.",
+      "A remote session from the IP address `141.216.110.153` dropped a file and executed it, indicating lateral movement or malware propagation.",
+      "The attacker performed a successful logon using overpass-the-hash with credentials likely stolen from the process memory of the file `lsass.exe`."
+    ],
+    "start_alert": 46,
+    "end_alert": 52,
+    "start_entities": [
+      16,
+      18,
+      47
+    ],
+    "end_entities": [
+      54
+    ],
+    "shortest_alert_path": [
+      46,
+      20,
+      60,
+      25,
+      52
+    ]
+  },
+  {
+    "context": "During a multi-stage incident, an alert titled \"Suspicious sequence of exploration activities\" fired after a PowerShell script (`powershell.exe -executionpolicy bypass -file c:\\users\\tgs2z\\downloads\\domaindominance27\\domaindominance27.ps1`, PID 4676) spawned a rapid series of reconnaissance commands, including `whoami.exe` (PID 6512), `net.exe user /domain`, `net.exe group \"domain admins\" /domain`, `net.exe group \"enterprise admins\" /domain`, and even created a new domain account with `net.exe user /add bdadmin password1! /domain`. Shortly afterwards, a related alert was raised for possible use of the Rubeus kerberoasting tool on the same endpoint.",
+    "question": "For the Rubeus kerberoasting alert, what was the process ID, creation time, and full command line of the process that triggered it?",
+    "answer": "Process ID: 6636, Created Time (UTC): 2024-06-27T14:32:46.5860644Z, Command line: `powershell.exe c:\\m365dattack\\get-krbticket.ps1`",
+    "solution": [
+      "The account `tgs2z` ran a suspicious sequence of exploration/discovery windows commands, indicating reconnaissance for valuable assets and lateral movement.",
+      "From that same compromised context, a Rubeus kerberoasting activity was observed: process ID `6636` created at `2024-06-27t14:32:46.5860644z` executed the command line `powershell.exe c:\\m365dattack\\get-krbticket.ps1` to request Kerberos service tickets for credential theft."
+    ],
+    "start_alert": 77,
+    "end_alert": 107,
+    "start_entities": [
+      78,
+      82,
+      79,
+      49,
+      18,
+      51,
+      83,
+      81,
+      80,
+      84
+    ],
+    "end_entities": [
+      36
+    ],
+    "shortest_alert_path": [
+      77,
+      27,
+      107
+    ]
+  },
+  {
+    "context": "During an investigation of a multi-stage identity attack, an alert was raised for a suspected DCSync attack (replication of directory services), where Julian Burke (IT director), with SID `S-1-5-21-1440151660-4837038288-105596163-1120` and email `lucasb@vnevado.alpineskihouse.co`, sent a replication request from the workstation `VNEVADO-Win10V` to the domain controller `VNEVADO-DC`. Pivoting from this activity, related reconnaissance and sign-in alerts were also observed on the same endpoints.",
+    "question": "One of the related alerts flagged a sign-in attempt made with a deceptive (fake or decoy) user account that an attacker may be leveraging for lateral movement. What is the name of that deceptive account?",
+    "answer": "tgs2z",
+    "solution": [
+      "A suspected DCSync attack (replication of directory services) was detected originating from the host with HostName `VNEVADO-Win10V`, which sent a replication request to VNEVADO-DC.",
+      "From that same device, user and IP address reconnaissance (SMB) was performed by the account with AadUserId `1d94aaf6-efe6-4e76-ad56-ffd7d1257bc1` (Ethan Brooks), enumerating SMB sessions on VNEVADO-DC to retrieve recent IP addresses of 2 accounts.",
+      "A sign-in attempt with a deceptive (decoy) user account was detected on the device, using the account with Name `tgs2z`, suggesting the attacker attempted to use this fake account for lateral movement and access to sensitive data."
+    ],
+    "start_alert": 122,
+    "end_alert": 41,
+    "start_entities": [
+      14,
+      15,
+      115,
+      116,
+      123,
+      124
+    ],
+    "end_entities": [
+      27
+    ],
+    "shortest_alert_path": [
+      122,
+      116,
+      114,
+      29,
+      41
+    ]
+  },
+  {
+    "context": "During this multi-stage incident, a suspected DCSync attack (replication of directory services) was detected on 2024-07-10, where the account `Julian Burke` (IT director, `lucasb@vnevado.alpineskihouse.co`) on the endpoint VNEVADO-Win10V sent a replication request to the domain controller VNEVADO-DC. Reconnaissance activity (SMB session enumeration) against the same domain controller was also observed from the same endpoint, and earlier in the incident an attacker appears to have established persistence by creating a new user account, which could serve as secondary or backup access to the device or organization.",
+    "question": "Looking at the earlier suspicious account creation alert linked to this incident, what is the name of the newly created user account?",
+    "answer": "tgs2z",
+    "solution": [
+      "A suspected DCSync attack (replication of directory services) was detected on host `VNEVADO-DC`, where Julian Burke (IT director) on VNEVADO-Win10V sent 1 replication request.",
+      "User and IP address reconnaissance (SMB) was performed by the account with SID `S-5-7-21-1843151660-3234030288-105586167-1422` (Ethan Brooks, Account Executive) on VNEVADO-Win10V, enumerating SMB sessions on VNEVADO-DC and retrieving recent IP addresses of 2 accounts.",
+      "A suspicious new user account named `tgs2z` was created, likely to establish secondary or backup access and maintain persistence in the organization."
+    ],
+    "start_alert": 122,
+    "end_alert": 48,
+    "start_entities": [
+      123,
+      124
+    ],
+    "end_entities": [
+      27
+    ],
+    "shortest_alert_path": [
+      122,
+      115,
+      114,
+      28,
+      48
+    ]
+  }
+]
