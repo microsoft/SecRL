@@ -177,7 +177,7 @@ tiktoken==0.7.0
 tokenizers==0.21.0
 torch==2.2.2
 tqdm==4.66.5
-transformers==4.49.0
+transformers==4.53.0
 types-pytz==2025.2.0.20250326
 tzdata==2024.1
 uritemplate==4.1.1
