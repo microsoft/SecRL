@@ -85,7 +85,7 @@ jsonschema==4.23.0
 jsonschema-specifications==2024.10.1
 kiwisolver==1.4.7
 langchain==0.3.20
-langchain-core==0.3.44
+langchain-core==0.3.81
 langchain-huggingface==0.1.2
 langchain-openai==0.3.8
 langchain-text-splitters==0.3.6
