@@ -274,7 +274,7 @@ class BaselineAgent:
 
         self.step_count = 0
         sys_prompt = BASE_PROMPT
-        if "o1" in self.config_list[0]['model'] or "o3" in self.config_list[0]['model'] or "o4" in self.config_list[0]['model'] or "meta-llama" in self.config_list[0]['model'] or "qwen3" in self.config_list[0]['model']:
+        if "o1" in self.config_list[0]['model'] or "o3" in self.config_list[0]['model'] or "o4" in self.config_list[0]['model'] or "meta-llama" in self.config_list[0]['model']:
             sys_prompt = O1_PROMPT
         elif "r1" in self.config_list[0]['model'] or "R1" in self.config_list[0]['model'] or "qwen3" in self.config_list[0]['model']:
             sys_prompt = R1_PROMPT
