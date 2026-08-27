@@ -8,7 +8,7 @@ from secgym.qagen.alert_graph import AlertGraph
 import argparse
 from secgym.utils.utils import process_entity_identifiers
 from secgym.qagen.qa_gen_prompts import REWRITE_PROMPT, SOLUTIN_GEN_PROMPT, QAGEN_PROMPT_WITH_ENTRY, TWEAKED_QAGEN_PROMPT_ORIGIN
-import autogen
+from autogen import LLMConfig
 
 class QAGen:
     def __init__(self,
@@ -32,12 +32,12 @@ class QAGen:
         self.max_question_count = max_question_count
 
         self.qa_gen_model = qa_gen_model
-        self.qa_gen_config_list = autogen.filter_config(config_list, filter_dict={'tags': [qa_gen_model]})
+        self.qa_gen_config_list = LLMConfig(*config_list).where(tags=[qa_gen_model]).config_list
         if len(self.qa_gen_config_list) == 0:
             raise ValueError(f"QA generation model {qa_gen_model} not found in the config list, please put 'tags': ['{qa_gen_model}'] in the config list to inicate this model")
 
         self.solution_gen_model = solution_gen_model
-        self.solution_gen_config_list = autogen.filter_config(config_list, {'tags': [solution_gen_model]})
+        self.solution_gen_config_list = LLMConfig(*config_list).where(tags=[solution_gen_model]).config_list
         if len(self.solution_gen_config_list) == 0:
             raise ValueError(f"Solution generation model {solution_gen_model} not found in the config list, please put 'tags': ['{solution_gen_model}'] in the config list to inicate this model")
 

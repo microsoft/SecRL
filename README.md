@@ -5,6 +5,7 @@
 [![Blog](https://img.shields.io/badge/Blog-5C2D91?style=for-the-badge&logo=rss&logoColor=white)](https://www.microsoft.com/en-us/security/blog/2025/10/14/microsoft-raises-the-bar-a-smarter-way-to-measure-ai-for-cybersecurity/)
 
 ## 🎉 News
+- **[2026/08/26]**: Microsoft released [ACESEvals: Security Agent Benchmarking and Evaluation Research](https://github.com/microsoft/ACESEvals), the new harness for running security benchmarks and the recommended way to both benchmark and train using RLVR on ExCyTIn-Bench.
 - **[2026/05/04]**: Our paper "ExCyTIn-Bench: Evaluating LLM agents on Cyber Threat Investigation" has been accepted by ICML 2026!
 - **[2025/11/25]**: We updated the evaluation chart with Claude Opus-4.5 and GPT 5.1!
 - **[2025/11/04]**: We updated the evaluation chart with Claude Sonnet-4.5 and Haiku-4.5. These are base model results with default parameters; we will share results with [extended thinking](https://docs.claude.com/en/docs/build-with-claude/extended-thinking) and [larger context windows](https://docs.claude.com/en/docs/build-with-claude/context-windows#1m-token-context-window) soon!
@@ -47,18 +48,16 @@ The environment consists 2 main components:
 
     To set docker for a database that contains all the data (all 8 attacks), please uncomment the first command in `setup_docker.sh`. Note that this will take up 33GB of disk space.
 
-4. Setup the environment using conda or venv with Python=3.11 and install the requirements with `pip install -e . --use-pep517`.The following is an example using conda:
+4. Set up a Python 3.11 virtual environment and install the project:
     ```bash
-    conda create -n excytin python=3.11
-    conda activate excytin
-    pip install -e . --use-pep517
+    python3.11 -m venv .venv
+    source .venv/bin/activate
+    python -m pip install -e . --use-pep517
     ```
-
-    If you find consistent errors with the installation (maybe be caused by updated version of some packages), you can try to install the requirements with `pip install -r requirements_freeze.txt`, which is the frozen version of the requirements.
 
 5. LLM setup.
 
-    We are using [AG2](https://docs.ag2.ai/latest/) for API calling. Setup your API key in the `secgym/myconfig.py` file. You can follow the instructions [here](https://autogen-ai.github.io/autogen/docs/notebooks/autogen_uniformed_api_calling#config-list-setup).
+    We are using [AG2 Classic](https://classic.docs.ag2.ai/latest/) for API calling. Setup your API key in the `secgym/myconfig.py` file. You can follow the [AG2 Classic installation and configuration guide](https://classic.docs.ag2.ai/latest/docs/user-guide/basic-concepts/installing-ag2/).
 
 
 ## 🏃‍♂️ Runs

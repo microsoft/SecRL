@@ -5,12 +5,11 @@
 from secgym.qagen.alert_graph import AlertGraph
 import os
 from secgym.myconfig import CONFIG_LIST
-from autogen import OpenAIWrapper
+from autogen import LLMConfig, OpenAIWrapper
 import networkx as nx
-import autogen
 
 def filter_config_list(config_list, model_name):
-    config_list = autogen.filter_config(config_list, {'tags': [model_name]})
+    config_list = LLMConfig(*config_list).where(tags=[model_name]).config_list
     if len(config_list) == 0:
         raise ValueError(f"model {model_name} not found in the config list, please put 'tags': ['{model_name}'] in the config list to inicate this model")
     return config_list

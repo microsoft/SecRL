@@ -8,7 +8,7 @@ import os
 from secgym.excytin_env import ATTACKS
 from secgym.evaluator import Evaluator, LLMEvaluator
 from secgym.myconfig import CONFIG_LIST
-import autogen
+from autogen import LLMConfig
 from secgym.agents.agent_utils import sql_parser
 
 
@@ -106,7 +106,7 @@ def run_evaluation(
 
 
 def filter_config_list(config_list, model_name):
-    config_list = autogen.filter_config(config_list, {'tags': [model_name]})
+    config_list = LLMConfig(*config_list).where(tags=[model_name]).config_list
     if len(config_list) == 0:
         raise ValueError(f"model {model_name} not found in the config list, please put 'tags': ['{model_name}'] in the config list to inicate this model")
     return config_list

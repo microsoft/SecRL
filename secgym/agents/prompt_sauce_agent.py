@@ -57,6 +57,7 @@ class PromptSauceAgent:
                  config_list,
                  cache_seed=41,
                  max_steps=15,
+                 submit_summary=False,
                  temperature=0,
                  retry_num=10,
                  retry_wait_time=5,
@@ -71,6 +72,7 @@ class PromptSauceAgent:
         self.messages = [{"role": "system", "content": sys_prompt}]
 
         self.max_steps = max_steps
+        self.submit_summary = submit_summary
         self.step_count = 0
         self.retry_num = retry_num
         self.retry_wait_time = retry_wait_time

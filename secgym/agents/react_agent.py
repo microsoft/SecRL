@@ -76,7 +76,7 @@ class ReActAgent:
             credential=AzureKeyCredential(api_key),
             seed =self.cache_seed
             )
-        elif "azure" in config_list[0]['api_type']:
+        else:
             self.client = OpenAIWrapper(config_list=config_list, cache_seed=cache_seed)
         
         sys_prompt = BASE_PROMPT
@@ -98,7 +98,7 @@ class ReActAgent:
 
     def _call_llm(self, messages):
         
-        if "azure" in self.config_list[0]['api_type']:
+        if "ai_foundry" not in self.config_list[0]['api_type']:
             response = call_llm(
                 client=self.client, 
                 model=self.config_list[0]['model'],
@@ -177,7 +177,7 @@ class ReActAgent:
             credential=AzureKeyCredential(api_key),
             seed =self.cache_seed
             )
-        elif "azure" in self.config_list[0]['api_type']:
+        else:
             self.client = OpenAIWrapper(config_list=self.config_list, cache_seed=self.cache_seed)
 
         self.step_count = 0

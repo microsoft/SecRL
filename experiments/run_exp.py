@@ -47,7 +47,7 @@ def run_experiment(
         
     for i in range(thug_env.num_questions):
         #emptying the replay buffer for each question
-        if agent.name == "ReactReflexionAgent" or agent.name == "PromptSauceReflexionAgent":
+        if agent.name == "ReActReflexionAgent" or agent.name == "PromptSauceReflexionAgent":
             agent.replay_buffer = []
         tested_num += 1 # increment tested number of questions
 
@@ -105,7 +105,7 @@ def run_experiment(
                     break
             
             # for Reflexion Agent
-            if agent.name == "ReactReflexionAgent" or agent.name == "PromptSauceReflexionAgent":
+            if agent.name == "ReActReflexionAgent" or agent.name == "PromptSauceReflexionAgent":
                 # saving replay in agent memory
                 replay = {
                     "messages": agent.messages,
@@ -172,9 +172,9 @@ def get_args():
     args = parser.parse_args()
     return args
 
-import autogen
+from autogen import LLMConfig
 def filter_config_list(config_list, model_name):
-    config_list = autogen.filter_config(config_list, {'tags': [model_name]})
+    config_list = LLMConfig(*config_list).where(tags=[model_name]).config_list
     if len(config_list) == 0:
         raise ValueError(f"model {model_name} not found in the config list, please put 'tags': ['{model_name}'] in the config list to inicate this model")
     return config_list

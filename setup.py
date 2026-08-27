@@ -26,6 +26,6 @@ setup(
         "console_scripts": [
         ],
     },
-    python_requires=">=3.7",
+    python_requires=">=3.10",
     zip_safe=False,  # Important for editable installs
 )

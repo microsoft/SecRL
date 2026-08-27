@@ -157,12 +157,17 @@ class BaselineAgent:
             budget_tokens = 16000
             for _ in range(self.retry_num):
                 try:
-                    message = client.messages.create(
-                        model=self.config_list[0]['model'],
-                        max_tokens=max_tokens,
-                        thinking={"type": "enabled","budget_tokens": budget_tokens},
-                        messages=messages,
-                    )
+                    request = {
+                        "model": self.config_list[0]['model'],
+                        "max_tokens": max_tokens,
+                        "messages": messages,
+                    }
+                    if "opus-5" in self.config_list[0]['model']:
+                        request["thinking"] = {"type": "adaptive"}
+                        request["output_config"] = {"effort": "high"}
+                    else:
+                        request["thinking"] = {"type": "enabled", "budget_tokens": budget_tokens}
+                    message = client.messages.create(**request)
                     break
                 except AnthropicBadRequestError as e:
                     # Check if it's specifically a "prompt is too long" error

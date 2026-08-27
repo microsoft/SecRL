@@ -438,4 +438,5 @@ secgym/myconfig.py
 secgym/config_key.py
 deepinfrakey
 googlekey
+.venv/
 .venv-gen/

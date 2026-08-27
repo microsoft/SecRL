@@ -114,7 +114,18 @@ def call_llm(
                 response = client.create(messages=messages, model=model, temperature=temperature, stop=stop, reasoning_effort="medium")
             elif "claude" in model:
                 try:
-                    response = client.create(messages=messages, model=model, temperature=temperature, stop=stop, thinking={"type": "enabled","budget_tokens": 10000})
+                    request = {
+                        "messages": messages,
+                        "model": model,
+                        "stop": stop,
+                    }
+                    if "opus-5" in model:
+                        request["thinking"] = {"type": "adaptive"}
+                        request["output_config"] = {"effort": "high"}
+                    else:
+                        request["temperature"] = temperature
+                        request["thinking"] = {"type": "enabled", "budget_tokens": 10000}
+                    response = client.create(**request)
                 except AnthropicAPIStatusError as e:
                     if attempt < retry_num - 1:  # Don't sleep on the last retry
                         wait_time = retry_wait_time * (2 ** attempt)  # Exponential backoff

@@ -261,6 +261,7 @@ class LLMEvaluator(Evaluator):
             msging(system_prompt, role="system"), 
             msging(task, role="user")
         ]
+        response = None
         for i in range(10):
             try:
                 tmp_config = self.llm_config.copy()

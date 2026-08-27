@@ -12,7 +12,6 @@ from .expel_agent import ExpelAgent
 __all__ = [
     "BaselineAgent",
     "PromptSauceAgent",
-    "ReflexionAgent",
     "MultiModelBaselineAgent",
     "ReActAgent",
     "PromptSauceReflexionAgent",
