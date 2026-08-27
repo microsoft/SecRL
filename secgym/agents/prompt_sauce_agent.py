@@ -57,10 +57,10 @@ class PromptSauceAgent:
                  config_list,
                  cache_seed=41,
                  max_steps=15,
-                 submit_summary=False,
                  temperature=0,
                  retry_num=10,
                  retry_wait_time=5,
+                 submit_summary=False,
                  ):
         self.cache_seed = cache_seed
         self.config_list = config_list
