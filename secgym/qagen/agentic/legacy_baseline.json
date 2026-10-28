@@ -1,0 +1,841 @@
+{
+  "schema_version": "1",
+  "generator_version": "v0",
+  "release_files": [
+    {
+      "path": "secgym/questions/o1/v1/train/incident_5_qa_incident_o1-ga_c42.json",
+      "sha256": "76e88f9fa1cd26d43849a38a720f42160d51f9dbc92fae1d312d538d545fb828",
+      "size_bytes": 141662,
+      "dataset_release": "v0.1",
+      "incident_id": 5,
+      "split": "train",
+      "questions": 100
+    },
+    {
+      "path": "secgym/questions/o1/v1/train/incident_34_qa_incident_o1-ga_c42.json",
+      "sha256": "c2c23bf07da3c534de5af938036cf4f45c8f435af9fcad416b54e7dd792ef1fc",
+      "size_bytes": 44587,
+      "dataset_release": "v0.1",
+      "incident_id": 34,
+      "split": "train",
+      "questions": 34
+    },
+    {
+      "path": "secgym/questions/o1/v1/train/incident_38_qa_incident_o1-ga_c42.json",
+      "sha256": "7c3df029073f1736ef2605fa4945aa0dd654fe4c5f5d4a2dbdd340be9424bf93",
+      "size_bytes": 5391,
+      "dataset_release": "v0.1",
+      "incident_id": 38,
+      "split": "train",
+      "questions": 4
+    },
+    {
+      "path": "secgym/questions/o1/v1/train/incident_39_qa_incident_o1-ga_c42.json",
+      "sha256": "5eea72e3ea1f0194d787311e55a6663b8302e0e1d1e3e72a62987220c68f3b6a",
+      "size_bytes": 139171,
+      "dataset_release": "v0.1",
+      "incident_id": 39,
+      "split": "train",
+      "questions": 100
+    },
+    {
+      "path": "secgym/questions/o1/v1/train/incident_55_qa_incident_o1-ga_c42.json",
+      "sha256": "a4fe8f52ad8a7c48b2a0520de92a89bea711c4dd327a16ac16077df94dc8dbb1",
+      "size_bytes": 151899,
+      "dataset_release": "v0.1",
+      "incident_id": 55,
+      "split": "train",
+      "questions": 100
+    },
+    {
+      "path": "secgym/questions/o1/v1/train/incident_134_qa_incident_o1-ga_c42.json",
+      "sha256": "707ab7b9f5963486c7ee5e68dc850e3b9b46fbbbb385fb2392a5ff915d70121f",
+      "size_bytes": 26331,
+      "dataset_release": "v0.1",
+      "incident_id": 134,
+      "split": "train",
+      "questions": 23
+    },
+    {
+      "path": "secgym/questions/o1/v1/train/incident_166_qa_incident_o1-ga_c42.json",
+      "sha256": "e31ea76801b5223cd54a4a5f2bc8c3f1f860653c8a8169b6110085fae5d618ec",
+      "size_bytes": 42512,
+      "dataset_release": "v0.1",
+      "incident_id": 166,
+      "split": "train",
+      "questions": 34
+    },
+    {
+      "path": "secgym/questions/o1/v1/train/incident_322_qa_incident_o1-ga_c42.json",
+      "sha256": "6ff0c235116768055ce8be1f4ec2dfcb23e00083e33c942d032a098808eec252",
+      "size_bytes": 30199,
+      "dataset_release": "v0.1",
+      "incident_id": 322,
+      "split": "train",
+      "questions": 23
+    },
+    {
+      "path": "secgym/questions/o1/v1/test/incident_5_qa_incident_o1-ga_c42.json",
+      "sha256": "8dd53e9a5e789e8fecb74c9965d66daa4f5fd5fbd2c9ae8e46714b79eb838a1a",
+      "size_bytes": 135656,
+      "dataset_release": "v0.1",
+      "incident_id": 5,
+      "split": "test",
+      "questions": 98
+    },
+    {
+      "path": "secgym/questions/o1/v1/test/incident_34_qa_incident_o1-ga_c42.json",
+      "sha256": "2d9f31e33ee973d31c1ff94e972cb77da0506a2ad6bee0677383850da95a0db8",
+      "size_bytes": 122612,
+      "dataset_release": "v0.1",
+      "incident_id": 34,
+      "split": "test",
+      "questions": 82
+    },
+    {
+      "path": "secgym/questions/o1/v1/test/incident_38_qa_incident_o1-ga_c42.json",
+      "sha256": "d87ced9b2c023a3dacc7941e7837cd582f183d37760040f3b6d7036f5a8fa184",
+      "size_bytes": 18062,
+      "dataset_release": "v0.1",
+      "incident_id": 38,
+      "split": "test",
+      "questions": 11
+    },
+    {
+      "path": "secgym/questions/o1/v1/test/incident_39_qa_incident_o1-ga_c42.json",
+      "sha256": "584156fe443ff670c67483cbb638eaeaef6ff003762e14e7ca8c7f2471e79bf6",
+      "size_bytes": 135871,
+      "dataset_release": "v0.1",
+      "incident_id": 39,
+      "split": "test",
+      "questions": 98
+    },
+    {
+      "path": "secgym/questions/o1/v1/test/incident_55_qa_incident_o1-ga_c42.json",
+      "sha256": "a63d1093582575afd9f5e90a0e78546ee2027dc732e7faa971b6df4a9017a729",
+      "size_bytes": 143915,
+      "dataset_release": "v0.1",
+      "incident_id": 55,
+      "split": "test",
+      "questions": 100
+    },
+    {
+      "path": "secgym/questions/o1/v1/test/incident_134_qa_incident_o1-ga_c42.json",
+      "sha256": "4e06d287b26145e408213073db08f06d9e3fce458355b4f7be4144a1fd931b90",
+      "size_bytes": 66322,
+      "dataset_release": "v0.1",
+      "incident_id": 134,
+      "split": "test",
+      "questions": 57
+    },
+    {
+      "path": "secgym/questions/o1/v1/test/incident_166_qa_incident_o1-ga_c42.json",
+      "sha256": "6b0cb117bdb94c85d1a71753ea4f1fb18d74f5d9c424773edd7e327f16060123",
+      "size_bytes": 106560,
+      "dataset_release": "v0.1",
+      "incident_id": 166,
+      "split": "test",
+      "questions": 87
+    },
+    {
+      "path": "secgym/questions/o1/v1/test/incident_322_qa_incident_o1-ga_c42.json",
+      "sha256": "dd9753e8cd5e14dfeceeda5d304a6d1cf10e2780c1b3fa79cceb9e37596152a4",
+      "size_bytes": 89431,
+      "dataset_release": "v0.1",
+      "incident_id": 322,
+      "split": "test",
+      "questions": 56
+    },
+    {
+      "path": "secgym/questions/opus5/train/incident_5_qa_opus5_cleaned.json",
+      "sha256": "c1a1b12080f076cb98c0bd30c5397ab02243b92f5453e385a3af5e2f6b6e2ee5",
+      "size_bytes": 153056,
+      "dataset_release": "v0.2",
+      "incident_id": 5,
+      "split": "train",
+      "questions": 100
+    },
+    {
+      "path": "secgym/questions/opus5/train/incident_34_qa_opus5_cleaned.json",
+      "sha256": "296bc8bb6cea641359785a54d1c1d4d58cd4333acb12fa4eebadd1bc78ebeb40",
+      "size_bytes": 52248,
+      "dataset_release": "v0.2",
+      "incident_id": 34,
+      "split": "train",
+      "questions": 34
+    },
+    {
+      "path": "secgym/questions/opus5/train/incident_38_qa_opus5_cleaned.json",
+      "sha256": "fcd72898dab989a80230f45f71261687656d884f3b284ebc3415f3d17c34c737",
+      "size_bytes": 6249,
+      "dataset_release": "v0.2",
+      "incident_id": 38,
+      "split": "train",
+      "questions": 4
+    },
+    {
+      "path": "secgym/questions/opus5/train/incident_39_qa_opus5_cleaned.json",
+      "sha256": "048a8ea64b93f16a2acbd3888f3a3850bf4a4e4603d1284c614d9fdca2561984",
+      "size_bytes": 161101,
+      "dataset_release": "v0.2",
+      "incident_id": 39,
+      "split": "train",
+      "questions": 100
+    },
+    {
+      "path": "secgym/questions/opus5/train/incident_55_qa_opus5_cleaned.json",
+      "sha256": "d1c18448a258e88f0714d90c019b52a9225c26ee8b76f0257c96af5799536f4f",
+      "size_bytes": 171289,
+      "dataset_release": "v0.2",
+      "incident_id": 55,
+      "split": "train",
+      "questions": 100
+    },
+    {
+      "path": "secgym/questions/opus5/train/incident_134_qa_opus5_cleaned.json",
+      "sha256": "97c405c39b30a1723e8f2c3b551771cdacbb5a9cc3484156faf3a3e0a2bf91f4",
+      "size_bytes": 29321,
+      "dataset_release": "v0.2",
+      "incident_id": 134,
+      "split": "train",
+      "questions": 23
+    },
+    {
+      "path": "secgym/questions/opus5/train/incident_166_qa_opus5_cleaned.json",
+      "sha256": "2946eaf9ca26bbd7b7af8b998a7e61de239da241c990a78844fb6e6869a05262",
+      "size_bytes": 47973,
+      "dataset_release": "v0.2",
+      "incident_id": 166,
+      "split": "train",
+      "questions": 34
+    },
+    {
+      "path": "secgym/questions/opus5/train/incident_322_qa_opus5_cleaned.json",
+      "sha256": "9f0532e844468fcfb3a3b5593cad6dccf457891f1b9d89672aee1bff76e60b33",
+      "size_bytes": 39997,
+      "dataset_release": "v0.2",
+      "incident_id": 322,
+      "split": "train",
+      "questions": 23
+    },
+    {
+      "path": "secgym/questions/opus5/test/incident_5_qa_opus5_cleaned.json",
+      "sha256": "d2c02d7f690a8428886b24b72f26321ecb1792bedff7ddac320abcde2fd3a482",
+      "size_bytes": 153623,
+      "dataset_release": "v0.2",
+      "incident_id": 5,
+      "split": "test",
+      "questions": 100
+    },
+    {
+      "path": "secgym/questions/opus5/test/incident_34_qa_opus5_cleaned.json",
+      "sha256": "3ccad09fbaf06b414daf5c42f629d3a5db492f18d62aeb5ae68aad62d8af0cf2",
+      "size_bytes": 122862,
+      "dataset_release": "v0.2",
+      "incident_id": 34,
+      "split": "test",
+      "questions": 85
+    },
+    {
+      "path": "secgym/questions/opus5/test/incident_38_qa_opus5_cleaned.json",
+      "sha256": "15f1d8b3122f75bd8f7df690f8fbdf0f7c1f83b490f8ac8b95089f1b5a0cea22",
+      "size_bytes": 22940,
+      "dataset_release": "v0.2",
+      "incident_id": 38,
+      "split": "test",
+      "questions": 12
+    },
+    {
+      "path": "secgym/questions/opus5/test/incident_39_qa_opus5_cleaned.json",
+      "sha256": "636041f7e62abcea202c240ee75a001c821b7042fea3d5dcb0259399a7f038b9",
+      "size_bytes": 157232,
+      "dataset_release": "v0.2",
+      "incident_id": 39,
+      "split": "test",
+      "questions": 100
+    },
+    {
+      "path": "secgym/questions/opus5/test/incident_55_qa_opus5_cleaned.json",
+      "sha256": "8d4daba3a135a5f495894b2ddb9d7ba1d3c9363587cb5296c7a3fd8a0f6376e5",
+      "size_bytes": 169998,
+      "dataset_release": "v0.2",
+      "incident_id": 55,
+      "split": "test",
+      "questions": 100
+    },
+    {
+      "path": "secgym/questions/opus5/test/incident_134_qa_opus5_cleaned.json",
+      "sha256": "410f2648008321c1ba3f96da0e60e206880b6243fe1705e55fc11b128aefc2b2",
+      "size_bytes": 75969,
+      "dataset_release": "v0.2",
+      "incident_id": 134,
+      "split": "test",
+      "questions": 58
+    },
+    {
+      "path": "secgym/questions/opus5/test/incident_166_qa_opus5_cleaned.json",
+      "sha256": "e7013b0ca8f00c8870718278a1e21de7d6de37831e6c423ee569fb1d4a3d1d0f",
+      "size_bytes": 122509,
+      "dataset_release": "v0.2",
+      "incident_id": 166,
+      "split": "test",
+      "questions": 87
+    },
+    {
+      "path": "secgym/questions/opus5/test/incident_322_qa_opus5_cleaned.json",
+      "sha256": "b8993d04fcbfcc19f57bd05da46fad400ab061732f1354d9b39ee1b3634dcf4e",
+      "size_bytes": 93234,
+      "dataset_release": "v0.2",
+      "incident_id": 322,
+      "split": "test",
+      "questions": 57
+    }
+  ],
+  "preserved_files": [
+    {
+      "path": "experiments/result_analysis/analysis.py",
+      "sha256": "09be27e7f2e3124223dcd3d7a3fa7e72aba7567651ac408725d2c831f1def211",
+      "size_bytes": 24288
+    },
+    {
+      "path": "experiments/run_exp.py",
+      "sha256": "92e32b929022980adf0b7745bb5358329557b0979ddd4fc17858ce8a0e87dd04",
+      "size_bytes": 11942
+    },
+    {
+      "path": "experiments/run_qa_gen.py",
+      "sha256": "88f27e7e05bbf171ffa65f609ace93cb69ca916524d74be24fb0511150327ecb",
+      "size_bytes": 4747
+    },
+    {
+      "path": "experiments/run_reevaluation.py",
+      "sha256": "36320eb620bb2c701a9f9586b7cdae30703d67e7368bbc63cb52655cc666aff5",
+      "size_bytes": 5866
+    },
+    {
+      "path": "notebooks/question_split.ipynb",
+      "sha256": "4c8a561acb58bf296294aa8673d848e8bb89a6994b3a0af4e123d2c0e3945d88",
+      "size_bytes": 9513
+    },
+    {
+      "path": "secgym/agents/agent_utils.py",
+      "sha256": "834e499cb38ad90e7de2b95dd6fe9b1ab2e1c9b662a79f24b90fde0e2da2111e",
+      "size_bytes": 5822
+    },
+    {
+      "path": "secgym/evaluator.py",
+      "sha256": "bf758a008ba40e3907d4097221b87e96ec766919601a4d73c4002bf6bd4cadba",
+      "size_bytes": 21782
+    },
+    {
+      "path": "secgym/excytin_env.py",
+      "sha256": "b6c1fd8aa4eefb284b850dd37703f33549b6048551c5189d8177b5ac738984eb",
+      "size_bytes": 14772
+    },
+    {
+      "path": "secgym/qagen/alert_graph.py",
+      "sha256": "b7d1f453814c0c75ca902839979b6be9e2e8f7d4e0ed3f224171d4c46ad9ea52",
+      "size_bytes": 21585
+    },
+    {
+      "path": "secgym/qagen/entity_email_fix/regenerate_opus5.py",
+      "sha256": "305efe8e1531b2458bc8cb92353979b0c4b370d57a8d831e1da73a2e9b2010f3",
+      "size_bytes": 4268
+    },
+    {
+      "path": "secgym/qagen/graph_files/incident_134.graphml",
+      "sha256": "da229e7e70f31eb1dbeed6055254663d68ac2b35504dc243bab8d40cdb0e83ac",
+      "size_bytes": 43249
+    },
+    {
+      "path": "secgym/qagen/graph_files/incident_166.graphml",
+      "sha256": "0b5a949fa824acc0369e8da5a8a612b8987a900571001c1d3ac0ce9581522b24",
+      "size_bytes": 53500
+    },
+    {
+      "path": "secgym/qagen/graph_files/incident_322.graphml",
+      "sha256": "8d2d318a4fcded2f15b1565627612655b20ff74b3984bdbb10a632fdc242080f",
+      "size_bytes": 67428
+    },
+    {
+      "path": "secgym/qagen/graph_files/incident_34.graphml",
+      "sha256": "f4d6e37d5b5ea1ae63e4e63d1148a74acca74a673a5fa91213e4284748386a8d",
+      "size_bytes": 187058
+    },
+    {
+      "path": "secgym/qagen/graph_files/incident_38.graphml",
+      "sha256": "740c5641e2ee770182a0bb99f0fc5c0d7b0fdaafc4eddcc144168a1bfe9366fc",
+      "size_bytes": 48572
+    },
+    {
+      "path": "secgym/qagen/graph_files/incident_39.graphml",
+      "sha256": "018dbb36a3bc8e4e9df16f3337868296c9796087303c2321abc4a2eda2b79d41",
+      "size_bytes": 422169
+    },
+    {
+      "path": "secgym/qagen/graph_files/incident_5.graphml",
+      "sha256": "93b57565a1a6380dd5a04a8fff7af58eb09d26cde1faa709295b39a8e7b5d7e8",
+      "size_bytes": 670105
+    },
+    {
+      "path": "secgym/qagen/graph_files/incident_55.graphml",
+      "sha256": "c1455d8cf64d45d0e46183a7a347c100476f75193fdf2ae664a2ae2e03f6e8f2",
+      "size_bytes": 238975
+    },
+    {
+      "path": "secgym/qagen/graph_files_fixed/incident_134.graphml",
+      "sha256": "a7dd2e32f6d38a72d30dc8a9a3c029889c67654b1bb50a03493182226d412817",
+      "size_bytes": 43248
+    },
+    {
+      "path": "secgym/qagen/graph_files_fixed/incident_166.graphml",
+      "sha256": "d624781b455801466ec3fbbfcfecb9219a86164e4bc831f0f6d035c55cdfa6b8",
+      "size_bytes": 53498
+    },
+    {
+      "path": "secgym/qagen/graph_files_fixed/incident_322.graphml",
+      "sha256": "463685751951bbd73676281e73977751e3a7ef655d84aca189bc92262481adc1",
+      "size_bytes": 67421
+    },
+    {
+      "path": "secgym/qagen/graph_files_fixed/incident_34.graphml",
+      "sha256": "f4d6e37d5b5ea1ae63e4e63d1148a74acca74a673a5fa91213e4284748386a8d",
+      "size_bytes": 187058
+    },
+    {
+      "path": "secgym/qagen/graph_files_fixed/incident_38.graphml",
+      "sha256": "740c5641e2ee770182a0bb99f0fc5c0d7b0fdaafc4eddcc144168a1bfe9366fc",
+      "size_bytes": 48572
+    },
+    {
+      "path": "secgym/qagen/graph_files_fixed/incident_39.graphml",
+      "sha256": "d98ad6d890a8253ce111d779810091605c79e3a4138efaaba48b2d27645e4920",
+      "size_bytes": 422151
+    },
+    {
+      "path": "secgym/qagen/graph_files_fixed/incident_5.graphml",
+      "sha256": "6358e27b8511a6085cf9eb35d56b9d6dc4572e9070be4f985a57f8bd8cdc4718",
+      "size_bytes": 670100
+    },
+    {
+      "path": "secgym/qagen/graph_files_fixed/incident_55.graphml",
+      "sha256": "0ac9cd96621c3532414e72555295296d894081f84c6fba74836e12c585ed78a3",
+      "size_bytes": 238960
+    },
+    {
+      "path": "secgym/qagen/qa_gen.py",
+      "sha256": "fae0019f476a329dcfde7b371f527959771fe5c708d8930e576b0c7ecdf5a31d",
+      "size_bytes": 12110
+    },
+    {
+      "path": "secgym/qagen/qa_gen_prompts.py",
+      "sha256": "fe535667b26e2026d24992454ed21410bc7a2cf3eaec14a3ce1488c17f273e92",
+      "size_bytes": 32008
+    },
+    {
+      "path": "secgym/questions/o1/v0/test/incident_134_qa_incident_o1-ga_c42.json",
+      "sha256": "eed7c87efae8a78f5f10b24489bbe8fa9f57bbab9c89832ec372fc97e0b6cf84",
+      "size_bytes": 66348
+    },
+    {
+      "path": "secgym/questions/o1/v0/test/incident_166_qa_incident_o1-ga_c42.json",
+      "sha256": "d2e0dfd7be5b67a03812c57f9212399dd5ad068533f9d567b31d29a75079e4fe",
+      "size_bytes": 106656
+    },
+    {
+      "path": "secgym/questions/o1/v0/test/incident_322_qa_incident_o1-ga_c42.json",
+      "sha256": "2a51a41b2d313e1b40fc710f634c96de5f48b6f843890d2cb0f50920feec2f95",
+      "size_bytes": 89620
+    },
+    {
+      "path": "secgym/questions/o1/v0/test/incident_34_qa_incident_o1-ga_c42.json",
+      "sha256": "2d9f31e33ee973d31c1ff94e972cb77da0506a2ad6bee0677383850da95a0db8",
+      "size_bytes": 122612
+    },
+    {
+      "path": "secgym/questions/o1/v0/test/incident_38_qa_incident_o1-ga_c42.json",
+      "sha256": "d87ced9b2c023a3dacc7941e7837cd582f183d37760040f3b6d7036f5a8fa184",
+      "size_bytes": 18062
+    },
+    {
+      "path": "secgym/questions/o1/v0/test/incident_39_qa_incident_o1-ga_c42.json",
+      "sha256": "e80e9e24af58d9a5d0692e0f3f8696f05702862d0d0e89c0d41ba7b68feddae7",
+      "size_bytes": 135915
+    },
+    {
+      "path": "secgym/questions/o1/v0/test/incident_55_qa_incident_o1-ga_c42.json",
+      "sha256": "5a39e55ce13736c8e103f118bda31720e951baaec1c8f0ef94b95a8e6d74f291",
+      "size_bytes": 144003
+    },
+    {
+      "path": "secgym/questions/o1/v0/test/incident_5_qa_incident_o1-ga_c42.json",
+      "sha256": "8dd53e9a5e789e8fecb74c9965d66daa4f5fd5fbd2c9ae8e46714b79eb838a1a",
+      "size_bytes": 135656
+    },
+    {
+      "path": "secgym/questions/o1/v0/train/incident_134_qa_incident_o1-ga_c42.json",
+      "sha256": "7819286802ee7e2c9484005c1cef5ff0f66b3e7c2869e4f00f6f2e1edd23dc03",
+      "size_bytes": 26339
+    },
+    {
+      "path": "secgym/questions/o1/v0/train/incident_166_qa_incident_o1-ga_c42.json",
+      "sha256": "24f1d34803cb6c97bc90e2c45cadc6b8d69159a7c660af0905193aecedde47e6",
+      "size_bytes": 42543
+    },
+    {
+      "path": "secgym/questions/o1/v0/train/incident_322_qa_incident_o1-ga_c42.json",
+      "sha256": "ffbd081d677a556ac85ba5ad3c0d926d1c8b63b36f509e48edf6b946a28320bf",
+      "size_bytes": 30234
+    },
+    {
+      "path": "secgym/questions/o1/v0/train/incident_34_qa_incident_o1-ga_c42.json",
+      "sha256": "c2c23bf07da3c534de5af938036cf4f45c8f435af9fcad416b54e7dd792ef1fc",
+      "size_bytes": 44587
+    },
+    {
+      "path": "secgym/questions/o1/v0/train/incident_38_qa_incident_o1-ga_c42.json",
+      "sha256": "7c3df029073f1736ef2605fa4945aa0dd654fe4c5f5d4a2dbdd340be9424bf93",
+      "size_bytes": 5391
+    },
+    {
+      "path": "secgym/questions/o1/v0/train/incident_39_qa_incident_o1-ga_c42.json",
+      "sha256": "058e3ff96050319af0d53a7e6b73f67a0f4681933d6f9f4613c6c40747b12336",
+      "size_bytes": 139242
+    },
+    {
+      "path": "secgym/questions/o1/v0/train/incident_55_qa_incident_o1-ga_c42.json",
+      "sha256": "a46e14a2ad3052614edfb171035e21b9838aa4d638ebf8fd34f68b99f24456da",
+      "size_bytes": 151970
+    },
+    {
+      "path": "secgym/questions/o1/v0/train/incident_5_qa_incident_o1-ga_c42.json",
+      "sha256": "3b975a290d1aefc88c2f017b51231f13b90c140b93b557d0ac01e0ffd374b4cb",
+      "size_bytes": 141677
+    },
+    {
+      "path": "secgym/questions/o1/v1/test/incident_134_qa_incident_o1-ga_c42.json",
+      "sha256": "4e06d287b26145e408213073db08f06d9e3fce458355b4f7be4144a1fd931b90",
+      "size_bytes": 66322
+    },
+    {
+      "path": "secgym/questions/o1/v1/test/incident_166_qa_incident_o1-ga_c42.json",
+      "sha256": "6b0cb117bdb94c85d1a71753ea4f1fb18d74f5d9c424773edd7e327f16060123",
+      "size_bytes": 106560
+    },
+    {
+      "path": "secgym/questions/o1/v1/test/incident_322_qa_incident_o1-ga_c42.json",
+      "sha256": "dd9753e8cd5e14dfeceeda5d304a6d1cf10e2780c1b3fa79cceb9e37596152a4",
+      "size_bytes": 89431
+    },
+    {
+      "path": "secgym/questions/o1/v1/test/incident_34_qa_incident_o1-ga_c42.json",
+      "sha256": "2d9f31e33ee973d31c1ff94e972cb77da0506a2ad6bee0677383850da95a0db8",
+      "size_bytes": 122612
+    },
+    {
+      "path": "secgym/questions/o1/v1/test/incident_38_qa_incident_o1-ga_c42.json",
+      "sha256": "d87ced9b2c023a3dacc7941e7837cd582f183d37760040f3b6d7036f5a8fa184",
+      "size_bytes": 18062
+    },
+    {
+      "path": "secgym/questions/o1/v1/test/incident_39_qa_incident_o1-ga_c42.json",
+      "sha256": "584156fe443ff670c67483cbb638eaeaef6ff003762e14e7ca8c7f2471e79bf6",
+      "size_bytes": 135871
+    },
+    {
+      "path": "secgym/questions/o1/v1/test/incident_55_qa_incident_o1-ga_c42.json",
+      "sha256": "a63d1093582575afd9f5e90a0e78546ee2027dc732e7faa971b6df4a9017a729",
+      "size_bytes": 143915
+    },
+    {
+      "path": "secgym/questions/o1/v1/test/incident_5_qa_incident_o1-ga_c42.json",
+      "sha256": "8dd53e9a5e789e8fecb74c9965d66daa4f5fd5fbd2c9ae8e46714b79eb838a1a",
+      "size_bytes": 135656
+    },
+    {
+      "path": "secgym/questions/o1/v1/train/incident_134_qa_incident_o1-ga_c42.json",
+      "sha256": "707ab7b9f5963486c7ee5e68dc850e3b9b46fbbbb385fb2392a5ff915d70121f",
+      "size_bytes": 26331
+    },
+    {
+      "path": "secgym/questions/o1/v1/train/incident_166_qa_incident_o1-ga_c42.json",
+      "sha256": "e31ea76801b5223cd54a4a5f2bc8c3f1f860653c8a8169b6110085fae5d618ec",
+      "size_bytes": 42512
+    },
+    {
+      "path": "secgym/questions/o1/v1/train/incident_322_qa_incident_o1-ga_c42.json",
+      "sha256": "6ff0c235116768055ce8be1f4ec2dfcb23e00083e33c942d032a098808eec252",
+      "size_bytes": 30199
+    },
+    {
+      "path": "secgym/questions/o1/v1/train/incident_34_qa_incident_o1-ga_c42.json",
+      "sha256": "c2c23bf07da3c534de5af938036cf4f45c8f435af9fcad416b54e7dd792ef1fc",
+      "size_bytes": 44587
+    },
+    {
+      "path": "secgym/questions/o1/v1/train/incident_38_qa_incident_o1-ga_c42.json",
+      "sha256": "7c3df029073f1736ef2605fa4945aa0dd654fe4c5f5d4a2dbdd340be9424bf93",
+      "size_bytes": 5391
+    },
+    {
+      "path": "secgym/questions/o1/v1/train/incident_39_qa_incident_o1-ga_c42.json",
+      "sha256": "5eea72e3ea1f0194d787311e55a6663b8302e0e1d1e3e72a62987220c68f3b6a",
+      "size_bytes": 139171
+    },
+    {
+      "path": "secgym/questions/o1/v1/train/incident_55_qa_incident_o1-ga_c42.json",
+      "sha256": "a4fe8f52ad8a7c48b2a0520de92a89bea711c4dd327a16ac16077df94dc8dbb1",
+      "size_bytes": 151899
+    },
+    {
+      "path": "secgym/questions/o1/v1/train/incident_5_qa_incident_o1-ga_c42.json",
+      "sha256": "76e88f9fa1cd26d43849a38a720f42160d51f9dbc92fae1d312d538d545fb828",
+      "size_bytes": 141662
+    },
+    {
+      "path": "secgym/questions/o3/v0/test/incident_134_qa_incident_o3_c100.json",
+      "sha256": "a2d70cba5d53ba179b79a0663f39e357d7b4af2b51ee7494446b430ab7bc5891",
+      "size_bytes": 79391
+    },
+    {
+      "path": "secgym/questions/o3/v0/test/incident_166_qa_incident_o3_c100.json",
+      "sha256": "ae0e4d5d5823bb5a44e64c89e44fe7d9e2cb89e42a2e982ed8cba4a720ed9e35",
+      "size_bytes": 120108
+    },
+    {
+      "path": "secgym/questions/o3/v0/test/incident_322_qa_incident_o3_c100.json",
+      "sha256": "345f4c4b63ea04b544df49f1e461bcaf5b692a7615d9fb840c6ae021c190cabd",
+      "size_bytes": 91426
+    },
+    {
+      "path": "secgym/questions/o3/v0/test/incident_34_qa_incident_o3_c100.json",
+      "sha256": "cc455d89fdb5356c803ac2a9b71b1caa7fe29a65a5e710bef67704763852e0e6",
+      "size_bytes": 121039
+    },
+    {
+      "path": "secgym/questions/o3/v0/test/incident_38_qa_incident_o3_c100.json",
+      "sha256": "235fd90eebb62fa8ba3825bdefbf6eb3dad13d71a21c6f8ed475f2143ddb00f6",
+      "size_bytes": 17794
+    },
+    {
+      "path": "secgym/questions/o3/v0/test/incident_39_qa_incident_o3_c100.json",
+      "sha256": "e793bd0ab16943ba0c9ee71ccfb5e448709b74ca103e9eb17d711c081d837005",
+      "size_bytes": 158674
+    },
+    {
+      "path": "secgym/questions/o3/v0/test/incident_55_qa_incident_o3_c100.json",
+      "sha256": "be42027f19dfcff8d14250cbee5f4026976e0fb9e6e27f59d44d3d6606e7851f",
+      "size_bytes": 169489
+    },
+    {
+      "path": "secgym/questions/o3/v0/test/incident_5_qa_incident_o3_c100.json",
+      "sha256": "76ce3285b7a1411bbab11a787383f4f1afea67fcdcd67efdc76ebf5bbd903ea8",
+      "size_bytes": 159462
+    },
+    {
+      "path": "secgym/questions/o3/v0/train/incident_134_qa_incident_o3_c101_train.json",
+      "sha256": "b885017ab629711ac1edd7d1b3c87146889df21919430c48663dc64e80bb0cd6",
+      "size_bytes": 32011
+    },
+    {
+      "path": "secgym/questions/o3/v0/train/incident_166_qa_incident_o3_c101_train.json",
+      "sha256": "ff88a72b2372c1dc7f55517c23a4a544e6c624b2e048e0b24c1ccd66c5fd809d",
+      "size_bytes": 46753
+    },
+    {
+      "path": "secgym/questions/o3/v0/train/incident_322_qa_incident_o3_c101_train.json",
+      "sha256": "ac626b782128d00954963463dbd915e1f265ceffc265f39d94d2c60e1ce84f21",
+      "size_bytes": 35662
+    },
+    {
+      "path": "secgym/questions/o3/v0/train/incident_34_qa_incident_o3_c101_train.json",
+      "sha256": "cca6a9252586f66d0f06a2612c61f51b48a2cc70a27757c8bf5f0da5615344d2",
+      "size_bytes": 47734
+    },
+    {
+      "path": "secgym/questions/o3/v0/train/incident_38_qa_incident_o3_c101_train.json",
+      "sha256": "cbc27d4cbbc484030d61802eabffc88f502b1e8e602524460fa014e3ffc0330a",
+      "size_bytes": 5699
+    },
+    {
+      "path": "secgym/questions/o3/v0/train/incident_39_qa_incident_o3_c101_train.json",
+      "sha256": "0d38c36c2382c3ddd31d9a1d5f2ff001bf4ae604739386e9ffb28735933148f7",
+      "size_bytes": 158341
+    },
+    {
+      "path": "secgym/questions/o3/v0/train/incident_55_qa_incident_o3_c101_train.json",
+      "sha256": "7cefb0252a0be22e54996fffa0bd648a86a6ca445483515ea525edde653f068f",
+      "size_bytes": 170059
+    },
+    {
+      "path": "secgym/questions/o3/v0/train/incident_5_qa_incident_o3_c101_train.json",
+      "sha256": "4f48e2f06f647dcc5a5009454110e69f1cf4cd2c40c7cec9295a83bcaf500fbb",
+      "size_bytes": 160144
+    },
+    {
+      "path": "secgym/questions/o3/v1/test/incident_134_qa_incident_o3_c100.json",
+      "sha256": "fe83f9be6fde6d77d2075ea16aaea6d326ef4550d0a6b899e311156e1152f63b",
+      "size_bytes": 79371
+    },
+    {
+      "path": "secgym/questions/o3/v1/test/incident_166_qa_incident_o3_c100.json",
+      "sha256": "08dc311f7ed079e48f27fbf2ff266e9c6dc5225c3a913e03190b4398bfe1079b",
+      "size_bytes": 120034
+    },
+    {
+      "path": "secgym/questions/o3/v1/test/incident_322_qa_incident_o3_c100.json",
+      "sha256": "36f70679bb7fecd098953fe98fb4642ff6ebbeba1dfeb39b6287d597a2debb88",
+      "size_bytes": 91356
+    },
+    {
+      "path": "secgym/questions/o3/v1/test/incident_34_qa_incident_o3_c100.json",
+      "sha256": "cc455d89fdb5356c803ac2a9b71b1caa7fe29a65a5e710bef67704763852e0e6",
+      "size_bytes": 121039
+    },
+    {
+      "path": "secgym/questions/o3/v1/test/incident_38_qa_incident_o3_c100.json",
+      "sha256": "235fd90eebb62fa8ba3825bdefbf6eb3dad13d71a21c6f8ed475f2143ddb00f6",
+      "size_bytes": 17794
+    },
+    {
+      "path": "secgym/questions/o3/v1/test/incident_39_qa_incident_o3_c100.json",
+      "sha256": "735706cf7c7838b31a8f315155e45f90035f5fef6d9dc733553154a51cf1cc55",
+      "size_bytes": 158614
+    },
+    {
+      "path": "secgym/questions/o3/v1/test/incident_55_qa_incident_o3_c100.json",
+      "sha256": "2db0e4fb276ec5a0d6b832a543a0f67b708ed1b3f9478d815da6b66848654820",
+      "size_bytes": 169388
+    },
+    {
+      "path": "secgym/questions/o3/v1/test/incident_5_qa_incident_o3_c100.json",
+      "sha256": "fd69c1a6f003876c6f1333691ca04cd0a4987b6e9d02f2fd64c7eec3a521b738",
+      "size_bytes": 159432
+    },
+    {
+      "path": "secgym/questions/o3/v1/train/incident_134_qa_incident_o3_c101_train.json",
+      "sha256": "d55dd6a6ab9af47752c5cd357319d707ad50a5699bff6b3590268f54aa23514c",
+      "size_bytes": 32007
+    },
+    {
+      "path": "secgym/questions/o3/v1/train/incident_166_qa_incident_o3_c101_train.json",
+      "sha256": "4a1e1c506693b57cb90fed324a48c1895ab8a0b0a6658cbd44d6d8f13ac1e4ef",
+      "size_bytes": 46709
+    },
+    {
+      "path": "secgym/questions/o3/v1/train/incident_322_qa_incident_o3_c101_train.json",
+      "sha256": "d0d2527ef0277bae0c33db052db5c8d113dd4c6cbdb9c72c7a2e45a0598cd2be",
+      "size_bytes": 35634
+    },
+    {
+      "path": "secgym/questions/o3/v1/train/incident_34_qa_incident_o3_c101_train.json",
+      "sha256": "cca6a9252586f66d0f06a2612c61f51b48a2cc70a27757c8bf5f0da5615344d2",
+      "size_bytes": 47734
+    },
+    {
+      "path": "secgym/questions/o3/v1/train/incident_38_qa_incident_o3_c101_train.json",
+      "sha256": "cbc27d4cbbc484030d61802eabffc88f502b1e8e602524460fa014e3ffc0330a",
+      "size_bytes": 5699
+    },
+    {
+      "path": "secgym/questions/o3/v1/train/incident_39_qa_incident_o3_c101_train.json",
+      "sha256": "6f79cd02816912e7e983958653e0c651e7e1dcb6c28b5cdd69f38fdebc54ddab",
+      "size_bytes": 158223
+    },
+    {
+      "path": "secgym/questions/o3/v1/train/incident_55_qa_incident_o3_c101_train.json",
+      "sha256": "76275b53d11f17758b6c38ef33bebf2eab6b8ea92206fef8e4a1d939f4b1b0fa",
+      "size_bytes": 169921
+    },
+    {
+      "path": "secgym/questions/o3/v1/train/incident_5_qa_incident_o3_c101_train.json",
+      "sha256": "4f48e2f06f647dcc5a5009454110e69f1cf4cd2c40c7cec9295a83bcaf500fbb",
+      "size_bytes": 160144
+    },
+    {
+      "path": "secgym/questions/opus5/test/incident_134_qa_opus5_cleaned.json",
+      "sha256": "410f2648008321c1ba3f96da0e60e206880b6243fe1705e55fc11b128aefc2b2",
+      "size_bytes": 75969
+    },
+    {
+      "path": "secgym/questions/opus5/test/incident_166_qa_opus5_cleaned.json",
+      "sha256": "e7013b0ca8f00c8870718278a1e21de7d6de37831e6c423ee569fb1d4a3d1d0f",
+      "size_bytes": 122509
+    },
+    {
+      "path": "secgym/questions/opus5/test/incident_322_qa_opus5_cleaned.json",
+      "sha256": "b8993d04fcbfcc19f57bd05da46fad400ab061732f1354d9b39ee1b3634dcf4e",
+      "size_bytes": 93234
+    },
+    {
+      "path": "secgym/questions/opus5/test/incident_34_qa_opus5_cleaned.json",
+      "sha256": "3ccad09fbaf06b414daf5c42f629d3a5db492f18d62aeb5ae68aad62d8af0cf2",
+      "size_bytes": 122862
+    },
+    {
+      "path": "secgym/questions/opus5/test/incident_38_qa_opus5_cleaned.json",
+      "sha256": "15f1d8b3122f75bd8f7df690f8fbdf0f7c1f83b490f8ac8b95089f1b5a0cea22",
+      "size_bytes": 22940
+    },
+    {
+      "path": "secgym/questions/opus5/test/incident_39_qa_opus5_cleaned.json",
+      "sha256": "636041f7e62abcea202c240ee75a001c821b7042fea3d5dcb0259399a7f038b9",
+      "size_bytes": 157232
+    },
+    {
+      "path": "secgym/questions/opus5/test/incident_55_qa_opus5_cleaned.json",
+      "sha256": "8d4daba3a135a5f495894b2ddb9d7ba1d3c9363587cb5296c7a3fd8a0f6376e5",
+      "size_bytes": 169998
+    },
+    {
+      "path": "secgym/questions/opus5/test/incident_5_qa_opus5_cleaned.json",
+      "sha256": "d2c02d7f690a8428886b24b72f26321ecb1792bedff7ddac320abcde2fd3a482",
+      "size_bytes": 153623
+    },
+    {
+      "path": "secgym/questions/opus5/train/incident_134_qa_opus5_cleaned.json",
+      "sha256": "97c405c39b30a1723e8f2c3b551771cdacbb5a9cc3484156faf3a3e0a2bf91f4",
+      "size_bytes": 29321
+    },
+    {
+      "path": "secgym/questions/opus5/train/incident_166_qa_opus5_cleaned.json",
+      "sha256": "2946eaf9ca26bbd7b7af8b998a7e61de239da241c990a78844fb6e6869a05262",
+      "size_bytes": 47973
+    },
+    {
+      "path": "secgym/questions/opus5/train/incident_322_qa_opus5_cleaned.json",
+      "sha256": "9f0532e844468fcfb3a3b5593cad6dccf457891f1b9d89672aee1bff76e60b33",
+      "size_bytes": 39997
+    },
+    {
+      "path": "secgym/questions/opus5/train/incident_34_qa_opus5_cleaned.json",
+      "sha256": "296bc8bb6cea641359785a54d1c1d4d58cd4333acb12fa4eebadd1bc78ebeb40",
+      "size_bytes": 52248
+    },
+    {
+      "path": "secgym/questions/opus5/train/incident_38_qa_opus5_cleaned.json",
+      "sha256": "fcd72898dab989a80230f45f71261687656d884f3b284ebc3415f3d17c34c737",
+      "size_bytes": 6249
+    },
+    {
+      "path": "secgym/questions/opus5/train/incident_39_qa_opus5_cleaned.json",
+      "sha256": "048a8ea64b93f16a2acbd3888f3a3850bf4a4e4603d1284c614d9fdca2561984",
+      "size_bytes": 161101
+    },
+    {
+      "path": "secgym/questions/opus5/train/incident_55_qa_opus5_cleaned.json",
+      "sha256": "d1c18448a258e88f0714d90c019b52a9225c26ee8b76f0257c96af5799536f4f",
+      "size_bytes": 171289
+    },
+    {
+      "path": "secgym/questions/opus5/train/incident_5_qa_opus5_cleaned.json",
+      "sha256": "c1a1b12080f076cb98c0bd30c5397ab02243b92f5453e385a3af5e2f6b6e2ee5",
+      "size_bytes": 153056
+    },
+    {
+      "path": "secgym/utils/utils.py",
+      "sha256": "0773a50ad7b6dba48a30a3bcb42bc4dff2179508ea7626fadb0dafd225c84995",
+      "size_bytes": 18668
+    }
+  ]
+}

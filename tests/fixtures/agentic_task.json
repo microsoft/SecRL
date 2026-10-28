@@ -1,0 +1,96 @@
+{
+  "schema_version": "1",
+  "generator_version": "v1",
+  "task_id": "synthetic-task",
+  "revision_id": "r1",
+  "lineage_group": "synthetic-episode",
+  "dataset_release": "v1-dev-fixture",
+  "snapshot_id": "synthetic-snapshot",
+  "graph_version": "synthetic-graph",
+  "serving_view_id": "synthetic-public-view",
+  "evaluation_profile": "grounded-v1-fixture",
+  "task_family": "artifact_identity",
+  "scope": {
+    "mode": "incident",
+    "incident_id": 34,
+    "anchor_evidence_ids": ["private-evidence"],
+    "relevance_rationale": "Synthetic anchoring rationale; not real incident evidence.",
+    "answer_window": {
+      "start": "2024-06-26T11:00:00Z",
+      "end": "2024-06-26T12:00:00Z"
+    }
+  },
+  "context": "Synthetic offline contract fixture for incident 34.",
+  "question": "Identify the executable in the supplied fixture event and cite its record.",
+  "evidence": [
+    {
+      "evidence_id": "private-evidence",
+      "snapshot_id": "synthetic-snapshot",
+      "source_id": "private-source",
+      "table": "DeviceProcessEvents",
+      "private_locator": "private-database-row-17",
+      "content_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "public_record_id": "public-row-17",
+      "lineage": "behavior"
+    }
+  ],
+  "private_gold": {
+    "final": {
+      "expected": {
+        "format": {
+          "kind": "entity",
+          "semantic_kind": "executable",
+          "normalization": "exact"
+        },
+        "value": "private-gold.exe"
+      },
+      "programs": [
+        {
+          "program_id": "private-final-query",
+          "engine": "duckdb",
+          "query": "SELECT FileName FROM synthetic_event"
+        }
+      ],
+      "evidence_sets": [
+        {
+          "evidence_ids": ["private-evidence"],
+          "rationale": "Synthetic final proof."
+        }
+      ]
+    },
+    "checkpoints": [
+      {
+        "checkpoint_id": "private-checkpoint",
+        "objective": "Synthetic intermediate discovery of the event's host.",
+        "claim": {
+          "expected": {
+            "format": {"kind": "entity", "semantic_kind": "host"},
+            "value": "private-gold-host"
+          },
+          "programs": [
+            {
+              "program_id": "private-checkpoint-query",
+              "engine": "duckdb",
+              "query": "SELECT DeviceName FROM synthetic_event"
+            }
+          ],
+          "evidence_sets": [
+            {
+              "evidence_ids": ["private-evidence"],
+              "rationale": "Synthetic intermediate proof."
+            }
+          ]
+        },
+        "max_score": 1.0,
+        "weight": 1.0,
+        "depends_on": []
+      }
+    ],
+    "solution": ["Synthetic private explanation; not an executable or accepted benchmark task."]
+  },
+  "reward_policy": {
+    "policy_version": "synthetic-policy",
+    "aggregation": "grounded_final_or_capped_checkpoints",
+    "checkpoint_cap": 0.5
+  }
+}

@@ -1,0 +1,8 @@
+# Optional adapter-validation environment: Python 3.11-3.13.
+# Install separately from the legacy SecRL environment.
+saber @ git+https://github.com/microsoft/ACES.git@a9bdce1343fd1c331aafda3119cbf0d48f215382
+inspect-ai==0.3.283
+duckdb>=1.4.3,<2
+sqlglot>=27,<28
+mysql-connector-python>=8,<10
+pytz>=2024.1

@@ -440,3 +440,11 @@ deepinfrakey
 googlekey
 .venv/
 .venv-gen/
+
+# Local environment configuration; keep only credential-free templates.
+.env
+.env.*
+*.env
+!.env.example
+!.env.sample
+!.env.template

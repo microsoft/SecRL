@@ -22,6 +22,8 @@ setup(
     include_package_data=True,
     description="A benchmark for security question answering",
     install_requires=parse_requirements("requirements.txt"),
+    extras_require={"agentic": ["pydantic>=2.8,<3", "duckdb>=1.4.3,<2", "pytz>=2024.1", "sqlglot>=27,<28"]},
+    package_data={"secgym.qagen.agentic": ["legacy_baseline.json"]},
     entry_points={
         "console_scripts": [
         ],

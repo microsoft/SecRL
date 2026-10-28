@@ -86,6 +86,38 @@ After all the questions are generated, you should expect new files in `secgym/qu
 Note: All results from the paper use the questions in `secgym/questions/o1/test` folder. The train questions under `secgym/questions/o1/train` are only partial and used for Expel to collect new rules. Please use the quetion answer pairs from `secgym/questions/o1/test` for benchmarking against the results shown in the paper. We highly recommend using the latest models to generate the question answer dataset yourselves before running any hill climbing training experiments as to minimize noise and bias during training. Currently the latest question answer pairs are generated using OpenAI O3 with low correlation paths and can be found in `secgym/questions/o3/`.
 
 
+### Agentic QA generation v1 (in development)
+
+The legacy generator remains **v0**, with the current corrected o1 dataset
+aliased as **v0.1** and the current Opus dataset as **v0.2**. Existing paths,
+default loading, and published datasets are unchanged.
+
+The opt-in [v1 package](secgym/qagen/agentic/README.md) provides strict
+task/evidence/checkpoint contracts, an allowlisted public task projection, a
+checksum-pinned legacy baseline, read-only incident/alert source reconciliation,
+provenance-preserving column/dynamic-field normalization, an exact typed
+telemetry observation ledger, and a fresh source-linked graph with old/new
+coverage diagnostics and source-semantic dispositions for all 1,603 legacy
+alert/entity links. The scoped graph acceptance gate is complete with documented
+coverage limits. The current development cohort has 47 source-, MySQL- and
+dual-adapter-validated questions across all ten selected incidents and the
+tenant scope. See the
+[design and implementation plan](QA_GENERATION_DESIGN.md).
+
+I3 now includes explicit public projections, source-witness checks, a verified
+MySQL loader, and opt-in SecRL/ACE adapters tested on fixtures and the private
+pilots. All 13,276,298 public rows have passed MySQL parity checks. Checkpoint
+rubrics remain private and mandatory. Canonical overlap auditing and
+question-level split tooling are implemented, and the 36-train/11-test
+development split using seed 42 is approved. Shared checkpoints and source
+records are permitted and reported rather than forcing groups. Equal overlap
+coefficients remain diagnostic; no production dataset release is approved.
+
+```bash
+python -m unittest discover -s tests -p 'test_agentic*.py' -v
+python -m secgym.qagen.agentic check-legacy --repo .
+```
+
 ## 📊 Results
 
 Below is the evaluation results of the LLM agents on the test questions. We set temperature = 0 and max_step = 25. GPT-4o is used for evaluation. The full evaluation logs with the latest models can be found under the `latest_experiments` folder. The full evaluation logs for older models can be downloaded from [this link](https://pennstateoffice365-my.sharepoint.com/:u:/g/personal/ykw5399_psu_edu/EXOMtXyFSRNGvKsLZGPIAfwBZhkKMr11oROccOydbWyioA?e=XzpQLa). If can also be found under this [branch](https://github.com/microsoft/SecRL/tree/before_cleanup_all_history) under `final_results` folder (along with the original code). 
