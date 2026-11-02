@@ -1,7 +1,9 @@
 # First Astra QA checkpoint: outcome and analysis
 
-**Cohort:** `astra100-01`, the original 100 logical questions  
-**Analysis date:** 2026-11-02  
+**Cohort:** `astra100-01`, the original 100 logical questions
+
+**Analysis date:** 2026-11-02
+
 **Implementation checkpoint:** `97a1eaea6ce122903a2edfdcfb2b4f666490e1fc`
 
 ## Executive summary
