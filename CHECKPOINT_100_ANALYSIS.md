@@ -176,6 +176,32 @@ pair scores unscorable; 91 such pairs remain in the retained set. Its other
 components are available. Missing scores are **NA, not zero**, and weights
 are not silently renormalized.
 
+## 4. ExCyTIn 2.0 integration: what changed in SecRL
+
+Starting from **ExCyTIn 2.0 `b32f7ad`**, we retained its tenant-wide,
+typed-telemetry and source-provenance approach. The integration is an
+**opt-in SecRL v1 pipeline with a fresh `evidence-graph-v1.4` build**, not an
+in-place modification of the ExCyTIn 2.0 checkout or a copy of its stored edges.
+
+| Area | SecRL integration change |
+|---|---|
+| **Source preparation and state** | Reconcile the supplied DuckDB data with CSV exports into a versioned observation ledger. Preserve source origins, field availability and repair/quarantine provenance. Use latest resolved incident/alert records; retain removed memberships separately as history. |
+| **Graph representation** | Represent observations and their typed actor/target participants explicitly. Each relationship carries observation, extraction-rule and field/JSON-path provenance. Co-participation is not converted into a causal attack edge. |
+| **Stricter identity rules** | Use tenant-scoped typed IDs; preserve full account and URL-path distinctions and separate application/object namespaces. Require reported host/device, PID and creation time for process identity rather than filling missing times by nearest-event matching. Weak names remain references. |
+| **Graph enrichments** | Expand all audit targets and cloud activity objects; add click message/user/IP/redirect-chain context, Graph API resource targets, Intune/provisioning/device participants, and source-scoped IoT, NIC/MAC, Kubernetes and blob references. Retain nested alert entities and resolve their JSON references. |
+| **Evidence meaning and time** | Separate behavioral, security-control, detector-derived and contextual evidence. Keep full-command file/script/URL mentions as lexical references, not execution claims. Use alert activity time (`StartTime`) rather than ingestion time for graph observations. |
+| **QA and evaluation integration** | Use the graph for discovery, with raw-source verification. Add typed answers, complete evidence alternatives and intermediate checkpoints; serve a separate public DuckDB/MySQL projection and integrate SecRL/ACE evaluation. Keep gold and private metadata out of student inputs. |
+
+**Compatibility boundary:** original inputs, upstream code and legacy SecRL
+datasets/runners remain unchanged. The new edge representation is not
+count-for-count equivalent to the old graph; unsupported identities remain
+explicitly unresolved rather than being invented. Rows without extraction
+rules remain inventoried and queryable.
+
+Details: [graph comparison and enrichment history](GRAPH_GENERATION_COMPARISON.md#16-fresh-secrl-v1-evidence-graph),
+[extraction rules](secgym/qagen/agentic/graph_rules.py), and
+[identity handling](secgym/qagen/agentic/graph_entities.py).
+
 **Detailed data:** [100-question inventory](CHECKPOINT_100_INVENTORY.csv);
 [4,950 pairwise overlap records](CHECKPOINT_100_OVERLAP.csv).
 **Definitions:** [difficulty](secgym/qagen/agentic/difficulty.py);
