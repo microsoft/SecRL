@@ -15,7 +15,7 @@ from pydantic import ValidationError
 
 from .contracts import Contract, EvaluationRecord, PublicCitation, ScoreComponent, TaskRecord, TypedAnswer, ValidationReport
 from .evidence import EvidenceFailure, EvidenceVerifier, Finding, VERIFIER_VERSION
-from .query import QueryFailure
+from .query import QueryFailure, QueryResult, checked_select
 from .mysql_serving import mysql_column_name
 from .scoring import aggregate_evaluation
 
@@ -28,7 +28,8 @@ class Submission(Contract):
 class SecRLV1Env:
     def __init__(self, task: TaskRecord, verifier: EvidenceVerifier, validation: ValidationReport, *,
                  run_id: str, trajectory_ref: str, max_steps: int, backend: Literal["secrl", "acesevals"] = "secrl",
-                 log_path: Path | None = None, admission: Literal["release", "private_pilot"] = "release"):
+                 log_path: Path | None = None, admission: Literal["release", "private_pilot"] = "release",
+                 captured_results: bool = False):
         if admission not in ("release", "private_pilot"):
             raise ValueError("unknown evaluation admission mode")
         if admission == "private_pilot" and task.dataset_release != "v1-private-pilot":
@@ -45,6 +46,11 @@ class SecRLV1Env:
         self.run_id, self.trajectory_ref, self.max_steps = run_id, trajectory_ref, max_steps
         self.backend: Literal["secrl", "acesevals"] = backend
         self.adapter_version = "secrl-env-v1" if backend == "secrl" else "aces-native-v1"
+        if type(captured_results) is not bool:
+            raise ValueError("captured-results mode must be explicit")
+        self.captured_results = captured_results
+        if captured_results:
+            self.adapter_version = "secrl-captured-v1" if backend == "secrl" else "aces-captured-v1"
         self.admission = admission
         self._base_run_id, self._episode_number = run_id, 0
         self.log_path = log_path
@@ -159,6 +165,8 @@ class SecRLV1Env:
     def step(self, action: str, submit=False, stringify=True):
         if self.done:
             raise ValueError("reset before using a completed episode")
+        if self.captured_results and not submit:
+            raise ValueError("captured-results episodes must use replay_query, not reexecute student SQL")
         if submit or self.step_count >= self.max_steps:
             result = self.finish_for_scorer(action if submit else "")
             info = {"submit": True, "query_success": result.status == "complete", "evaluation_status": result.status}
@@ -176,6 +184,24 @@ class SecRLV1Env:
         except QueryFailure as error:
             return self._record(action, {"error": error.code, "detail": str(error)}, 0.0, False,
                                 {"submit": False, "query_success": False, "error_code": error.code})
+
+    def replay_query(self, query: str, result: QueryResult | QueryFailure):
+        """Credit only validated fields the student actually received, never a later rerun."""
+        if not self.captured_results or self.done or self.step_count >= self.max_steps:
+            raise ValueError("captured query replay requires an active captured-results episode")
+        if isinstance(result, QueryFailure):
+            return self._record(query, {"error": result.code, "detail": str(result)}, 0.0, False,
+                                {"submit": False, "query_success": False, "error_code": result.code, "captured": True})
+        engine = self._verifier.engine
+        if len(query.encode()) > engine.limits.max_bytes or len(result.rows) > engine.limits.max_rows or len(
+            json.dumps([result.columns, result.rows], ensure_ascii=False, allow_nan=False).encode()
+        ) > engine.limits.max_bytes:
+            raise ValueError("captured query/result exceeds the bound original SQL limits")
+        checked_select(query, engine.engine, set(engine.tables))
+        for citation in self._verifier.observed_citations(result, query):
+            self._observed.setdefault(citation, self.step_count)
+        return self._record(query, {"columns": result.columns, "rows": result.rows}, 0.0, False,
+                            {"submit": False, "query_success": True, "captured": True})
 
     def get_logging(self):
         return {

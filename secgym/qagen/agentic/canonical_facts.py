@@ -24,7 +24,7 @@ from .sources import TIME_COLUMNS, digest
 FACT_VERSION = "canonical-source-facts-v2"
 FEATURE_VERSION = "unit-canonical-source-facts-v2.1"
 PathStep: TypeAlias = StrictStr | Annotated[StrictInt, Field(ge=0)]
-FactKind: TypeAlias = Literal["property_value", "json_member_presence"]
+FactKind: TypeAlias = Literal["property_value", "json_member_presence", "json_array_empty_v1"]
 
 
 class SourceFactReference(Contract):
@@ -35,6 +35,8 @@ class SourceFactReference(Contract):
 
     @model_validator(mode="after")
     def presence_path(self):
+        if self.kind == "json_array_empty_v1" and self.json_path is None:
+            raise ValueError("empty-array facts require an explicit JSON path, including [] for the root")
         if self.kind == "json_member_presence" and (
             not self.json_path or not isinstance(self.json_path[-1], str)
         ):
@@ -84,6 +86,8 @@ class CanonicalSourceFact(Contract):
     @model_validator(mode="after")
     def atomic_value(self):
         value = parse_json(self.value_json)
+        if self.kind == "json_array_empty_v1" and (value is not True or self.json_path is None):
+            raise ValueError("empty-array facts require a verified true observation and an explicit JSON path")
         if isinstance(value, (dict, list)) or isinstance(value, str) and _encoded_container(value):
             raise ValueError("canonical facts require an atomic value, not a serialized container")
         if self.kind == "json_member_presence" and type(value) is not bool:
@@ -175,6 +179,15 @@ def _encoded_container(value: str) -> bool:
 def source_leaf(
     value: Scalar, path: tuple[PathStep, ...] | None, *, kind: FactKind = "property_value",
 ) -> str:
+    if kind == "json_array_empty_v1":
+        if path is None:
+            raise EvidenceFailure("empty-array facts require an explicit JSON path")
+        observed = _source_value_at(value, path)
+        if isinstance(observed, str):
+            observed = parse_json(observed)
+        if not isinstance(observed, list) or observed:
+            raise EvidenceFailure("empty-array facts require an existing source array with no elements")
+        return "true"
     if kind == "json_member_presence":
         if not path or not isinstance(path[-1], str):
             raise EvidenceFailure("JSON member presence requires a nonempty path ending in an object key")

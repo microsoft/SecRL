@@ -16,15 +16,15 @@ from typing_extensions import Annotated
 
 from .contracts import (
     AnswerProgram, Contract, DiscoveryCheckpoint, EvidenceReference, EvidenceSet, Identifier,
-    PrivateGold, PublicCitation, RewardPolicy, TaskRecord, TaskScope, Text, TimeWindow,
-    TypedAnswer, ClaimCheck, fingerprint,
+    PrivateGold, PublicCitation, QualifiedWitnessProgram, RewardPolicy, TaskRecord, TaskScope, Text, TimeWindow,
+    TypedAnswer, ClaimCheck, WitnessProgram, fingerprint,
 )
 from .evidence import EvidenceFailure, EvidenceVerifier
 from .mysql_serving import mysql_column_name
 from .query import PublicQueryEngine, QueryFailure, QueryResult
 
 
-GENERATOR_VERSION = "discovery-pilot-v1.4"
+GENERATOR_VERSION = "discovery-pilot-v1.5"
 
 
 class LiteralJustification(Contract):
@@ -48,7 +48,7 @@ class ScoutResult(Contract):
 class DraftClaim(Contract):
     expected: TypedAnswer
     programs: Annotated[tuple[AnswerProgram, ...], Field(min_length=1)]
-    witness_programs: Annotated[tuple[AnswerProgram, ...], Field(min_length=1)]
+    witness_programs: Annotated[tuple[WitnessProgram, ...], Field(min_length=1)]
     requires_behavior_evidence: bool = True
     explanation: Text
 
@@ -80,6 +80,8 @@ class TaskDraft(Contract):
         for claim in (self.final, *(c.claim for c in self.checkpoints)):
             if {p.engine for p in claim.programs} != {"duckdb", "mysql"} or {p.engine for p in claim.witness_programs} != {"duckdb", "mysql"}:
                 raise ValueError("each claim needs both DuckDB and MySQL answer and witness programs")
+            if len({isinstance(p, QualifiedWitnessProgram) for p in claim.witness_programs}) > 1:
+                raise ValueError("a claim cannot mix enumerated and source-qualified witness policies")
         return self
 
 
@@ -376,7 +378,11 @@ def compile_draft(draft: TaskDraft, verifier: EvidenceVerifier, *, mode: Literal
     task = TaskRecord(
         task_id=task_id, revision_id=revision_id, lineage_group=lineage_group or task_id, dataset_release="v1-private-pilot",
         snapshot_id=verifier.report["snapshot_id"], graph_version=verifier.report["graph_id"],
-        serving_view_id=verifier.report["serving_view_id"], evaluation_profile="source-witness-v1-pilot",
+        serving_view_id=verifier.report["serving_view_id"],
+        evaluation_profile=("source-qualified-witness-v1-pilot" if any(
+            isinstance(p, QualifiedWitnessProgram) for claim in (draft.final, *(c.claim for c in draft.checkpoints))
+            for p in claim.witness_programs
+        ) else "source-witness-v1-pilot"),
         task_family=draft.task_family,
         scope=TaskScope(mode=mode, incident_id=incident_id, anchor_evidence_ids=anchor_ids,
                         relevance_rationale=draft.relevance_rationale, answer_window=draft.answer_window),

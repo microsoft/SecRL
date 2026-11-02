@@ -12,7 +12,7 @@ from secgym.qagen.agentic.serving import ServingPolicy, export_public_view
 from secgym.qagen.agentic.contracts import TaskRecord
 
 
-def runtime_fixture(root: Path, extra_rows=0):
+def runtime_fixture(root: Path, extra_rows=0, *, identity_aliases=False):
     root.mkdir(parents=True, exist_ok=True)
     ledger = root / "ledger"
     ledger.mkdir()
@@ -39,6 +39,9 @@ def runtime_fixture(root: Path, extra_rows=0):
              "malformed", 3, None, None, 0, None, None),
         ])
         con.execute("INSERT INTO _origins VALUES ('DeviceProcessEvents','obs:1','source:fixture'),('DeviceProcessEvents','obs:2','source:fixture')")
+        if identity_aliases:
+            con.execute("UPDATE DeviceProcessEvents SET Note=? WHERE _observation_id='obs:1'",
+                        ['{"user":{"userPrincipalName":"editor@example.test","id":"object-123"},"other":{"id":"object-456"}}'])
         con.execute("ALTER TABLE DeviceProcessEvents ADD COLUMN ScriptContent VARCHAR")
         con.execute("UPDATE DeviceProcessEvents SET ScriptContent=? WHERE _observation_id='obs:1'",
                     ["#!/bin/bash\n# Preserve quoted payload, not SQL\nprintf '%s' \"x'\\\"; -- /* */\"\nDELIMITER $$\nSELECT 'not executable';\n"])
@@ -50,6 +53,10 @@ def runtime_fixture(root: Path, extra_rows=0):
                 FROM DeviceProcessEvents CROSS JOIN range(?) AS numbers(i)
                 WHERE _observation_id='obs:2'
             """, [extra_rows])
+            con.execute("""
+                INSERT INTO _origins SELECT 'DeviceProcessEvents',_observation_id,'source:fixture'
+                FROM DeviceProcessEvents WHERE _observation_id LIKE 'obs:bulk:%'
+            """)
     ledger_report = {
         "status": "complete", "ledger_id": "ledger:fixture", "source_snapshot_id": "snapshot:fixture",
         "tables": [{"table": "DeviceProcessEvents", "observations": 3 + extra_rows}], "summary": {"observations": 3 + extra_rows},
@@ -112,3 +119,52 @@ def runtime_task(serving: Path, report: dict) -> TaskRecord:
             for engine in ("duckdb", "mysql")
         ]
     return TaskRecord.model_validate_json(json.dumps(data))
+
+
+def qualified_runtime_draft(serving: Path, report: dict):
+    from secgym.qagen.agentic.generation import TaskDraft
+    anchor = runtime_task(serving, report)
+    representative = (
+        "SELECT CAST(ProcessId AS CHAR) AS evidence_group,'DeviceProcessEvents' AS table_name,"
+        "MIN(_record_id) AS record_id FROM DeviceProcessEvents WHERE ProcessId=43 GROUP BY ProcessId,DeviceName"
+    )
+    catalog = (
+        "SELECT DISTINCT CAST(ProcessId AS CHAR) AS evidence_group,DeviceName AS obligation_id "
+        "FROM DeviceProcessEvents WHERE ProcessId=43"
+    )
+    candidates = (
+        "WITH eligible AS (SELECT p.* FROM DeviceProcessEvents p JOIN proof_citations c "
+        "ON c.table_name='DeviceProcessEvents' AND p._record_id=c.record_id WHERE p.ProcessId=43) "
+        "SELECT CAST(ProcessId AS CHAR) AS evidence_group,DeviceName AS obligation_id,_record_id AS candidate_id,"
+        "NULL AS binding_key,'DeviceProcessEvents' AS table_name,_record_id AS record_id FROM eligible"
+    )
+    def claim(column, expected):
+        return {
+            "expected": expected, "programs": [
+                {"program_id": f"{column}-{engine}", "engine": engine,
+                 "query": f"SELECT DISTINCT {column} FROM DeviceProcessEvents WHERE ProcessId=43"}
+                for engine in ("duckdb", "mysql")
+            ],
+            "witness_programs": [
+                {"program_id": f"{column}-witness-{engine}", "engine": engine, "query": representative,
+                 "witness_policy": "source-qualified-obligations-v1",
+                 "obligations_query": catalog, "candidates_query": candidates}
+                for engine in ("duckdb", "mysql")
+            ],
+            "explanation": "The complete qualifying host cohort is required, including for the common executable claim.",
+        }
+    return TaskDraft.model_validate_json(json.dumps({
+        "context": "Synthetic source cohort: process identifier 43.",
+        "question": "Which hosts occur in the qualifying process cohort?",
+        "task_family": "observed_outcome", "answer_window": anchor.scope.answer_window.model_dump(mode="json"),
+        "anchors": [{"table": e.table, "record_id": e.public_record_id} for e in anchor.evidence],
+        "relevance_rationale": "Synthetic tenant-scoped cohort.",
+        "final": claim("DeviceName", {"format": {"kind": "set", "semantic_kind": "hostname"},
+                                    "value": ["bulk.test", "other.test"]}),
+        "checkpoints": [{"checkpoint_id": "common-executable", "objective": "Establish the executable common to the cohort.",
+                         "claim": claim("FileName", {"format": {"kind": "entity", "semantic_kind": "executable"},
+                                                    "value": "Other.EXE"})}],
+        "allowed_literals": [{"value": "43", "basis": "public_anchor", "rationale": "Synthetic public cohort key."}],
+        "required_tables": ["DeviceProcessEvents"], "coverage_limits": ["Synthetic fixtures only."],
+        "counterevidence": [], "solution": ["Resolve the entire process cohort and its common executable."],
+    }))

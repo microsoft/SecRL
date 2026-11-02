@@ -8,6 +8,7 @@ import os
 from urllib.parse import urlsplit
 from email.utils import parsedate_to_datetime
 from datetime import datetime, timezone
+from typing import Literal
 
 from .contracts import Contract, Identifier, PositiveInt
 
@@ -17,6 +18,7 @@ class AzureGenerationConfig(Contract):
     deployment: Identifier
     timeout_seconds: PositiveInt
     max_completion_tokens: PositiveInt
+    reasoning_effort: Literal["low", "medium", "high"] | None = None
 
 
 def replay_output(items: list[dict]) -> list[dict]:
@@ -72,6 +74,8 @@ class AzureGenerationClient:
                 model=self.config.deployment, input=inputs, tools=declarations,
                 max_output_tokens=self.config.max_completion_tokens, store=False,
                 include=["reasoning.encrypted_content"], parallel_tool_calls=False,
+                extra_body=({"reasoning": {"effort": self.config.reasoning_effort}}
+                            if self.config.reasoning_effort is not None else {}),
             ).model_dump(mode="json")
         except RateLimitError as error:
             raw = error.response.headers.get("retry-after")

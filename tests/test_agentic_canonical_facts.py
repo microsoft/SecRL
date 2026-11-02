@@ -174,6 +174,42 @@ class CanonicalFactTests(unittest.TestCase):
             with self.subTest(path=path), self.assertRaises(ValueError):
                 SourceFactReference.model_validate_json(json.dumps({**ref, "json_path": path}))
 
+    def test_versioned_empty_array_observation_requires_an_actual_empty_array(self):
+        for value, path in (
+            ("[]", ()),
+            ('{"Policies":[{"Controls":[]}]}', ("Policies", 0, "Controls")),
+            ('{"Controls":"[]"}', ("Controls",)),
+        ):
+            with self.subTest(value=value, path=path):
+                self.assertEqual(source_leaf(value, path, kind="json_array_empty_v1"), "true")
+        for value, path in (
+            ("[]", None), ("{}", ()), ("null", ()), ("[null]", ()), ("[[]]", ()),
+            ('{"Controls":null}', ("Controls",)), ('{"Controls":[1]}', ("Controls",)),
+            ('{}', ("Controls",)), ('{"Controls":[],"Controls":[]}', ("Controls",)),
+        ):
+            with self.subTest(value=value, path=path), self.assertRaises(ValueError):
+                source_leaf(value, path, kind="json_array_empty_v1")
+
+    def test_empty_array_fact_does_not_change_scalar_or_member_presence_identity(self):
+        reference = self.proposal_data()["claims"][0]["references"][0]
+        reference.update(column="AdditionalFields", json_path=[], kind="json_array_empty_v1")
+        parsed = SourceFactReference.model_validate_json(json.dumps(reference))
+        self.assertEqual(parsed.json_path, ())
+        with self.assertRaises(ValueError):
+            SourceFactReference.model_validate_json(json.dumps({**reference, "json_path": None}))
+        original = self.resolve().facts[0]
+        data = original.model_dump(mode="json")
+        data.update(column="AdditionalFields", json_path=["Controls"], value_json="true")
+        scalar = CanonicalSourceFact.model_validate_json(json.dumps(data))
+        member = CanonicalSourceFact.model_validate_json(json.dumps({**data, "kind": "json_member_presence"}))
+        empty = CanonicalSourceFact.model_validate_json(json.dumps({**data, "kind": "json_array_empty_v1"}))
+        self.assertEqual(len({scalar.fact_id, member.fact_id, empty.fact_id}), 3)
+        for changes in ({"value_json": "false"}, {"value_json": "null"}, {"value_json": "[]"}, {"json_path": None}):
+            with self.subTest(changes=changes), self.assertRaises(ValueError):
+                CanonicalSourceFact.model_validate_json(json.dumps({
+                    **data, "kind": "json_array_empty_v1", **changes,
+                }))
+
     def test_only_claim_bound_public_properties_are_accepted(self):
         mutations = (
             ("column", "Classification"),

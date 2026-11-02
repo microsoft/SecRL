@@ -663,6 +663,10 @@ difficulty:
 validation, review_status, provenance, split
 ```
 
+This is a logical view: the difficulty implementation will initially use the
+private versioned sidecar proposed in Section 17.37, not add fields to or
+invalidate the existing frozen task records.
+
 Initial answer types: entity, set, ordered list, number, timestamp, and boolean.
 Defer a typed FP/BP verdict-plus-evidence extension until that scope is reopened.
 Do not accept general free-text rationale as an unvalidated substitute.
@@ -1241,7 +1245,8 @@ generation.
 | **I3 - Validation, scoring and serving slice (M3/M4)** | I0 and I1; can proceed alongside I2 using fixtures | Fail-closed gates; typed answer/evidence and checkpoint scoring; private/public MySQL mapping; opt-in SecRL adapter; ACESEvals export; similarity component implementation | One controlled task/trajectory fixture round-trips through both adapters with matching component outcomes; checkpoint-only reward stays below full success; legacy behavior is preserved |
 | **I4 - Scope-aware discovery pipeline (M2/M3)** | I2 and I3 | Tenant/incident context builders; scout/explorer/verifier/refuter interfaces; bounded repair/resume; canonical draft tasks with executable answers and validated checkpoint rubrics | One incident-34 and one tenant task traverse the real end-to-end pipeline, including public MySQL verification and both evaluation outputs; errors or zero accepted yield are reported explicitly |
 | **I5 - Pilot calibration and splits (M6)** | I4 | Extend to 133 and scoped 322; inspect similarity matrices/component explanations; calibrate checkpoint weights/cap and split/deduplication thresholds; exercise all ten scopes | Reviewed rubric/evidence and overlap fixtures support the chosen policies; per-incident partitions pass cross-incident checks; permitted cross-benchmark overlap is reported |
-| **I6 - Versioned release (M6)** | I5 and reviewer approval | Immutable v1 dataset releases for the two benchmarks; SecRL/ACESEvals exports; source/graph/evaluator/reward/similarity/split manifests; reproducible release report | Required gates pass against final revisions, backend compatibility is checked, and legacy artifacts remain unchanged |
+| **I5b - Pre-production expansion and capacity study** | I5 and explicit capacity/overlap policy | Target 50 validated questions for each selected incident and 500 tenant questions; resumable generation/validation waves, objective-diversity review, scalable overlap reports and per-scope capacity estimates | Quality gates remain intact; actual yield and shortfalls are reported; capacity claims state tested policies, search limits and uncertainty |
+| **I6 - Versioned release (M6)** | I5b and reviewer approval; bundle tooling may be built earlier | Immutable v1 dataset releases for the two benchmarks; SecRL/ACESEvals exports; source/graph/evaluator/reward/similarity/split manifests; reproducible release report | Required gates pass against final revisions, backend compatibility is checked, and legacy artifacts remain unchanged |
 
 ### 17.1 Validation strategy and implementation boundaries
 
@@ -3084,6 +3089,2797 @@ proposal and its earlier approval flags remain unchanged. This approves the
 36/11 development partition only: production scoring policy, release, model
 training and additional QA generation are not authorized by it. No released
 dataset or legacy split was modified.
+
+### 17.36 Requested pre-production expansion and capacity study
+
+The user requested a larger pre-production version rather than promoting the
+small development cohort directly to production:
+
+| Scope | Requested validated-question target |
+|---|---:|
+| Each of the ten selected incidents | 50 |
+| All incident-scoped questions | 500 |
+| Tenant-scoped questions | 500 |
+| Combined pre-production target | 1,000 |
+
+The existing development cohort is 47 questions (41 incident-scoped and six
+tenant-scoped), with its approved 36/11 split retained unchanged. The user
+selected **1,000 new pre-production questions**, separate from those 47.
+Diagnostic paraphrase/related controls are not promoted into the new benchmark.
+
+The expansion also needs a per-incident and tenant capacity study. Its result
+will be an empirical achievable-capacity estimate under the frozen source,
+question-quality rules, overlap policy and search procedure, not proof of an
+absolute maximum over every possible question. A finite candidate pool can
+support a verified retained-set size and, where available, bounds on a
+threshold-constrained selection problem. Reaching a search ceiling without
+observing saturation gives a lower bound, not a proven source-capacity limit.
+
+The user selected **capacity curves only**, not a hard overlap rejection cap.
+The approved exploratory thresholds are **0.25, 0.50, 0.75 and 0.90**, using
+the existing unit feature policy and equal-weight diagnostic aggregate.
+Study maximum pairwise overlap within each incident and within the tenant
+pool; cross-incident and cross-benchmark overlap remains separately reported.
+Shared checkpoints/source records do not force groups or automatic rejection.
+
+The initial exploration envelope is **up to 100 new logical candidate
+attempts per incident and 1,000 tenant attempts: 2,000 total**. This is not an
+accepted-question quota or a model-call ceiling. Report observed yield,
+capacity bounds and saturation evidence before requesting an extension.
+
+Implementation proceeds through:
+
+1. Freeze cohort membership, target-versus-attempt semantics, overlap/capacity
+   policy and a bounded exploration/stopping schedule.
+2. Profile per-scope evidence and meaningful objective families, then run
+   resumable generation/validation waves with auditable candidate inventories.
+3. Keep source, native, mandatory-checkpoint, semantic-distinctness and
+   canonical-fact gates unchanged. Do not count wording variants, manufacture
+   checkpoint work, waive proof or resample completed students to fill quotas.
+4. Report accepted yield, genuine duplicates, overlap exclusions if authorized,
+   source insufficiency, captured-proof holds and operational failures
+   separately. Timeouts or under-cited students do not establish that an
+   incident's evidence has been exhausted.
+5. Produce capacity curves and observed saturation/lower-bound reports for
+   each incident and the tenant scope. Retain uncertainty and the dependence
+   on the search strategy; a small incident may support fewer than 50 suitable
+   questions, while a larger one may support more.
+6. Package the resulting pre-production cohort with a newly reviewed split;
+   do not reuse the development one-test-per-bucket allocation automatically.
+
+The 1,000-question target does not authorize weakening any gate or imply
+production-release approval. FP/BP-targeted QA remains deferred. No expansion
+run has started. Scalable run/report tooling and the difficulty annotation
+design below precede the first wave.
+
+### 17.37 Difficulty heuristic bootstrap and separate model calibration
+
+The user requested difficulty annotations during the pre-production expansion,
+with later, separately configured model evaluations to test whether the
+heuristic predicts performance differences, including Astra versus Luna.
+Current `TaskRecord` instances have no implemented difficulty field or label;
+Section 10.2 was a proposed logical schema, not a delivered classifier.
+
+#### Verified ExCyTIn 2.0 starting points
+
+The read-only inspection used sibling commit
+`b32f7ad80380ad5b32c8579b15a3793750c2bf0b`. Three distinct mechanisms exist:
+
+1. [Structural hop bands](../Excytin_2_0/src/excytin2/explore/ground.py):
+   effective hops are `min(verified_chain_hops, shortest_selective_hops + 2)`
+   when a shortest path was found, otherwise the chain length. Bands are
+   L1 below four, L2 at four/five, L3 at six/seven, and L4 at eight or more or
+   for a composite. The selective search excludes certain hubs/edges, is
+   bounded, and traverses graph edges in both directions. These bands are not
+   proof of minimum time/role-valid investigative reasoning depth.
+2. [SQL-gate metadata and preliminary tier](../Excytin_2_0/src/excytin2/questions/generate.py):
+   evidence rows/tables, SQL tables, pivot count, evidence-time span, answer-in-
+   alerts, SQL repairs, revealed-path count and one-shot solver results.
+   A successful one-shot probe gives `easy`; otherwise no detected alert-answer
+   shortcut plus at least two raw SQL tables or three pivots gives `hard`;
+   remaining cases give `medium`. The generation gate also rejects one-shot
+   successes as `too_easy`. That is not a rule we inherit.
+3. [Final solver-panel tier](../Excytin_2_0/src/excytin2/pipeline/gates.py):
+   with the [configured model groups](../Excytin_2_0/src/excytin2/settings.py),
+   neither of Astra/Opus solving gives `very_hard`, one gives `hard`, both
+   with neither Luna/mini gives `medium`, both plus an easier-group model
+   gives `easy`, and every solver solving gives `very_easy`. This is measured,
+   model/configuration-dependent labeling, not a pre-solver heuristic.
+
+The sibling design also proposes distractor counts, aggregation/negation/
+ordering flags and richer structural features. Those proposals should not be
+confused with the smaller implemented tier functions. Its solver tier uses
+answer-match results; our primary evaluation requires grounded final success.
+Operational errors can appear as `solved=false` in that implementation, and
+an unknown alert-shortcut result can satisfy a negated Boolean check. We will
+not import those missing/error-as-hard behaviors or its permissive answer
+normalizations.
+
+#### Separate structural prediction from empirical difficulty
+
+Keep two independently versioned records:
+
+- **Heuristic profile:** computed before the evaluated model runs, from the
+  public task, verified source evidence, reviewed proof routes and query
+  semantics. This is the predictor to test.
+- **Empirical profile:** per-model/configuration grounded success, answer
+  correctness, checkpoint progress, actions/tokens/time and failure categories.
+  These outcomes can calibrate a later heuristic version but must not define
+  the heuristic used to test that same model comparison.
+
+Model identities and an assumed Astra-greater-than-Luna ordering are not
+heuristic inputs. The later evaluation tests that hypothesis; it must allow
+individual items where the ordering reverses. Difficulty is not novelty or
+overlap: report those axes independently.
+
+#### Proposed model-independent feature profile
+
+| Axis | Grounded measurements | Guard against misleading proxies |
+|---|---|---|
+| Evidence breadth, B | Canonical observations and raw tables in a complete necessary proof; material entity/relation types and cross-domain bindings | Do not count the whole incident graph, unrelated properties, repeated exports, or both SQL dialects as extra evidence |
+| Dependency depth, P | Required logical bindings, longest dependency chain, branch convergence, and the shortest independently verified alternative route | Collapse representation/alias/membership edges; preserve direction, time and actor/target roles; one SQL query can still require several reasoning steps |
+| Reasoning operations, R | Necessary ranking/ordering, aggregation, request deduplication, nontrivial dynamic-JSON interpretation, temporal-role alignment, comparison or recorded-member-presence reasoning | Count semantic operation families, not SQL length, CTE count, formatting, optimizer workarounds or decorative predicates |
+| Search ambiguity, A | Distinct plausible candidates at necessary decision points before applying the disambiguating criterion, within the public anchor/scope | Use source-verified diagnostic probes, not global node degree or the final unique query result; deduplicate aliases and repeated observations |
+
+Node and edge counts and node-type histograms remain useful descriptors.
+Types matter because of the required binding (for example process-instance
+identity or message-to-mailbox-to-audit correlation), not an arbitrary rule
+that every process or IP node contributes a fixed difficulty weight.
+
+Keep additional, separate descriptors for output cardinality/exact-format
+burden, citation workload, public anchor specificity, source-time roles,
+query latency/result volume and generator repair effort. A long command
+string, slow server or authoring failure does not by itself prove difficult
+reasoning. Ordinary filtering on a supplied time window is not equivalent to
+resolving event-time versus process-creation-time semantics.
+
+Features must distinguish the final objective, each checkpoint and the combined
+task. Use one complete verified proof alternative, not the union of all
+alternatives as though every route were required. Preserve ranges across
+alternatives and identify the scored route. "Least demanding verified route"
+is not a claim that every possible shortcut has been ruled out.
+
+The existing overlap footprint deliberately includes all edges emitted from
+selected observations and all relevant proof alternatives. It is therefore
+not automatically a minimal reasoning graph and must not be fed unchanged
+into a difficulty score. In the current 47-question inventory, observation
+unions range from 2 to 21 and raw footprint edges from 10 to 413; raw evidence
+table counts are one for 11 tasks, two for 25, three for ten, and four for one.
+Every task currently has one checkpoint. These measurements are descriptive,
+not assigned difficulty labels; checkpoint count alone has no discrimination
+in this cohort.
+
+#### Provisional scoring rubric to prototype, not a calibrated policy
+
+Start with four ordinal axes, each in `[0,3]`, retaining all raw measurements:
+
+- **B:** maximum of reviewed breadth bands: observations 1 / 2-4 / 5-10 / 11+;
+  raw tables 1 / 2 / 3 / 4+; material cross-domain bindings 0 / 1 / 2 / 3+.
+  Only necessary proof structure contributes; count ranges/alternatives remain
+  visible rather than rewarding an unnecessarily bloated witness.
+- **P:** required discovered bindings 0 / 1 / 2-3 / 4+, with one additional
+  point for a necessary branch reconvergence, capped at three. The logical
+  proof view, not storage-edge count, supplies these measurements.
+- **R:** number of distinct materially necessary operation families beyond
+  simple selection/projection, capped at three. Mere JSON serialization,
+  duplicate SQL implementations or extra checkpoints add no points.
+- **A:** maximum verified look-alike count at a necessary decision point:
+  one / two-three / four-ten / eleven or more. Keep each decision point's
+  probe and counts; an unmeasured ambiguity feature is unknown, not zero.
+
+One candidate bootstrap index is:
+
+```text
+H = (100 / 3) * (0.20 * B + 0.30 * P + 0.30 * R + 0.20 * A)
+```
+
+Candidate descriptive bands are `<25 easy`, `25-<50 medium`, `50-<75 hard`,
+and `75-100 very_hard`. **These coefficients and cutoffs are design hypotheses,
+not fitted results, release defaults or generation acceptance gates.** They
+are separate from the approved 0.25-per-component overlap score.
+
+Prototype the extractors and test this rubric on development items first.
+If any required axis is unavailable, retain a partial feature profile with
+`score=null` and an incomplete/unclassified status; do not silently replace
+unknowns with zero or renormalize the available axes. A rigorously verified
+count bound can support a band only when the whole bound lies in that band.
+No level should be made harder by hiding required public anchors, adding
+irrelevant source rows/checkpoints, inventing causation, or selecting a
+needlessly complicated reference query.
+
+#### Artifact and pipeline integration
+
+Use a private, immutable **difficulty sidecar** bound to task, source/graph/
+serving view, native validation, proof selection, canonical bundle and
+measurement-profile fingerprints. Store feature definitions/version, actual
+counts or bounds, provenance, availability states, axis scores, heuristic
+version and a clearly provisional band. Gold edits or measurement-policy
+changes require a fresh annotation; they do not silently reinterpret history.
+
+Initially do not add a difficulty field to the frozen `TaskRecord` or rebind
+the approved 47-question split. The sidecar avoids invalidating existing
+native/canonical validation fingerprints. It is not part of the blind
+student's prompt, and private proof features must not leak through public
+metadata. For new pre-production candidates, measure after source/native/
+canonical verification and before any difficulty-calibration evaluation.
+Difficulty annotation does not remove valid easy questions or impose a hard-
+question quota. Capacity/yield reports can later stratify by available
+difficulty features while retaining unclassified counts explicitly.
+
+#### Later Astra/Luna calibration experiment
+
+This is separate testing, not started or authorized as a model run by this
+design work. Before running it, freeze exact model deployments/versions,
+reasoning settings, prompts, SQL-only tool interface, sanitized snapshot,
+query/action/token/time budgets and replication schedule. Use fresh independent
+student contexts with no gold or private checkpoint objectives. Record actual
+usage and distinguish tool-budget-matched from cost/compute-matched comparisons.
+
+Primary measurements are grounded final success; additionally report answer
+correctness, checkpoint progress, citation/format errors, valid-attempt
+failures and infrastructure errors. An API outage, skipped model or missing
+result is not evidence that a question is hard. Retain all scheduled outcomes
+and uncertainty; do not reroll completed students to obtain the desired model
+ordering or discard valid questions just because a model solves them quickly.
+
+Check whether success decreases across heuristic bands, inspect paired
+model differences and confidence intervals, and inspect exceptions by task
+family and source scope. Fit/revise weights only on designated development/
+calibration items, then freeze the next heuristic before held-out evaluation.
+Account for shared-source/incident correlation in uncertainty estimates; this
+is statistical analysis, not a new forced grouping rule for dataset splits.
+One trial from two models cannot identify a reliable item-level pass rate or
+a two-parameter IRT model; a wider panel/repeated design can be considered
+later if justified.
+
+The next concrete work from this design is a tested feature/sidecar prototype
+on the frozen development cohort, followed by integration into the bounded
+pre-production runner. The design step itself produced no difficulty labels,
+generation waves or Astra/Luna evaluations.
+
+### 17.38 Implemented four-axis difficulty sidecar prototype
+
+The user approved the four-axis heuristic and keeping model evaluation
+outcomes separate. [difficulty.py](secgym/qagen/agentic/difficulty.py) now
+implements `difficulty-heuristic-v0.1` without changing `TaskRecord`, native
+validation, canonical-fact identities, blind prompts, rewards or split
+assignments. The coefficients and bands in Section 17.37 remain provisional.
+
+The prototype takes a fingerprint-bound reasoning plan and an explicit
+semantic feature review. Each route selects one complete native-validated
+evidence alternative for the final and every checkpoint. A dependency DAG
+describes given anchors, discovered bindings, material cross-domain bindings
+and necessary operation families. Code rejects missing/cyclic dependencies,
+unused padding, missing claims, stale bindings and steps that do not cover
+exactly their claim's chosen evidence. Genuine branch convergence requires
+distinct binding branches, not a redundant dependency on an ancestor.
+
+Code derives breadth, logical depth and unique operation-family counts from
+the reviewed plan. Semantic necessity, domain labels and the completeness of
+the chosen decision points remain review responsibilities; this is not a
+fully automatic proof-minimality judge. No author-supplied easy/hard label,
+model name or solver result is a scoring input.
+
+Ambiguity is measured by read-only source queries. Candidate locators must
+be attributed to actual accompanying source fields through the existing
+verifier. Counts use distinct source observations or reviewed qualified
+identity fields, not joined-row multiplicity or literal-ID projections.
+The initial implementation requires complete exact candidate retrieval:
+LIMIT/OFFSET/sampling, missing identities, empty scopes and query/result-limit
+errors produce explicit measurement errors, not easy or hard labels.
+Bound-only ambiguity probes remain a later extension.
+
+An explicit reviewed empty probe list means no additional choice point was
+required; a missing probe list means ambiguity is unknown. Any unavailable
+required axis leaves the route unscored, and an incomplete reviewed
+alternative is not silently ignored in favor of another route. Final,
+checkpoint and combined-work profiles remain distinct; shared work is not
+summed repeatedly across checkpoints. Saved axis values, scalar arithmetic,
+bands and selected-route state are validated when loaded.
+
+The new `difficulty-profile` CLI reuses the admitted-question input manifest.
+Without plans it emits descriptive inventories only. With reviewed plans and
+explicit serving/query-limit configuration it measures candidate scopes and
+emits private per-task sidecars plus a summary/CSV. Output directories must
+be new and outside source/annotation bundles. Errors remain explicit, and
+requested incomplete measurements produce a nonzero CLI exit status.
+
+The prototype was exercised against the frozen 47-question cohort. Two
+manually source/program-reviewed controls now have complete provisional
+profiles; the other 45 retain descriptive profiles with no score or band:
+
+| Control | B | P | R | A | Provisional H | Band |
+|---|---:|---:|---:|---:|---:|---|
+| Incident 166 Q2, named mailbox-rule parameter | 1 | 1 | 1 | 0 | 26.666667 | medium |
+| Incident 133 Q2, earliest net.exe extension ancestry | 2 | 3 | 2 | 1 | 70 | hard |
+
+Source probes found one qualifying rule observation in the first case and
+three distinct device/PID/creation-time process instances in the second.
+The latter uses nine proof observations and five discovered bindings, despite
+having only one raw evidence table; this demonstrates why table count alone
+is insufficient. Its checkpoint profile is 50, while the combined task is 70.
+These results do not validate the heuristic against model performance.
+
+All 106 focused difficulty, split, CLI-contract and canonical-fact tests pass,
+including all 256 ordinal-axis combinations and source-attribution/error
+controls. Pylance reports no diagnostics in the new module, tests or changed
+CLI. The exact approved development cohort and its approval/proposal artifact
+hashes remain unchanged. No new QA attempts, model evaluations, training runs
+or pre-production generation wave was started.
+
+Next: build/review measurement plans for the remaining development questions,
+then automate this feature-review stage for pre-production generation.
+Unmeasured items remain visible as unclassified; no heuristic label is
+invented merely to complete coverage.
+
+### 17.39 Source-inspecting difficulty feature curation
+
+[difficulty_curation.py](secgym/qagen/agentic/difficulty_curation.py) adds a
+private curator and a separate feature-reviewer conversation for existing
+native-admitted questions. Their contexts contain the public task, private
+source programs/claim proofs and canonical source facts, but no student
+outcomes, reward traces, heuristic axis scores or difficulty bands. The
+curator proposes reasoning routes and ambiguity queries, not a numerical
+rating. The server binds the proposal to the existing task/native/fact
+fingerprints.
+
+Both roles must actually retrieve every source record in the chosen proof
+alternatives with source-attributed IDs and accompanying fields. Curator
+finish validation checks route structure, claim coverage and executable
+ambiguity probes; private witness/observation IDs cannot be used as oracle
+selectors in those probes. Pre-review measurements report source counts and
+errors, not heuristic scores. Only after an exact plan-bound feature review
+passes does the deterministic scorer produce a provisional sidecar.
+
+Feature holds, unmeasured axes, operational errors and suspected task/rubric
+defects are separate outcomes. A task defect cannot pass as an annotation-only
+correction. Fresh feature revisions preserve the old artifacts and expose
+previous feedback only to the new curator, not the independent reviewer.
+Resume verifies the same inputs/runtime and restores source inspections from
+captured SQL results. Completed roles are reused without new model calls;
+an interrupted reviewer does not regenerate its completed curator.
+
+Controlled source/role tests cover independent inspection, private-ID
+rejection, missing measurements, immutable revisions, runtime binding and
+reviewer-only recovery. The first real automation run is deliberately limited
+to three structurally different development tasks before expanding to the
+remaining queue. These are feature-curation model calls under the existing
+approved configuration, not Astra/Luna ability evaluations or new QA attempts.
+
+### 17.40 Pilot method checks and complete-set witness repairs
+
+The three-case feature-curation pilot completed with two provisional reviewer
+passes and one suspected task/proof defect. Operator inspection deliberately
+preceded the remaining queue rather than treating those first passes as final
+calibration truth.
+
+The two initial ambiguity plans included probes that removed already-resolved
+path/account/request/IP bindings to manufacture competitors, or counted
+repeated request representations. Their original reviews and scores are
+preserved, but separate audit-hold records request feature-only revisions.
+`difficulty-feature-curation-v0.2` clarifies that known entity bindings and the
+outer public scope remain fixed; deterministic exact-key lookup is not
+ambiguous merely because its table is large. Genuine final ranking, temporal
+or eligibility criteria can still distinguish plausible candidates. Correct
+set members are not automatically distractors, and candidate identity must
+match the decision unit. This changes neither the four-axis coefficients nor
+the rule separating model outcomes from heuristic inputs.
+
+The v0.2 model context also carries compact canonical property references
+rather than repeating every fact's values/timestamps/snapshot metadata.
+Actual source retrieval remains mandatory. The earlier pilot's runtime,
+requests, source observations and independent pass reviews are archived; new
+operator feedback is sent only to the fresh curator, not its reviewer.
+
+The third case exposed a genuine collection-proof problem: incident-5 Q1,
+incident-5 Q5 and tenant Q6 have witness alternatives representing individual
+hosts/members even though the claim expects a complete set. A targeted
+read-only fixture audit checked all 17 multi-valued development claims and
+30 alternatives; the 18 failing alternatives belong to those three tasks.
+The full declared-evidence fixture reproduces each gold set, but a single
+claimed alternative loses answer members.
+
+The first diagnostic that added all private scope anchors to each proof
+masked the issue because these tasks listed most/all evidence as anchors.
+Private anchor references are not source records automatically shown to the
+student and do not augment the scoring rule's cited proof group. The corrected
+diagnostic tests each alternative alone. It is a regression check for lost
+answer members, not a universal sufficiency proof for scalar, negative or
+aggregate claims.
+
+The first fresh question/rubric/witness revisions completed source review for
+the three tasks. Incident-5 Q5 r5 and tenant Q6 r3 subsequently passed fresh
+native admission. Incident-5 Q1 r4 remained held at the captured-witness gate;
+its later source-qualified repair is recorded below.
+The final and checkpoint objectives must remain meaningful and their entire
+answers must be supported by each alternative; no checkpoint removal,
+annotation-only waiver or old-proof transfer is permitted. Source/native/
+canonical/difficulty checks and an updated split review are required before
+promoting changed fingerprints. The original approved development split and
+all prior outcomes remain immutable history, with current quality holds
+recorded separately.
+
+The corrected v0.2 feature revisions passed independent source review:
+incident-34 Q4 is B2/P3/R2/A0 (63.333333, hard), and incident-166 Q4 is
+B3/P2/R3/A0 (70, hard). The original inflated profiles remain historical
+audit-held results. Together with the two unchanged manual controls, this
+provides four measured profiles under the prior pinned runtime; 40 unaffected
+tasks remain queued, and the three question repairs need fresh bound feature
+annotations. The verifier change below requires explicit runtime revalidation
+before reusing those profiles in a current export.
+
+Incident-5 Q1 r4 exposed a separate representative-selection limitation.
+Its complete final witness chooses four qualifying rename observations by
+`MIN(_record_id)`. The completed blind student instead retrieved and cited
+four other qualifying observations, choosing earliest timestamps. All four
+gold-selected locators really are absent from the captured trace; this is not
+a SQL lineage-recognition failure.
+
+A read-only source fixture restricted to the student's 11 submitted citations
+reproduces the unchanged complete two-host final answer. Four negative
+controls each omit one required rename-category observation; every omission
+loses one host and fails full-answer equality. Thus this captured alternative
+supports the complete positive set claim, rather than merely matching its
+answer strings. The diagnostic does not establish a general sufficiency rule
+for ranking, absence, aggregation or common-value claims.
+
+The original enumerated-witness contract does not recognize that alternative.
+No historical outcome has been regraded, no checkpoint or proof gate has
+been waived, and no completed student has been resampled. A grading-contract
+decision was presented explicitly. The user selected source-qualified complete
+proof obligations rather than adding only this particular alternative to the
+enumerated list. That authorizes a versioned verifier change and explicit
+revalidation, not automatic admission, historical regrading or weaker proof.
+
+No new pre-production logical candidate attempts or Astra/Luna ability
+evaluations have run. A transient Azure CLI/WSL authentication failure on the
+feature-revision launch was checked without exposing a token; authentication
+recovered and the unchanged interrupted request was resumed.
+
+### 17.41 Source-qualified witness contract
+
+The opt-in `source-qualified-obligations-v1` contract adds full-source required
+obligation catalogs and source-qualified candidate bundles to each backend's
+witness program. The original three-column query remains a complete
+representative for canonical facts, overlap and difficulty annotations.
+Existing enumerated programs retain their serialization and task identity.
+The runtime verifier is versioned `source-witness-v1.3`; generation is
+`discovery-pilot-v1.5`.
+
+Every complete alternative group requires every cataloged obligation. Each
+obligation may have multiple interchangeable candidate bundles, but every
+record within the chosen bundle is mandatory. Source-record binding keys
+must agree across chosen bundles, preventing cross-instance/role splicing.
+Candidate queries receive an explicit, server-built citation relation and
+must qualify those locators against actual public source tables. Required
+catalogs cannot use that relation. No automatic MIN rewrite, implicit private
+anchor support or citation-filtered answer-query fallback is introduced.
+
+Submitted evidence must remain relevant and contain a coherent complete
+proof, including behavior/security-control support where required.
+Separately measured captured-observation coverage may include exploratory
+rows but must still contain a complete source-qualified proof. Existing
+attributed-retrieval checks remain in the adapters. Query limits and bounded
+coherence-search exhaustion are explicit errors.
+
+Source/refuter review must establish semantic completeness, including all
+set members and comparison cohorts for counts, ranking, absence and common
+values. Passing representative examples alone does not certify these
+predicates. Backend parity includes the obligation/candidate/binding data for
+declared proofs, with additional alternative and incomplete-proof probes.
+Changed task fingerprints require fresh admission and downstream annotation
+bindings. The archived prior runtime, historical student outcomes and split
+approval are retained; none is automatically upgraded by this implementation.
+
+The complete feature suite passes 381 tests with actual isolated MySQL and
+native ACE enabled, including alternative-proof final/checkpoint credit,
+incomplete-cohort rejection and captured-source attribution. All 69 historical
+task fingerprints and all 109 pinned legacy files remain unchanged.
+
+Incident-5 Q1 now has an explicit r5 source-qualified revision, not an edit to
+r4 or its recorded outcome. Full-source checks accept both the completed
+student's alternative and an independently selected latest-event alternative.
+Omitting each of the 11 submitted proof records in turn fails; the full
+four-host checkpoint remains supported by the captured observations.
+That r5 retained the typed goals, answer SQL and public task content except
+for the revision identifier. Its independent reviewer accepted the complete
+source-qualified proof semantics but requested clearer wording and literal
+justifications. The public phrase "previously unsuffixed filename" was
+ambiguous because the earlier names can have another extension. Private
+bookkeeping labels also should not be described as general domain constants.
+
+The explicit r6 changes that phrase to "previous filename not ending in
+.lockbit" and uses source/public/table-derived binding roles and standard
+Boolean category tags instead of the misclassified bookkeeping strings.
+Its source goals and answer SQL remain unchanged. Because public wording
+changed, a fresh blind run and fresh independent review were performed; both
+passed, including mandatory source-field inspection of the complete final
+and checkpoint proof. Earlier outcomes and the r5 revise verdict are retained.
+
+All three current repairs passed real full-snapshot MySQL parity and native
+SecRL/ACE private-pilot admission. The incident-5 Q5 and tenant Q6 native
+students produced grounded final answers; checkpoint progress was respectively
+0 and 1. The incident-5 Q1 r6 native student answered correctly and retrieved
+a complete proof, but submitted an invalid file locator, leaving one required
+host/category unsupported in its cited proof. Both adapters retain final
+reward 0 and checkpoint progress 0 for that run; it is not rerun to improve
+the score or treated as evidence of heuristic difficulty.
+
+Fresh graph baselines now bind all three changed fingerprints. New canonical
+and difficulty annotations and an updated split review are still required.
+The 44 unaffected development annotations are undergoing explicit runtime
+revalidation: exact source-fact/footprint equality and both original
+source-inspection traces, following hash-checked earlier revalidation
+provenance rather than inventing new reviews or silently changing producer
+hashes. The three held historical task revisions are excluded from that reuse.
+
+The r6 incident-5 Q1 canonical annotation passed fresh independent review.
+The first annotations for incident-5 Q5 and tenant Q6 were held for missing
+process `ActionType` properties, not invalid QA: the executable gold already
+requires the process-creation events. Fresh annotation-only revisions are
+adding those event-bound properties with independent re-review. Difficulty
+curation has restarted for the repaired questions using their new exact
+native, baseline, canonical and review bindings; native student outcomes
+are excluded.
+
+Runtime revalidation subsequently completed for all 44 unchanged development
+questions, including both recorded source-inspection roles and exact
+source-fact/footprint equality. Re-executing the four retained difficulty
+controls' source measurements preserves their bindings, scores and bands
+without new model calls. The approved 40-question feature-curation batch is
+now running against those explicitly revalidated inputs.
+
+The repaired incident-5 Q1 feature plan required a source-backed correction:
+selecting the subsequent rename categories is a discovered behavioral binding,
+not an already-given representation lookup. Its fresh independent review
+passed B3/P2/R3/A2 (83.333333, very_hard). Incident-5 Q5 passed B3/P2/R2/A2
+(73.333333, hard). Their ambiguity populations are respectively four and five
+source-scoped candidate hosts before the relevant eligibility test, not
+repeated qualifying file observations or the distinct final-answer paths.
+These remain provisional heuristic labels, not model-validated difficulty.
+
+The Q5 canonical revision passed. Tenant Q6's interrupted curator was resumed
+from its unchanged request after verified token truncation, retaining all
+original traces; its fresh reviewer did not receive the curator's prior
+revision feedback. That review found another annotation-only gap: necessary
+earlier-process cohort/parent facts were selected for the checkpoint but not
+the final claim itself. A further fact-selection revision is addressing that
+claim-specific coverage without changing QA, native scores or checkpoints.
+That revision subsequently passed independent review. Tenant Q6's fresh
+difficulty review also passed B3/P2/R3/A0 (70, hard): its complete 16-record
+cohort proof is retained, and deterministic bound lookups plus aggregation
+are not turned into manufactured ambiguity.
+
+### 17.42 Repaired development cohort and split verification
+
+The current 47-question cohort now combines 44 explicitly runtime-revalidated
+questions with the three source/native/canonical/difficulty-reviewed repairs.
+Only incident-5 Q1 (r3 to r6), incident-5 Q5 (r4 to r5) and tenant Q6 (r2 to r3)
+change task fingerprints. Their final typed goals and checkpoint IDs remain
+unchanged. The new native/canonical cohort fingerprint is
+`74d6a0e91fda15aaabe3a8a44e8542ff6e69669d15440112826a0b9d6aabd906`.
+
+Two explicitly unapproved split updates were generated: preserving the old
+logical-question membership with method `explicit`, and recomputing the
+original bucket counts with seed 42 and `sha256-ranked-v1`. Both yield the
+same 36-train/11-test logical membership, including the same 11 held-out
+questions. This is verified against the new fingerprints, not an assumption
+that the historical approval automatically transfers.
+
+Both proposed audits contain all 1,081 complete pair comparisons with the
+unchanged diagnostic quarter weights. Edge and observation components are
+unchanged for every pair; canonical-fact/containment components and aggregate
+scores change for only two within-training pairs. All 396 train/test pair
+components and scores are exactly unchanged. No overlap-based grouping,
+rejection or production threshold is introduced.
+
+The 40-question difficulty batch remains active. Completed annotation-only
+holds are revised with fresh independent reviews; initial examples concern
+a checkpoint-specific temporal operation, unnecessary ranking of a singleton
+eligible cohort, and a representation lookup incorrectly marked as a newly
+discovered identity. These are not new QA failures or reasons to resample
+students. Final quality review and explicit updated split approval remain
+separate gates before promoting the revised development snapshot.
+
+### 17.43 Authentication-step selector regression
+
+Further inspection of a held incident-322 Q3 difficulty plan found a genuine
+gold/checkpoint defect rather than only a feature-annotation issue. Its
+answer and witness programs use `AuthenticationDetails[0]` for role-defined
+OATH/MFA selections. The public question names authentication roles, not an
+array position. A targeted screen of the current 47 gold/witness contracts
+identified this task's eight affected backend programs.
+
+A read-only, isolated fixture reproduces the defect while preserving the
+named semantic targets: prepending an unrelated Password/Primary-authentication
+step to the interrupted record makes both final and checkpoint outputs
+disappear; prepending it to the result-0 record changes the final answer to
+the password-step detail instead of the still-present MFA-step detail.
+The source databases, historical model outcomes and original review are
+unchanged. This is separate from the legitimate fixed leaf paths used to
+annotate properties of an immutable source record.
+
+An explicit operator quality hold now blocks promotion of the otherwise
+assembled 47-question proposal. The feature review is not rewritten to
+pretend that it detected the task defect. A fresh question/rubric/program
+repair is using typed OATH/MFA and mail-message roles, public temporal scope,
+and the complete interrupted-IP checkpoint. It must pass independent source
+review, actual DuckDB/MySQL reorder/prepend/removal regressions, native
+admission and fresh downstream bindings. Unaffected difficulty curation
+continues; no feature-only waiver or success resampling is permitted.
+
+The first attempted authentication repair was not promoted: it unnecessarily
+changed the earliest-observation scalar question into an all-later-observations
+set and added a discovered method as a selector. A later source revision
+restored the original objective but retained an unjustified Password exclusion
+and bookkeeping literal; those were removed surgically. Neutral public
+background wording also replaced an unsupported limitation about quarantine,
+after a reviewer found a matching post-delivery quarantine record. That
+background correction did not add an irrelevant checkpoint.
+
+The resulting r7 preserves the original scalar goal and meaningful source-IP
+checkpoint, selects typed authentication/mail roles, and uses the first later
+same-account/IP sign-in. Its unchanged private programs passed 172 actual
+DuckDB/MySQL mutation checks, including reordered/unrelated steps and
+entities, missing-role negatives, additional matching-MFA ambiguity, and a
+later-event/citation-omission test preventing a later cited success from
+replacing the uncited earliest one. Fresh source review and full-snapshot
+native admission passed. The native grounded-final reward is 1 and checkpoint
+progress is 0; both are retained as measured. New canonical annotation and
+difficulty review have also passed. The provisional difficulty is B2/P2/R3/A0
+(63.333333, hard): each fixed-scope stage has one qualifying request, repeated
+interruption observations are deduplicated, and the reference SQL's ranking
+of a singleton is not counted as additional reasoning. Historical reviews,
+outcomes and split approval remain unchanged.
+
+### 17.44 Endpoint-proof regressions and difficulty batch follow-up
+
+The full 40-question initial difficulty pass completed: 21 independently
+reviewed feature plans, 17 feature-review holds, one API timeout and one
+unmeasured ambiguity population. Completed feature-only holds are receiving
+fresh revisions with feedback isolated from their reviewers; completed
+students are not rerun. The API-interrupted curator is being resumed under
+the exact original batch policy, with its first summary retained separately.
+
+Direct source checks of two holds found actual task/proof issues:
+
+- Incident-38 Q1's final and socket-checkpoint SQL required the connection
+  timestamp to equal an alert's start, although the public alert only locates
+  the endpoint. Shifting that detector timestamp by one microsecond in an
+  isolated fixture removed both outputs; removing the incidental equality
+  preserved both outputs before and after the shift.
+- Incident-322 Q5 required both same-path deletion records in its one complete
+  witness group. Either six-record whole-chain proof independently reproduces
+  the requested hash/existence answer, yet the seven-record group rejected
+  both legitimate alternatives. This is redundant proof, not justification
+  to remove a checkpoint or ignore an entire claim.
+
+Explicit private revisions preserve public content, typed final/checkpoint
+goals and rewards. The HTTP task now has four complete alert/endpoint-chain
+alternatives; the file task has two complete final alternatives, one for each
+qualifying deletion. Source-qualified candidates keep each joined chain
+indivisible. Both independently passed source review and 354 actual
+DuckDB/MySQL mutation/omission checks, including wrong sockets/processes,
+either deletion alone, neither deletion, wrong deletion paths and missing
+anchors. Both subsequently passed full-snapshot native admission. The HTTP
+student's grounded-final reward is 1; the deletion student's answer is correct
+and its trajectory contains a complete proof, but its five submitted records
+omit a required process record from the six-record chain, so its reward
+remains 0. Both checkpoint scores remain 0. These measured outcomes are
+retained, not used as difficulty features or resampled. Fresh graph baselines
+are complete and canonical review is in progress. The operator findings
+remain separate from the original feature-review verdicts and block promotion
+until all new downstream bindings are complete.
+
+The deletion task's canonical annotation passed; fresh difficulty curation is
+running on its complete alternative proof. The HTTP annotation's independent
+review requested the source-observed initiating PID zero that establishes its
+socket-only attribution limitation. That annotation-only correction passed
+fresh review without changing the repaired question, checkpoint, or native
+score; fresh HTTP difficulty curation is running.
+
+Tenant Q10's independent feature reviewer verified 1,599 distinct eligible
+sign-in requests under the fixed editor, policy and post-edit same-day scope.
+Its ambiguity remains unmeasured because the implemented exact-retrieval
+probe is bounded to 500 result rows. That operational limit is not an easy
+label, an excuse to sample, or permission to hand-fill a score from model
+prose. An explicit source-verified large-population measurement path is
+pending; runtime-pinned workers must finish before changing that implementation.
+
+The latest native/canonical assembly remains 47 logical questions and now
+contains six repaired task revisions relative to the original approved
+snapshot. Its cohort fingerprint is
+`2fc564f9cc0777953847d32f953247c4f42a31c3a06c72ba59beaa5aa1920b26`.
+All 1,081 pair components are complete. Unlike the earlier three-repair
+proposal, recomputing seed 42 on these additional fingerprints swaps
+incident-38 Q1 from test to train and Q2 from train to test. The separate
+explicit-membership proposal retains the historical held-out logical
+questions and the 36/11 counts. Neither proposal has been approved; after
+the remaining difficulty/quality checks, the user must choose the updated
+split binding rather than having the old approval silently transferred.
+
+### 17.45 Complete positional-selector screen and exhaustive measurement
+
+The final feature-scope audit found that the deletion question's valid
+existential-proof repair still inherited positional alert-entity selectors.
+Rather than continuing one-off discovery, all 47 current questions were
+screened across answer, witness, obligation and candidate programs for
+numeric JSON paths. Five tasks remained: incident-134 Q1, incident-322 Q5,
+incident-34 Q5, tenant Q2 and tenant Q10.
+
+Nine read-only source-preserving mutations confirmed defects in all five.
+They retain named roles and values while prepending/reordering unrelated
+entities, parameters, targets or modified properties, or changing only JSON
+whitespace. The coupled tenant-Q2 successor-boundary predicate compares
+serialized rule parameters instead of their complete named configuration;
+tenant Q10 also parses a policy result using JSON key adjacency/string
+offsets. Those defects are not repaired by assigning a difficulty label.
+Exact numeric source tokens are preserved in the fixture mutations, and no
+source database or historical result is changed.
+
+A five-case source-revision batch now enforces the original typed final and
+checkpoint goals and reward policy, while requiring typed/named traversal,
+serialization-independent configuration comparison, coherent complete proofs,
+actual backend mutations and fresh downstream validation. It does not create
+new logical QA attempts. The current 47-question proposal remains unapproved
+and held until these repairs complete. In particular, tenant Q10's old
+unmeasured feature plan cannot be promoted merely by fixing its population
+measurement capability.
+
+Separately, opt-in `exhaustive-record-ranges-v1` measurement has been added
+without changing the four-axis formula or legacy probe shapes. It keeps the
+entire original candidate query inside server-generated disjoint locator
+ranges, checks an exact whole-scope census, preserves every query limit, and
+verifies every returned record before counting distinct observation or
+qualified identities. A typed private audit proves contiguous coverage and
+matching row totals. Incomplete retrieval, invalid locators, oversized
+indivisible blocks, query errors and explicit resource-budget exhaustion
+remain errors with no count or difficulty score.
+
+Curation v0.3 also clarifies that defining public roles/types remain fixed:
+different executable names are not candidates for a named child, and
+unrelated event types are not competing requests. Earlier pass reviews and
+operator feature holds remain distinct artifacts. Paged measurements keep
+the full attributed citation inventory privately while giving the reviewer
+its count/digest and complete partition audit, not a numerical difficulty
+target or student outcome.
+
+The focused validation passes 51 tests, including exact retrieval of 1,599
+synthetic source records, cross-page qualified-identity deduplication,
+unchanged row/byte bounds, malformed/missing/forged locator rejection,
+preserved window/UNION scope, fail-closed census/resource checks, compact
+review context and actual MySQL execution with native adapter regressions.
+The full feature suite passes 393 tests with actual MySQL and native ACE
+enabled. An independent real-snapshot typed-policy check verified exactly
+1,599 qualified requests and 1,599 attributed source observations across
+eight exhaustive partitions, without changing the 500-row, 64-KiB or
+30-second per-query limits. It used no model calls and does not waive the
+tenant-Q10 QA hold or assign a score to that held task.
+
+The consistency sweep also inspected the currently reviewed feature plans,
+separately from QA correctness. Six older passes were operator-held for
+counting alternatives outside explicitly supplied roles/properties (such as
+Network logons for a RemoteInteractive question, OfficeHome for Exchange
+Online, or other registry-value names for Start/DeleteFlag). Their original
+reviews and scores are retained; fresh source-based revisions receive no
+desired score. Genuine selection of an initially unknown target among
+same-role candidates remains valid, rather than treating every source
+eligibility decision as a deterministic identity lookup.
+
+All seven follow-up feature revisions (those six scope holds plus the
+recovered URL-click task's anchor-operation correction) passed independent
+review under v0.3. Re-executing the retained source probes produced 42 complete
+provisional profiles for the explicitly non-held questions, with exact
+task/native/canonical/plan/review bindings and zero new model calls.
+The other five remain explicitly excluded pending QA repair; there is no
+silent replacement of their missing profiles with easy or zero scores.
+
+The typed-selector source batch preserved every original typed goal and
+checkpoint. The two tenant revisions reached source admission, but actual
+MySQL preflight exposed a merged-CTE `JSON_TABLE` argument error and an
+over-budget policy-array expansion. Both failed before student evaluation.
+Local source-key-preserving materialization rewrites have been prepared and
+remain pending actual backend equivalence/robustness checks; no global
+optimizer switch, changed source scope or raised time limit is permitted.
+The mailbox-context correction and deletion-entity revision passed fresh
+source review, while the Word/launcher case remains on captured-proof hold
+pending investigation of an alternative direct parent-identity proof.
+
+### 17.46 Typed-selector repair validation
+
+The five remaining selector repairs now pass source and actual full-snapshot
+MySQL/native validation. The two tenant backend failures were corrected by
+local, source-key-preserving materialization and an explicit grouped-count
+alias in `HAVING`, not by changing the question, source scope, query limits or
+global optimizer settings. Their original independent source reviews and
+captured blind results were retained only through explicit equivalence
+certificates; no fresh model verdict was fabricated.
+
+The mailbox, deletion and two tenant revisions passed 256 actual
+DuckDB/MySQL mutation checks. These cover array/object order, JSON whitespace,
+typed/named-role negatives, complete named-rule configuration equality,
+next-identical-rule boundaries and earliest matching-policy selection.
+Two fixture issues were corrected without changing QA: a synthetic earlier
+rule initially introduced another seed within the public seed day, and
+backend-specific timestamp strings were incorrectly compared as witness
+labels instead of comparing complete citation groups. The earlier harnesses
+and failed logs remain available.
+
+The Word/launcher source student had not fetched the separate parent creation
+record, but its captured Word creation and two network observations formed a
+valid direct-parent proof. A five-record source-only fixture reproduced the
+complete answer and rejected all five single-record omissions. A new private
+revision adds that complete alternative alongside the six-record corroborating
+route, retains the exact launcher-path checkpoint, and preserves public
+content and rewards. Fresh independent review and native validation passed,
+as did 108 actual backend role/identity/endpoint mutation checks. The captured
+source student was not resampled to fetch the originally selected parent row.
+
+All five repairs have fresh graph baselines. Both typed-incident canonical
+and difficulty reviews passed (incident-134 Q1: 36.666667, medium;
+incident-322 Q5: 63.333333, hard). Both tenant canonical reviews passed and
+their difficulty curation is running. The Word canonical review is running.
+Native rewards and checkpoint outcomes remain separate recorded measurements,
+not heuristic inputs. Final current-cohort assembly and updated split
+approval still await completion of these downstream bindings.
+
+The Word canonical review subsequently passed, followed by its independent
+difficulty review: B2/P3/R2/A1 (70, hard). Its final shared-endpoint comparison
+retains both qualified process identities and chronology; the three candidate
+Word connection observations are not three different parent processes.
+Tenant Q2's feature review requests only removal of a nontrivial ranking
+operation for its sole later identical rule, without changing the gold's
+next-event semantics. Tenant Q10's feature measurement/review remains active.
+
+The latest complete 47-question native/canonical assembly is
+`development-repaired-cohort03`, fingerprint
+`840efd8d3065780b3a50282c825e976e38cdc66c99af5f58e8e134028f3ddadc`.
+Its 412 answer/witness/obligation/candidate SQL surfaces across both backends
+contain no constant numeric JSON-path selectors. This screen does not prohibit
+dynamic ordinal traversal or immutable canonical property references, and is
+not a universal semantic-correctness certificate. The five historical source
+holds are resolved only by their explicit new validated fingerprints.
+All 1,081 pair comparisons are complete; the unapproved seed-42 proposal still
+swaps only incident-38 Q1/Q2 compared with the historical held-out membership.
+
+### 17.47 Complete current development difficulty coverage
+
+All 47 current questions now have exact-bound, independently reviewed
+provisional difficulty profiles: 41 incident-scoped and six tenant-scoped
+questions, with one meaningful checkpoint each. The distribution is
+10 medium, 31 hard and six very_hard; no easy quota or rejection gate was
+imposed. Tenant Q2's corrected plan is 63.333333 (hard). Tenant Q10 is
+B1/P2/R3/A3, 76.666667 (very_hard), with 1,599 distinct eligible requests
+verified across eight exhaustive partitions and independently checked by
+its reviewer. Model outcomes are not inputs, and empirical model calibration
+has not been performed.
+
+The consolidated private inventory at `difficulty-current47-v03-01` preserves
+all original producer/review artifacts and verifies current task, native,
+canonical, plan, review, source-measurement and implementation bindings.
+Its construction made no new model calls and did not rerun completed
+students. A direct review of the ten changed logical questions confirms
+the original investigative targets, final/checkpoint typed goals and answer
+windows are retained; context and implementation corrections are explicit.
+
+The current 47-question cohort is ready for an explicit updated development
+snapshot/split decision, not production release. Both proposals retain
+36 train and 11 test. The recommended explicit-membership proposal preserves
+the original held-out logical questions; recomputing seed 42 swaps only
+incident-38 Q1 and Q2. Both contain all 1,081 complete overlap comparisons and
+396 train/test comparisons. With the unchanged diagnostic quarter weights,
+the same-incident cross-split mean is 0.1419883764852382 for preserved
+membership and 0.14412111114539375 for recomputed membership; both maxima
+are 0.4223024316109422. Other cross-scope train/test overlap remains zero.
+No historical approval is transferred automatically.
+
+The user subsequently approved the repaired 47-question development snapshot
+with the **original logical 36-train/11-test membership preserved**. Its new
+plan is explicitly `method="explicit"`; seed 42 is retained as historical
+selection provenance, not claimed as the ranking rule for the new
+fingerprints. The separately recorded approval binds the exact cohort,
+plan, overlap audit, difficulty inventory and source-review artifacts.
+The historical proposal/approval and all native outcomes remain unchanged.
+This approval does not authorize production release, training or an
+Astra/Luna ability panel, and does not change the separately approved
+1,000-new-question target or initial 2,000-attempt envelope.
+
+### 17.48 Observed-pool capacity reporting
+
+The next I5b readiness component is implemented as
+`observed-overlap-capacity-v1`. It uses the approved diagnostic quarter
+weights and thresholds 0.25/0.50/0.75/0.90 to report compatible subsets and
+capacity bounds independently within each represented incident/tenant pool.
+Threshold equality is allowed. No question is rejected, deleted or grouped,
+and no train/test assignment changes.
+
+A deterministic bounded search uses feasible compatible subsets for lower
+bounds and graph-coloring bounds for upper bounds. It labels an observed-pool
+maximum exact only when the bounds coincide. An explicit search-state budget
+is part of every request; reaching it retains the bounds and their gap rather
+than claiming an optimum. Missing pair components make the relevant bucket
+unscorable. Pair measurements are streamed, and no model calls are needed.
+
+On the approved 47-question development pool, all 44 scope/threshold points
+were solved exactly and independently checked by exhaustive subset enumeration.
+All 81 within-scope aggregate scores and 324 component values match the
+approved overlap audit, and every example subset satisfies its threshold.
+The sums of independent scope capacities are 36, 44, 47 and 47 at the four
+thresholds, respectively. These are diagnostic retained-subset counts within
+this small observed pool, not new split sizes, pre-production acceptance
+quotas, saturation evidence or absolute source-capacity estimates.
+
+The approved 36/11 development split is unchanged. The separate target
+remains 1,000 new pre-production questions within the initial 2,000 logical
+attempt envelope. Automated quality safeguards and resumable larger-scale
+orchestration remain prerequisites before starting that generation wave.
+
+Capacity validation includes exhaustive comparison against all 1,024
+five-vertex graphs, a genuinely budget-limited case, 1,000-question trivial
+graph controls, exact threshold-boundary tests, missing-component handling
+and CLI/schema checks. The complete feature suite now passes 405 tests with
+actual MySQL and native ACE enabled. The approved snapshot/plan hashes and
+all 109 pinned legacy files remain unchanged.
+
+### 17.49 Pre-blind source quality safeguards
+
+The next I5b foundation is the opt-in `source-quality-v1` gate in
+[quality.py](secgym/qagen/agentic/quality.py). It screens all final/checkpoint
+answer, representative witness, unconditional obligation and citation-conditioned
+candidate SQL in both dialects. Positional JSON selectors, computed paths and
+potentially serialization-dependent comparisons require explicit independent
+semantic review. A real public ordering or exact-representation objective can
+justify a selector; the gate does not blanket-ban array positions or quietly
+rewrite a question to excuse an incidental role index.
+
+For multi-member sets/lists, isolated read-only DuckDB views execute each
+representative alternative alone under the existing query limits. Uncited
+tables are empty, and private scope anchors are not automatically added.
+A union-of-declared-evidence control is retained as a diagnostic, never used
+to augment an incomplete individual proof. Non-reproduction holds the candidate
+before any blind solve; operational errors remain explicit errors. These checks
+do not establish general sufficiency for counts, absence, ranking/common-value
+cohorts or every qualifying candidate bundle. Independent semantic review and
+targeted backend mutations remain necessary.
+
+The opt-in source pilot requires an independent quality/refutation conversation
+to retrieve all required representative records with source fields, disposition
+every selector finding and review whole-claim support. Genuine ordered or
+representation-sensitive exceptions require an exact public quote and source
+justification. Its ordinary refutation result is projected verbatim for native
+validation; no new model verdict is fabricated. A failed literal-justification
+review also prevents the blind solve. Inspection traces, audit/assessment
+fingerprints, runtime hashes and query policy are bound and validated.
+
+Completed roles are recovered rather than rerolled. Interrupted inspection
+recovery reuses the existing exact captured-source verification helper, without
+editing the runtime-pinned canonical/difficulty implementations. Set-result
+ordering is normalized only in diagnostic serialization; ordered lists and
+grading are unchanged. Existing non-opt-in source/native callers retain their
+behavior. Pre-production callers must opt in on source generation and require
+the bound gate on native admission.
+
+Validation covered all 412 SQL surfaces in the frozen 47-question cohort and
+17 multi-member claims: all 17 individual representative proofs and 17
+union controls reproduced their complete collections. The scanner found no
+numeric JSON positions. It retained 40 conservative text-matching flags across
+four questions and 11 computed-path flags on the tenant rule question.
+These are review findings, not five automatic QA defects or rejections;
+the diagnostic does not replace independent semantic or backend mutation review.
+Against the three retained historical incomplete-proof revisions, the new
+checker reproduced all 18 failing alternatives while their union controls
+still passed. No source model calls or student resampling were used.
+
+The full 422-test feature run passed with actual MySQL/native ACE enabled.
+A final missing-artifact/no-legacy-downgrade guard then passed the 34 focused
+quality, generation and real-MySQL/native tests. Coverage includes unobserved
+or ID-only reviewer evidence, immutable completed-role recovery, preserved
+failed students, public/private context separation, source-bundle mismatch,
+tampered policies/traces, legitimate public ordering and all query surfaces.
+All 109 legacy files and the approved cohort/input/split hashes are unchanged.
+The existing canonical loader still accepts all 47 exact current bindings.
+The diagnostic audits retain their original producer hashes; a subsequent
+input-binding-only tightening was checked by AST equivalence of the remaining
+measurement code and exact source identity, not by rewriting those hashes.
+
+The standalone `audit-source-quality` CLI is a no-model diagnostic and grants
+no admission, split or release approval. The approved 47-task snapshot and
+36/11 split remain frozen. No pre-production question has been generated by
+this work. Per-scope attempt/revision accounting, complete resumable
+source/native/canonical/difficulty orchestration and broader backend robustness
+automation remain pending before starting the approved 1,000-new-question
+target within its initial 2,000-logical-attempt envelope.
+
+### 17.50 Backend robustness and frozen-selector triage
+
+`isolated-source-robustness-v1` adds reusable, exact-task-bound finite
+counterfactual plans. It copies verified source records into disposable
+DuckDB/MySQL fixtures, checks baseline representativeness before interventions,
+and measures typed answers, complete witness alternatives and available-citation
+proof support. The probe inventory includes all records, none and every
+single-record omission. Source-qualified catalogs, candidate bundles and shared
+bindings execute on both backends. Bookkeeping witness labels are not treated
+as semantic identities. Explicit edits cannot alter opaque record locators,
+and missing/no-op JSON interventions are not reported as successful tests.
+Original source databases and recorded student outcomes remain unchanged.
+
+The five retained selector flags were investigated with 80 actual backend
+claim checks and 16 full-source comparisons against equivalent typed JSON
+membership predicates. All serving-contract controls passed. The tenant rule
+question's computed JSON paths implement complete named-parameter traversal;
+formatting, array reversal and a common unrelated parameter preserve its
+answers/proofs. Four alert questions depend on the core producer's compact,
+sorted JSON representation. Exact producer round trips and full-source typed
+equivalence confirm their current frozen-snapshot behavior. Direct post-serving
+reformatting produces 16 retained portability mismatches; these are not
+silently waived or relabeled as invariant.
+
+This distinction allows evaluation of the existing approved fixed snapshot
+without changing task fingerprints, the split or historical model outcomes.
+It is not retrospective admission under the new source-quality gate or a
+general portability claim. New generation continues to prefer typed,
+serialization-independent selectors. Fixture sufficiency, complete
+count/absence/ranking cohorts and semantic expectations remain review obligations,
+not facts established by a finite test matrix.
+
+### 17.51 Approved external difficulty-validation panel
+
+The user explicitly approved 141 new evaluation episodes: all 47 development
+questions once each on `gpt-6-luna`, `gpt-6-sol` and `gpt-6-astra` using the
+existing approved Azure endpoint. A second explicit approval fixed medium
+reasoning effort, 64 model responses and 64,000 total output tokens per episode,
+16,000 output tokens per response, a 300-second request timeout, and the
+500-row/64-KiB/30-second SQL limits. Model availability or unsupported settings
+are operational issues, not reasons to substitute a different profile.
+
+The panel pins the cohort/approval/native/canonical/difficulty artifacts,
+serving snapshot/index reports, runtime/library versions, public prompts and
+budget configuration. Model order rotates deterministically between questions;
+each episode starts with an isolated public-only context. No difficulty,
+private gold or checkpoint labels are supplied. Original Sol students remain
+historical; these separately recorded comparison episodes are not retries
+chosen to improve scores.
+
+Grading uses the new opt-in captured-result replay profile. Successful captured
+SQL fields must verify against actual sources; failed or unexecuted queries
+cannot earn evidence from a later reexecution. SecRL and native ACE must agree
+on the same captured trajectory. Completed failures are retained, interrupted
+grading can resume without new inference, and ambiguous model-completion
+boundaries do not trigger automatic resampling. Budget exhaustion, abstention,
+invalid completion and operational errors remain distinct.
+
+Grounded final success is the primary outcome, with answer correctness,
+citation grounding, checkpoint progress and resources reported separately.
+Analysis includes per-model success versus continuous heuristic score and bands,
+paired question-level contrasts, descriptive intervals and scope-cluster
+bootstrap uncertainty. Operationally ungraded and pending episodes remain
+unknown, with explicit denominator/bounds reporting.
+
+The score and band boundaries remain fixed hypotheses. This cohort contains
+10 medium, 31 hard, six very-hard and no easy questions, so a panel cannot
+validate every boundary or support strong claims from tiny bands. Results are
+exploratory deployed-model comparisons, not causal parameter-count evidence,
+training authorization, release approval or permission to tune on held-out
+outcomes. Any subsequent tuning requires independent pre-production validation.
+The first three live episodes verified all deployments and the native harness;
+the completed comparison is reported in Section 17.53.
+
+Implementation validation passed 453 feature tests with actual MySQL/native ACE;
+the six focused statistical-analysis tests also pass. Pre-production
+1,000-new-question generation and full attempt/revision orchestration remain
+separate pending work.
+
+### 17.52 Explicit private-grader timeout amendment
+
+The original panel recorded 63 completed outcomes and a further completed
+student whose private grading repeatedly exceeded 30 seconds. A no-model
+diagnostic measured the affected answer query at 22.16 seconds cold and
+5.25 seconds warm; its checkpoint query took about 0.008 seconds, but a
+representative witness query still timed out. These are private evaluator
+execution failures, not incorrect student outcomes.
+
+The user explicitly selected `grader_only_120s`. Private grading now uses a
+separate verifier/connection with a 120-second query ceiling. Student SQL
+remains at 30 seconds, with unchanged models, medium reasoning, token/response
+budgets, result limits, prompts, questions and difficulty annotations.
+Captured failed student queries remain failed observations; they are not rerun
+under the larger grading allowance.
+
+The original manifest, evaluator source archive, 63 outcomes and completed
+ungraded student are hash-pinned and retained. `manifest-amendment-01.json`
+records its parent, the approval, the new evaluator producer and the original
+student profile. Parent outcomes are referenced rather than overwritten.
+The completed student's exact trace is imported into a separate grading output
+with zero model calls. SecRL/native ACE grading completed under the amended
+ceiling, bringing the recorded panel to 64 outcomes; the remaining 77 student
+episodes subsequently completed under their original limits.
+
+The same explicit evaluator revision closes an interrupted-finish boundary:
+an accepted finish without its completion files cannot trigger another model
+answer. The new grading/import paths and amendment-aware analysis passed
+28 focused tests, including actual MySQL/native ACE. No SQL programs, source
+rows, task/canonical fingerprints, existing scores or split assignments were
+rewritten.
+
+### 17.53 Completed external difficulty-validation results
+
+All 141 planned episodes are recorded and scored: 140 submitted completions and
+one Luna abstention, with no pending, ungraded or budget-exhausted outcomes.
+All 451 pinned source/cohort/heuristic artifacts and 127 preserved original
+outcome/trace artifacts verified unchanged. Student limits remained identical;
+63 successful grading executions retain the original private 30-second ceiling
+and 78 use the explicitly approved 120-second private-grader amendment.
+
+| Band | Questions | Luna grounded | Sol grounded | Astra grounded |
+|---|---:|---:|---:|---:|
+| Medium | 10 | 7 (70.0%) | 10 (100.0%) | 9 (90.0%) |
+| Hard | 31 | 7 (22.6%) | 23 (74.2%) | 24 (77.4%) |
+| Very hard | 6 | 0 (0.0%) | 2 (33.3%) | 0 (0.0%) |
+| Overall | 47 | 14 (29.8%) | 35 (74.5%) | 33 (70.2%) |
+
+Continuous heuristic score versus grounded final success has Spearman
+correlations of -0.391, -0.433 and -0.413 for Luna, Sol and Astra respectively.
+This is directional support for the heuristic's ordering of grounded
+investigation completion under the frozen witness policy. It is not proof of
+production-calibrated boundaries or general model-size scaling.
+
+Paired comparisons cover the same 47 questions. Sol succeeds on 21 questions
+where Luna does not, versus zero in the reverse direction; Astra similarly
+has 19 such wins and zero reverse losses. Sol/Astra is not clearly separated:
+six Sol-only successes, four Astra-only successes and 37 ties. The Astra-minus-
+Sol difference is -4.26 percentage points, with an exploratory scope-cluster
+bootstrap 95% interval of approximately -17.31 to +10.42 points
+(10,000 resamples, 11 scopes, seed 42). A stronger-Astra-over-Sol ordering is
+not established.
+
+The critical interpretation caveat is answer versus evidence:
+typed final answers were correct on 45/47 Luna, 47/47 Sol and 47/47 Astra runs.
+Thus 57 of 59 unsuccessful grounded outcomes had correct answers but did not
+satisfy the submitted-proof/observed-evidence policy. The present signal is
+primarily evidence-grounding difficulty, not inability to identify the answer.
+Full checkpoint credit was earned on two, ten and eight questions respectively.
+
+Offline structural triage, without model calls or changed grades, labels
+45 unsuccessful submitted sets as lacking a complete declared representative
+group, seven as containing a complete group plus extra citations, six as
+requiring source-qualified proof review, and one as having no final submission.
+This is not semantic adjudication of alternative valid proofs. Most missing
+checkpoint credit also corresponds to a checkpoint value not explicitly
+recorded; typed-value/evidence cases and one type/unit discrepancy remain
+separate review candidates. These diagnostics must not be used to manufacture
+passes, reroll students or silently rewrite the frozen rubric.
+
+The final JSON/CSV analysis preserves the original measurements and reports
+answer-only accuracy separately from grounded success, checkpoint progress,
+resources and paired uncertainty. Eight focused statistical-analysis tests pass.
+The four-axis formula, all bands and the explicit 36/11 split remain unchanged.
+Next, review retained-trace grounding failures for actual proof/rubric defects
+before interpreting the score as calibrated difficulty; any tuning still needs
+independent pre-production confirmation, especially for absent easy cases and
+the six-question very-hard band.
+
+### 17.54 Source-reviewed grading corrections and reflection
+
+The user approved investigation and repair of the Astra/Sol discrepancies and
+asked for a grader reflection pass analogous to legacy SecRL. The two
+very-hard Sol-only successes were reproduced against actual MySQL and retained
+tool results. In both, Astra supplied the exact accepted Sol proof plus
+genuinely observed, relevant comparison records. Removing only those extra
+citations restored the old verifier's acceptance:
+
+- Incident 5 Q1: two other incident-member recovery-setting-tampering alerts.
+- Tenant Q10: a later non-interactive sign-in for the same editor and policy.
+
+Tenant Q10's checkpoint also rejected Astra's editor object ID although the
+same audit `InitiatedBy.user` object binds it to the UPN accepted for Sol.
+This is a private representation restriction, not a missing identity discovery.
+
+The explicit `source-reviewed-grading-v1` amendment is a sidecar bound to the
+unchanged task fingerprint. It does not silently edit the frozen task, old
+verifier or historical results. A complete original proof is still necessary;
+additional source-attributed context must satisfy a reviewed, claim-local
+DuckDB/MySQL scope query. Same-source checkpoint identity alternatives require
+distinct atomic properties of the same cited subject object, with the canonical
+property equal to the original checkpoint value. No fuzzy aliasing, missing-core
+substitution, observation bypass or checkpoint removal is allowed.
+
+Legacy answer/solution reflection can replace an initial model verdict. The
+new workflow instead requires both an independent source-inspecting policy
+review and a separate reflection challenge to pass before deterministic scoring
+can apply the correction. Reviews contain no evaluated-model identities,
+desired pass rates or difficulty bands. Reflection can block a policy for
+repair, but cannot award unsupported credit by opinion. Runtime, policy,
+review, reflection and trace fingerprints are retained and checked.
+
+Both very-hard amendments passed the two review stages. All six captured
+model episodes were replayed on actual MySQL through SecRL/native ACE, without
+new student inference. Astra now passes both finals, and its Tenant Q10
+checkpoint receives credit. Sol's outcomes remain unchanged. The same
+correction also fixes Luna's complete-proof-plus-context submission for incident
+5 Q1; its Tenant Q10 failure remains a failure.
+
+With these two amendments only, aggregate grounded successes become
+Luna 15/47, Sol 35/47 and Astra 35/47; very-hard successes become 1/6, 2/6 and
+2/6. The original 14/35/33 result remains immutable history. Thirty-seven
+actual single-core-record omissions still fail and six fabricated-extra controls
+are rejected. This removes the original two-question Sol/Astra gap without
+model resampling or changing the difficulty heuristic.
+
+Validation passed 475 feature tests with actual MySQL/native ACE, including
+source-scope, mandatory-proof, observation, claim-isolation, same-object identity,
+review/reflection independence and artifact-integrity cases. Canonical runtime
+pins, the 47-question cohort and explicit 36/11 split remain unchanged.
+
+The remaining four Sol-only cases are not dismissed as reasoning failures.
+Two more complete-proof-plus-context policies passed source review and
+reflection and completed uniform three-model replay: incident 5 Q5 permits
+another typed-host incident-member PRT comparison alert; tenant Q3 permits
+same-device, same-controller task-operation context within the unchanged
+task-create/launch interval. These records still cannot replace any original
+behavioral chain member. Both corrections restore Astra's final evidence score;
+Sol and Luna retain their original outcomes on those questions.
+
+After these four task-bound corrections, the comparison is Luna 15/47,
+Sol 35/47 and Astra 37/47, retaining all original grades as history. Very-hard
+counts remain 1/6, 2/6 and 2/6. The paired Astra-minus-Sol difference is now
++4.26 percentage points, still uncertain: two Sol-only wins, four Astra-only
+wins, 41 ties, and an exploratory scope-cluster bootstrap 95% interval of
+approximately -6.52 to +15.91 points. There is still no clear model ordering
+between Sol and Astra. Twelve evaluations were deterministically recomputed
+from unchanged traces; 129 were retained unchanged. No student was resampled,
+and all 451 frozen source/annotation/difficulty inputs remain unchanged.
+
+The other two discrepancies
+use different source records: a CloudAppEvents representation of the same
+New-InboxRule audit event, and a typed process-linked incident alert rather
+than the gold query's exact alert-start timestamp. Proof-alone DuckDB fixtures
+reproduce the full answers from Astra's citations and every single-record
+omission breaks those alternative routes. Actual isolated MySQL/DuckDB
+verification passed 22 positive/omission controls. Those finite tests establish
+answer reproduction, not complete public-scope equivalence. Independent source
+review and reflection subsequently distinguished the two cases as described
+below; they do not justify a supporting-context exemption.
+
+### 17.55 Remaining route review and pre-production source accounting
+
+Both independent reviewers accepted the incident 166 Q1 CloudAppEvents route:
+its raw payload represents the same New-InboxRule audit event as the original
+OfficeActivity row, with the same event ID, object, mailbox, status and event
+time. It is an alternate representation, not independent corroboration.
+The existing mailbox-resolution checkpoint remains required.
+
+An explicit r2 candidate retains every original answer/witness program and
+adds complete CloudAppEvents alternatives for both final and checkpoint goals.
+Its public question, context, expected values, checkpoint objective and reward
+are unchanged except for revision identity. Both claims have two executable
+complete alternatives. The source-quality gate passed, and the unchanged
+captured source student was revalidated without new inference. Actual native
+replay, canonical annotation and model-independent difficulty rebinding are
+separate gates; the old cohort approval is not transferred to the new task
+fingerprint.
+
+In contrast, both reviewers rejected the proposed incident 36 Q5 relaxation:
+it omitted the public alert-at-process-observation-time requirement and admitted
+two additional alerts outside that criterion. A typed process identity and the
+same returned trigger value do not waive an explicit public time condition.
+The current question and Astra grade are therefore retained. The candidate
+query would need the original time predicate, or a separately approved public
+scope change; we do not broaden the question merely to obtain a pass. This is
+a concrete example of reflection finding a defect in a proposed correction.
+
+The next pre-production foundation is
+`preproduction-source-waves-v1`, with a fixed 2,000-logical-attempt envelope,
+scope-local novelty context, immutable private allocations/outcomes, run-local
+ownership, and exact model/endpoint/source/graph/runtime pins. All source
+pilots require the opt-in quality gate. Compile repairs and model calls are
+tracked separately from logical attempts. Safe unfinished tool boundaries can
+resume, but completed failures, accepted finishes and ambiguous completion
+boundaries cannot silently trigger student resampling.
+
+Reports distinguish source insufficiency, post-compilation quality/solver holds,
+operational errors, unfinished attempts and remaining scope budgets. Source
+readiness is explicitly not native admission or a validated question; the
+module currently reports source-stage counts only. There is no overlap/difficulty
+admission cap or absolute source-exhaustion claim. Full native/robustness/
+objective-review/canonical/difficulty orchestration remains pending before any
+live pre-production wave. All 488 feature tests pass with actual MySQL/native
+ACE, including 13 focused source-wave tests and preserved development-batch
+behavior.
+
+### 17.56 Revalidated development snapshot and final admission receipts
+
+The incident 166 r2 repair completed actual MySQL validation, source/native
+parity, captured SecRL/native ACE replay, fresh canonical-fact curation and
+independent difficulty review. Astra now receives final and checkpoint credit
+on its original trace; Sol and Luna retain their previous outcomes. No student
+was resampled. The corrected comparison is Luna 15/47, Sol 35/47 and Astra
+38/47, with one Sol-only success and four Astra-only successes; the small
+paired difference remains uncertain.
+
+The fresh source-only feature review retained the same five-observation
+OfficeActivity route but stopped counting a single named scalar JSON lookup
+as a separate reasoning family. Its profile changes from B2/P2/R2/A0
+(53.33, hard) to B2/P2/R1/A0 (43.33, medium), under the existing formula and
+curation guidance. This is explicit annotation refinement, not a result of
+the new alternative being inherently easier or a fit to model outcomes.
+The original profile remains historical.
+
+The user explicitly approved the refreshed 47-question private development
+snapshot, fingerprint
+`7931eaf7bc92e496bb586386d4907d97ce7ad1892c250334e7cf63849d883908`.
+Only incident 166 Q1 changes task revision. The explicit 36-train/11-test
+logical membership is unchanged; the new profile inventory has 11 medium,
+30 hard and six very-hard questions. The previous approvals and artifacts
+remain intact. This is not training or production-release approval and does
+not change the separate 1,000-new-question target or initial 2,000-attempt envelope.
+
+`preproduction-private-admission-v1` now provides the final admission boundary.
+A receipt requires an allocated source-ready question with unchanged source
+artifacts, current source-quality approval, matching native validation records,
+pinned snapshot/index/model/student-query settings, native SecRL/ACE agreement,
+an actual complete passing robustness matrix with a bound semantic review,
+a separately reviewed grading policy, canonical facts, reviewed difficulty
+and scoped-objective uniqueness against the current seeded/admitted pool.
+Contradictory robustness summaries, stale comparison reviews, unbound revisions
+and changed accepted artifacts fail explicitly.
+
+Admission is independent of the measured student's success. Unavailable
+difficulty measurements remain unknown without a numeric/band quota, while
+actual task defects still block admission. Each logical question counts once;
+accepted receipts are immutable, source generation skips scopes whose validated
+targets are reached, and surplus candidates are not silently promoted.
+The overlap policy remains reporting-only.
+
+The complete feature suite passed 499 tests with actual MySQL/native ACE.
+The final exact-validation-record/grading-policy guards also passed 27 focused
+source/admission/development-batch tests. All 109 legacy artifacts remain
+unchanged. The source and final-admission boundaries are implemented, but the
+middle-stage execution/recovery coordinator remains pending. With the repaired
+baseline approved, one bounded source-readiness attempt has now started inside
+the existing 2,000-attempt envelope. It is not an admitted question, and bulk
+generation remains held until every downstream stage has been exercised and
+its final receipt verified.
+
+### 17.57 First readiness hold and same-attempt repair
+
+The first pre-production source attempt, `preprod-v1-incident-5-01`, was held
+before any blind student started. Its proof, ordered answer and parent-process
+identity checkpoint were supported, but gold SQL selected an exact alert
+DisplayName that the public question only paraphrased. The source-quality
+review requested publication of the exact alert title. The hold is retained;
+it is neither a validated question nor a reason to weaken the literal gate.
+
+The prepared correction changes only the public question/context to quote that
+source title. It preserves all programs, expected values, checkpoint objectives,
+scope and reward, including the actual `cmd.ee` spelling in one recorded
+command line. No new author sample is needed and no old student is rerolled.
+Independent source-quality checking precedes the first blind solve.
+
+`preproduction-source-revision-v1` adds immutable numbered repair receipts to
+the original logical allocation. The parent outcome, task fingerprint, request,
+source directory and revised outcome are bound explicitly; source-progress and
+admission resolve the latest committed revision. Historical holds and all role
+artifacts remain verified. Revisions add zero logical attempts.
+
+The original run implementation was archived before enabling revision
+bookkeeping. An explicit orchestration-only runtime amendment preserves the
+original plan, source/model/budget settings and original outcome; changes to
+source, SQL, grading or curation kernels are not allowed by this mechanism.
+Thirty-one focused source/revision/admission tests and all 506 feature tests
+pass with actual MySQL/native ACE enabled. The wording-only r3 repair passed
+source quality and its first blind source solve. Actual native validation and
+the first native student also completed, with grounded final success and
+matching SecRL/ACE grading; checkpoint progress was zero.
+
+At that stage the attempt still had one explicit source revision and was not
+admitted. Independent grading-contract review and reflection,
+without student outcomes in their context, identified unnecessary downstream
+records in the intermediate checkpoint proof and an event-time/creation-time
+predicate mismatch. The private repair preserves the public question and
+typed goals, reduces the checkpoint core to incident/alert/parent, and uses
+process-creation clocks for creation-window predicates.
+
+The r4 source review accepted those semantics but objected to a MySQL
+`JSON_TABLE` `VARCHAR(128)` capacity declaration. That is a structural SQL
+parameter, not a hidden answer selector; its conservative review hold is
+preserved rather than relabeled as an answer defect. The r5 implementation
+uses width-free `TEXT`, with eight actual DuckDB/MySQL equivalence checks
+confirming unchanged answers/witnesses. Fresh source quality passed, and the
+original source student was revalidated with zero new student calls.
+
+The original eight-call native trace was regraded under r5 without inference.
+Independent source review and reflection approved only observed children of
+the exact source-device parent instance, within the public creation-time bounds,
+as optional comparison context. Complete final and checkpoint proofs remain
+mandatory. Both actual backends passed 36 positive/missing-core/unrelated-record
+controls; native SecRL/ACE replay still reports grounded final success and
+zero checkpoint progress. No student was resampled to obtain checkpoint credit.
+
+An independent semantic reviewer approved 24 explicit source counterfactuals
+before execution. All 100 baseline/case/claim/backend checks passed on owned
+DuckDB/MySQL fixtures, covering JSON membership representation/order, event
+versus creation clocks, ordered exact commands, process-instance/device/action
+qualification, missing collection members and independent parent checkpoint
+support. These are finite checks, not a proof of universal acquisition
+completeness or source exhaustion.
+
+Canonical facts and independent difficulty curation passed. The source-only
+profile is B2/P2/R2/A0, **53.33 hard**, with no formula/band changes or student
+outcomes supplied to the feature roles. Scoped-objective review against all
+47 development seeds passed; shared incident evidence with the existing
+remote-port question does not make this command-line sequence a duplicate.
+
+The immutable admission receipt has now been written and independently
+verified: **one validated NEW question out of 1,000**, from **one logical
+attempt out of 2,000**. Three source revisions still consume only that original
+attempt; all holds and completed traces remain intact. Incident 5 has 49
+validated questions left to reach its target. The original 47-question cohort
+and its approved split are unchanged.
+
+Before admission, a receipt-only orchestration amendment pinned the archived
+runtime ZIPs themselves as well as their amendment records. A regression test
+first reproduced the missing archive binding; all 32 focused admission,
+revision and source-wave tests now pass. The actual receipt pins 214 artifacts,
+including both verified runtime archives. Source, grading and curation kernels
+were unchanged. Middle-stage execution/recovery automation and the portable
+exporter remain next; bulk generation and release/training have not started.
+
+The bounded continuation launcher now loads the immutable original plan rather
+than reconstructing its producer fingerprint. It separately checks current
+source/model/settings and the explicit effective-runtime amendment chain,
+preserving the original launch policy and archived launcher. Read-only
+continuation verification passed, rejected changed model settings and unamended
+runtime changes, and made zero wave/model calls or new logical attempts.
+
+### 17.58 Reusable middle-stage execution and exact recovery
+
+The opt-in `preproduction-candidate-pipeline-v1` coordinator now connects the
+readiness stages through immutable, task/runtime/input-bound stage receipts.
+It performs independent contract review and reflection before a native student;
+actual MySQL validation; captured-result SecRL/ACE replay; exact graph baseline;
+source-authored and independently reviewed counterfactual plans executed on
+owned DuckDB/MySQL fixtures; canonical and independent difficulty curation;
+scoped-objective review against all approved seeds and admitted questions; and
+the existing strict final-admission check.
+
+Neither a completed hold nor a failed student is resampled to manufacture
+success. Interrupted native grading retains the completed student and creates
+a separate grading attempt. A selected completed replay survives interruption
+while publishing its final artifacts. Canonical orchestration reuses the
+existing prompts, source resolver and contracts, with separate orchestration
+provenance and restored source inspections; it can resume an unstarted reviewer
+without calling a completed curator again. Historical producer hashes are not
+retagged. Ambiguous inference or accepted-finish/file boundaries still require
+explicit recovery. A new revision with an existing native student is blocked
+pending supervised retained-trace import.
+
+The public CLI is `finish-preproduction`, with explicit run/task, source,
+graph, verified MySQL bundle, private model configuration, owned scratch and
+output paths. It separates student/grader query limits and owns only its
+verified snapshot's MySQL process. Outputs cannot be placed in source revision
+history. Sixty-five focused tests pass, including actual MySQL counterfactuals,
+native ACE replay, immutable holds, trace tampering, no-reroll guards and
+interrupted canonical/grading/publication recovery. Production Pylance
+diagnostics and Python 3.10 syntax checks pass.
+
+A second bounded source attempt, incident 34 question 1, was held before any
+blind student for two actual public-anchor provenance defects: an unquoted
+exact alert title and a private unexpanded Desktop-reference prefix. Its source
+proof and meaningful registry-reference checkpoint were otherwise accepted.
+A same-attempt revision is correcting that wording without revealing the
+executable basename or changing the final/checkpoint goals; the original hold
+is retained. That wording repair was accepted, but its source reviewer found a
+further unjustified assumption that the observed `C:\Users\` profile root was
+an invariant Windows constant. The subsequent r4 repair derived the destination
+from observed file telemetry and relative-path/account bindings, passed source
+quality, and completed its first 12-call source blind.
+
+That completed student found the correct timestamp but did not observe the
+`SecurityAlert` record linking the incident's system alert ID to the alternative
+vendor-alert representation it used. Its attempted incident/`AlertInfo` join
+also returned an explicit unsupported-function error, not observations. Direct
+source/captured-result verification confirmed the missing bridge. Neither a
+matching title/time nor private grader knowledge substitutes for that evidence.
+
+The repair coordinator also detected a paraphrase of the checkpoint objective,
+after the student had completed. A supervised r5 recovery restored the exact
+original private wording, retained every r4 proof/answer program and public
+content apart from revision identity, and preserved the 12-call trace with
+zero new inference. The candidate remains held, not promoted; a fresh current-
+revision quality pass is not fabricated. The original operational error and
+all prior holds remain intact.
+
+The orchestration now checks compiled scope/goals before the next inference,
+binds valid task artifacts even on errors, and recognizes retained source
+students when blocking rerolls. Legacy unbound errors can be followed only
+through explicit, hash-bound recovery requests. This control-only change was
+archived and registered as a third runtime amendment; protected source,
+scoring and curation kernels were unchanged. The continuation launcher writes
+content-addressed policies for subsequent explicit control amendments rather
+than overwriting previous launch policies.
+
+A third bounded source attempt, incident 36 question 1, initially exposed a
+public-window mismatch: its raw opening process precedes the incident's recorded
+FirstActivityTime. A prepared r4 edit now states the actual lower bound and
+ordering clock (`ProcessCreationTime`) through incident LastActivityTime,
+inclusive. Every private goal, checkpoint objective, program, evidence set and
+reward remained exactly unchanged. Fresh source quality passed, and the first
+12-call source blind returned the correct answer with grounded evidence and
+the complete required proof observed.
+
+That source-ready candidate passed independent contract review/reflection,
+actual native validation and same-captured-result SecRL/ACE grading. Its first
+10-call native student has grounded final success and zero checkpoint progress.
+The pipeline then correctly held a flawed counterfactual annotation: three
+negative cases expected no raw witness rows even though two comparison records
+and their incident/alert anchors remained.
+
+Diagnostic execution of the unchanged original plan produced exactly six
+mismatches across 36 backend/claim checks, limited to those three cases on both
+backends. All baseline checks, including the citation-omission probes, passed.
+Six further actual-backend checks invoked the real claim verifier: all
+unsupported final answers were blocked before accepting witnesses. This is
+an expected-output annotation defect, not permission to award partial proofs.
+
+A prepared correction retains all eight interventions, the complete five-record
+baseline proof, every answer/checkpoint expectation and the unchanged task.
+Only the three incorrect raw witness groups and availability-support vectors
+are corrected. Fresh independent review and all 36 backend checks passed in
+the annotation-only continuation. The exact parent producer was
+archived; completed contract review, native grading, baseline and both students
+remain immutable. Protected source/scoring/curation kernels are unchanged.
+The reusable continuation API validates those bindings and supports subsequent
+annotation revisions without rerolling a completed native student.
+
+Canonical curation, independent difficulty curation and scoped-objective review
+against all 47 development seeds plus the first new question also passed.
+Incident 36 r4 is now the second admitted new question. Its provisional
+source-only profile is **60.0 hard, B2/P1/R3/A1**; no formula, band or weight
+was tuned from student outcomes. The original source/native students remain
+12/10 calls respectively, with no resampling.
+
+Both admission receipts and the retained parent/student artifacts were
+independently reverified. Repeating the admission command is idempotent and
+does not add another question. The complete candidate pipeline and its
+annotation-only recovery path have therefore been exercised successfully on
+the actual source/native snapshot.
+
+At this milestone, totals are **two new admissions from three completed logical
+attempts**. Incident 34 remains held for its recorded missing evidence rather
+than being rerolled. The next bounded source wave requests three more attempts
+(incidents 38, 39 and 55), under the unchanged initial 2,000-attempt envelope
+and all existing gates. Source readiness still never substitutes for admission.
+Bounded batch scheduling/reporting, portable private export and continued
+generation remain in progress; no training or release approval is implied.
+
+The subsequent three-attempt source wave stopped after incident 38's first
+10-call blind solve because the coordinator compared a returned Python tuple
+of mechanical blockers directly with its persisted JSON array. Both source
+and revision comparisons now use the same JSON representation, while still
+rejecting changed report contents. The exact defect was reproduced against
+the recorded report and in regression tests; all 62 focused tests pass.
+The control-only change was archived and explicitly registered without
+changing generation, grading, curation, model settings or any question.
+
+Incident 38's recorded task and source result were recovered through an
+immutable reconciliation entry with zero new model calls. The original error
+and every prior artifact remain intact. The source result itself is still a
+hold: the correct hostname was returned, but the current required raw
+process-creation observation was not retrieved. The completed student was not
+rerolled or given missing observations retroactively. The unstarted incident
+39 and 55 slots are now continuing as a bounded two-attempt wave; the admitted
+total remains two.
+
+Those two source attempts subsequently completed with pre-blind literal-policy
+holds, bringing the allocated total to six. Incident 55 needs the exact
+credential-alert title supplied publicly. Incident 39 needs its executable,
+command shape and explicit inclusive-zero/exclusive-one-second observation
+matching window stated publicly rather than treated as general constants.
+The differing process/directory actors must not be conflated into causation.
+Prepared public-context/justification edits preserve every private claim,
+checkpoint, program and literal value, and do not expose the private answers.
+They are undergoing fresh source review; a first student runs only after its
+gate passes. These repairs add no logical attempts.
+
+Incident 39's prepared r4 repair passed source review and its first 13-call
+source blind returned the correct answer with grounded evidence and the full
+required proof observed. Incident 55's title repair exposed a remaining
+classification problem: entity/resource/operation/status/property schema
+constants were mislabeled as quoted public anchors. A prepared r4 correction
+uses explicit domain-constant rationales for those schema selectors and makes
+HTTP 200 plus successful audit-operation scope public. Private claims,
+checkpoint objectives, SQL and permitted literal values remain unchanged.
+Incident 55's r4 source review and first 13-call blind solve have now passed
+with correct, grounded, completely observed evidence. Both incident-39/55
+candidates are proceeding through the full pipeline without rerolls; source
+readiness does not yet count as a new admission.
+
+Incident 55 has subsequently passed all downstream gates and is the third
+admitted new question. Its 52 actual backend robustness checks passed; its
+source-only difficulty is **70.0 hard, B2/P3/R2/A1**. The first native student
+completed 12 calls with grounded final success and zero checkpoint progress.
+The immutable receipt and idempotent admission were independently verified.
+Its actual task and pipeline revision is r4, not the r5 label used in an earlier
+progress note.
+
+Incident 39 passed native evaluation and 28 backend robustness checks, but the
+canonical reviewer rejected an annotation containing only two answer scalars.
+The missing incident membership, alert, operation, identity and time predicates
+must be included for the matching chain. A new canonical-only continuation
+retains the completed contract/native/baseline/robustness stages and students,
+and supplies the original annotation plus source-backed feedback to a new
+curator/reviewer pair. Material reference changes are required; prose-only
+resampling is rejected. The corrected annotation now has 22 source-bound facts
+covering both claims and passed independent review. Difficulty and objective
+review also passed, producing the fourth immutable new-question admission.
+Its source-only profile is **43.33 medium, B2/P2/R1/A0**. The retained parent
+and student artifacts were independently reverified; no completed student or
+passed validation stage was rerun.
+
+The exact parent producer was archived, and the task, grading, source and model
+bindings are unchanged. Sixty-five focused tests, including this recovery path,
+pass. The verified milestone is four admitted new questions from six completed
+logical attempts. A bounded five-attempt source wave is now covering incidents
+133, 134, 166 and 322 and the first tenant-scoped slot, within the original
+envelope and unchanged gates.
+
+That five-attempt source wave completed, bringing the allocated total to 11.
+Incidents 133 and 134 and tenant question 1 passed source quality and their
+first grounded blind solves (10, 14 and seven calls); all three are now running
+the full admission pipeline. Incident 166 has a prepared title/width repair:
+14 MySQL JSON_TABLE declarations use width-free TEXT, with eight actual
+DuckDB/MySQL equivalence checks passed. Fresh source review remains required.
+
+The retained incident-322 student used OfficeActivity instead of the gold's
+CloudAppEvents audit representation. Source inspection verified the same
+upstream event, event time, mailbox, operation/result, client role, Bind
+property, folder-item membership and source IP. The populated OfficeActivity
+Client_IPAddress field is distinct from its null ClientIP field. Both
+independent review and reflection accepted a complete five-record alternative,
+and 24 actual backend positive/record-omission checks passed. The original
+route and meaningful checkpoint are retained; broader source checks explicitly
+do not establish universal equivalence between the two tables. This proposal
+has not yet changed source readiness, grades or admission, and its original
+16-call student has not been resampled.
+
+An independent observed-pool diagnostic now covers the approved development
+47 plus the two admitted new questions. All 90 within-scope pairs were
+measurable. Summed capacities across the independent scope buckets are exactly
+**36 / 46 / 49 / 49** at **0.25 / 0.50 / 0.75 / 0.90**. The unchanged equal
+component weights were used; no admission cap, deletion, grouping or split
+change was applied. These bounds describe only the observed 49-question pool,
+not absolute source capacity or exhaustion.
+
+### 17.59 First tenant admission and source-preserving proof repairs
+
+The first tenant question passed every admission gate and became the fifth
+new admission. Its source-only difficulty is **46.67 medium (B1/P2/R2/A0)**,
+with grounded native final success and full checkpoint progress. The verified
+milestone is **five admitted new questions from 11 logical attempts**; the
+approved development 47 and its explicit 36/11 split are unchanged.
+
+The prepared incident-166 title/TEXT repair and incident-322 complete
+OfficeActivity alternative both passed fresh source quality as r3 tasks.
+Incident 166 received its first source student; incident 322 reused the exact
+original 16-call source student. The retained-student certificate is written
+before quality review, so even a new quality hold cannot accidentally reopen
+student inference. Immutable same-attempt revision receipts now record both
+source-ready outcomes, bringing source readiness to nine of 11 attempts.
+Neither source readiness nor these repairs substitute for admission; both
+candidates entered the complete downstream pipeline.
+
+Incident 166 subsequently passed every gate and became the sixth admission.
+Its original source/native students each used eight calls, with grounded
+native final success and zero checkpoint progress. All 56 actual robustness
+checks passed. The reviewed source-only score is **36.67 medium
+(B1/P2/R1/A0)**. Its immutable admission receipt was verified, bringing the
+current total to **six admitted new questions from 11 logical attempts**.
+
+Incident 322 subsequently passed native validation with its first 13-call
+native student, grounded final success and full checkpoint progress. The
+actual robustness matrix held on exactly two of 36 checks: removing the
+OfficeActivity representation leaves the CloudAppEvents answer intact and
+the OfficeActivity answer empty, on both engines. The declared witnesses and
+citation-support vectors are correct; the remaining 34 checks pass.
+The current annotation format can only apply one answer expectation to every
+program, so it cannot faithfully represent this mixed alternative-route
+output. This is a robustness-contract expressiveness gap, not justification
+to drop the removal control, alter valid task SQL or reroll either student.
+Explicit program-bound answer expectations must be checked consistently by
+both the fixture runner and final admission. Runtime archives and verified
+continuation/replay are required before changing those pinned modules.
+
+Incident 133's contract review found redundant per-record logon obligations
+for a distinct-IP result. A prepared private repair instead catalogs every
+qualifying device/account/session/IP group and accepts any matching logon
+observation for each group. Incident, onset and every later process remain
+required, with actual identity/session/time joins. Equal IPs do not merge
+different source observations into one event. **44 actual DuckDB/MySQL
+controls passed**, including reproduction of the original rejection,
+alternative representatives, omitted core records, extra IP groups and
+ineligible identity/session/time matches.
+
+Three preparation-driver failures before any model inference were retained:
+missing table-label permissions in fixture validation, a string value for a
+BIGINT fixture cell, and an invalid dictionary fingerprint call during review
+setup. The completed backend controls are not an independent semantic review.
+A supervised source-quality revision and exact original 10-call student
+revalidation passed after the candidate batch released its lock. Fresh
+downstream contract review, native evaluation and all 32 robustness checks
+also passed. The first native student used nine calls with grounded final
+success and zero checkpoint progress.
+
+Canonical review then requested the inspected ActionType='ProcessCreated'
+property for the onset and both later process observations in both claims.
+The original selection lacked these event-role facts. A canonical-only
+continuation is adding the exact references under fresh independent review
+while retaining every passed stage and the original source/native students.
+Its exact parent runtime was archived before continuation. No student is
+resampled to obtain a pass.
+
+Incident 134's robustness review found two genuine predicate defects:
+inclusive audit-at-click matching contradicted public "before" wording, and
+the delivered-message qualifier was not enforced. Its prepared r3 retains
+public wording and typed final/checkpoint goals, adds the Delivered predicate
+to all eight answer/witness queries and makes the four final audit upper
+bounds strict. Eight baseline-equivalence checks and six original-defect
+regression checks passed on both actual backends. The expanded 18-case plan
+passed **76 backend/claim checks**, including audit-at-click rejection,
+just-before-click and at-delivery positives, blocked/null delivery negatives
+and an independent within-window delivery/click ordering control. The
+original out-of-window diagnostic remains, with its rationale corrected.
+
+That preparation has not revised incident 134's source outcome or admission.
+Both completed students remain intact. Fresh source/contract review, actual
+native revalidation and an explicitly bound retained-native replay are still
+required; annotation-only continuation cannot authorize a changed task
+fingerprint. Incidents 34 and 38 remain held for their original evidence gaps.
+All 109 legacy artifacts remain unchanged. No training or release approval
+is implied.
+
+### 17.60 Program-bound robustness outputs and seventh admission
+
+Incident 133's canonical continuation passed independent source review.
+Difficulty and objective review also passed, producing the seventh immutable
+new-question admission. Its reviewed source-only difficulty is **63.33 hard
+(B2/P2/R3/A0)**. The original 10-call source and nine-call native students and
+all passed stages remain unchanged. Current totals are **seven admissions
+and nine source-ready candidates from 11 logical attempts**.
+
+Robustness annotations now support an explicit `answer.by_program` mapping
+for every answer-program ID across both dialects. Each value is a typed
+answer or null. Existing scalar/null/baseline expectations retain their
+strict per-program meaning and existing serialized plan fingerprints.
+Unknown/missing IDs and changed public formats are rejected before review
+or fixture startup. A shared resolver and exact-length comparison are used
+by both the fixture runner and independent final-admission verification;
+missing, duplicated, reordered or incorrect outputs cannot be hidden by a
+passing summary. Null remains distinct from an empty collection and from
+an operational SQL error.
+
+The incident-322 correction preserves every original intervention and
+adds symmetric single-representation removal and both-representations
+removal. All **44 actual backend/claim checks pass**, with the unchanged task,
+two complete five-record alternatives and meaningful message checkpoint.
+The original 16-call source and 13-call native students are retained.
+A fresh independent semantic review and downstream continuation are running;
+these prepared measurements alone do not admit the question.
+
+For a robustness-held continuation, its not-yet-passed robustness runner
+and final-admission coordinator may change alongside orchestration. The
+exact prior producer must still be archived; module inventory and all
+imported-stage generation, native grading, source and curation kernels stay
+protected. Canonical-held continuations continue to protect their already
+passed robustness runtime. No passed stage is silently reinterpreted.
+
+The change passes **86 focused tests**, including actual isolated native
+fixtures, mixed surviving/empty alternatives, exact program coverage,
+public formats, forged vector lengths and stage-specific archive guards.
+It also exposed and corrected a synthetic admission test fixture that
+previously declared MySQL measurements without a MySQL answer program.
+Production Pylance diagnostics are clear and Python 3.10 syntax remains
+supported. A verified admission-only source-runtime amendment was appended;
+all seven receipts and 109 legacy artifacts reverify. The original held
+reports and producer hashes were not rewritten.
+
+### 17.61 Eighth admission and goal-equivalent retained-native replay
+
+Incident 322's robustness continuation passed fresh independent review,
+all 44 backend/claim checks, canonical curation, difficulty and objective
+review. It is the eighth new admission, with **70.0 hard (B2/P2/R3/A1)**.
+Its original 16-call source and 13-call native students remain intact;
+native final success and full checkpoint progress are unchanged.
+All eight receipts reverify across the 11 logical attempts.
+
+The pipeline now has an explicit retained-native mode for private task
+revisions with unchanged public content except revision ID, typed goals,
+checkpoint dependencies and reward. It requires the exact original task,
+direct held pipeline with a passed native stage and complete producer archive.
+Snapshot/index, model, query-limit and generation/capture/grading bindings
+are verified before inference. The initial implementation requires the
+unchanged default grader and rejects annotation-parent or policy overrides.
+Unrelated student recordings still fail closed.
+
+The original native student is never copied, overwritten or rerolled.
+Completed answers, abstentions, SQL errors and captured tool boundaries are
+validated against their recorded hashes. Fresh native validation checks the
+new task SQL; SecRL and ACE then grade the same captured results under that
+task. Interrupted replay recovery keeps the original student and selected
+completed replay. Omitting import arguments cannot reopen an imported native
+stage. Final receipts pin every original dependency, not just a certificate
+that mentions its hashes.
+
+Prepared robustness corrections retain every original intervention while
+the old task, plan and review keep their original fingerprints. A separately
+bound current plan receives fresh independent review and actual measurements.
+Candidate runtime manifests now include all native-stage dependencies.
+For incident 134, the old native binding supplied the exact private-pilot
+validator hash missing from the parent manifest; its unchanged bytes and all
+parent-bound modules were preserved in a new 29-module archive. No original
+archive or producer hash was rewritten.
+
+The integration passes **94 focused tests**, including real captured-result
+replay, failed-query and abstention preservation, interrupted grading,
+incompatible goals/models, trace/archive tampering, foreign students and
+receipt dependency checks. Production diagnostics and Python 3.10 syntax
+checks pass. An admission-only source-runtime amendment records the change;
+all eight admissions and 109 legacy artifacts remain intact.
+
+Incident 134's strict-before/Delivered repair passed fresh source quality and
+every downstream gate through this workflow. It is the ninth admission,
+with **53.33 hard (B2/P2/R2/A0)**, grounded native final success and zero
+checkpoint progress. Both original students used 14 calls and were retained;
+the new native stage made zero student calls and pins 222 original
+dependencies. Eight baseline equivalences, six original-defect regressions
+and all 76 fresh robustness checks passed. The readiness round therefore
+ended with nine admissions from 11 logical attempts.
+No training or release approval is implied.
+
+### 17.62 Portable private packet and the next bounded source wave
+
+A portable private exporter and loader now preserve exact task/native,
+baseline, canonical, difficulty and grading-policy bindings, together with
+original approval/admission artifacts and their dependencies. The approved
+development roster and explicit split remain unchanged; admitted
+preproduction questions receive no implicit train/test assignment.
+Difficulty uses exact reviewed sidecars, including incident 166's revised
+development profile, rather than reconstruction from summary CSV values.
+
+The initial packet contains **56 questions: 47 development and nine new
+admissions**, with **36 train, 11 test and nine unassigned**. All five reviewed
+grading policies are included. There are 3,445 hash-bound artifacts.
+The ZIP is 19,149,740 bytes; its cohort fingerprint is
+`db05d61dc4407142d2b5c4addfc4920f940c17030e27f18833fd4f09267c4bbb`.
+Actual extraction and relocation loaded all 56 questions while opening any
+original data path was forbidden; the original-path access count was zero.
+
+Operational paths are relative. Historical absolute paths remain provenance
+keys resolved exclusively through the packet's verified mapping. The
+student directory contains only the public-task projection; private gold,
+source reviews and retained grading evidence remain outside it. The full
+source database is not embedded, so evaluation still requires the compatible
+snapshot/graph/serving environment. Neither packaging nor relocation
+authorizes training or release.
+
+Eight focused tests pass, covering relocation without originals, exact
+bindings, byte tampering, altered partitions/difficulty, admission dependency
+coverage, path escape, extra files and student-directory leakage. Production
+diagnostics and Python 3.10 syntax checks pass. All 109 legacy artifacts are
+unchanged. Export code did not change the active source worker's pinned
+generation or grading modules.
+
+The next source wave is bounded to eleven new logical attempts: the second
+slot for each of the ten selected incidents and tenant slot two. It runs
+under the original 1,000-new-question target, 2,000-attempt envelope and
+unchanged gates. The original incident-34/38 evidence holds are retained,
+not rerolled or silently admitted.
+
+### 17.63 Second source round and bounded repair queue
+
+The second source round completed all eleven slots: **22 logical attempts
+and outcomes, 16 source-ready candidates and nine admissions**. Seven new
+source-ready candidates entered full downstream validation: second-slot
+incidents 5, 34, 55, 133, 134, 322 and tenant question two. Four candidates
+were held before any student: second-slot incidents 36, 38, 39 and 166.
+These source outcomes do not imply additional admissions or source exhaustion.
+
+Prepared incident-36/39/166 repairs publish the exact hidden non-answer
+selectors and matching rules identified by source review. The typed answers,
+checkpoint objectives, scope and reward remain unchanged. Thirty-eight
+MySQL JSON_TABLE width declarations become TEXT, removing incidental
+capacities from the literal policy. Twenty-four actual answer/witness
+checks passed across both engines. Incident 39 additionally exposed four
+original MySQL join-scope errors, reproduced before repair: explicit ON TRUE
+clauses for its JSON_TABLE joins restore access to preceding source aliases.
+Its repaired MySQL results match the original DuckDB outputs; original
+MySQL equivalence is not claimed. The exact failed producer/error were
+archived, not rewritten.
+
+Incident 38 had a substantive ancestry defect, not merely an unpublished
+selector. Full-source traversal finds six linked creation observations and
+seven output entries, including the oldest observation's recorded parent;
+the original fixed-depth SQL returned only five entries. The prepared
+correction uses recursive parent joins and an explicit no-matching-creation
+stopping rule, without claiming real-world absence or restricting older
+ancestors to the incident interval. Its original direct-parent checkpoint,
+answer format, scope and reward are preserved. Twenty-eight actual backend
+checks passed, including an eighth counterfactual generation and independent
+device/PID/creation-time/filename/action mismatches. The corrected final gold
+is explicit, before any student; it is not disguised as an unchanged answer.
+Fresh independent source quality must still approve it.
+
+The ready batch has so far retained two downstream holds. Incident 5 has an
+original MySQL join-scope error before any native student; its completed
+source student must be preserved during repair. Incident 34's actual matrix
+has eight answer-only mismatches: four negative ordered-list cases expect
+null, whereas zero result rows correctly produce a typed empty list.
+An annotation-only correction preserves every intervention, all witness and
+support expectations, the task and both students. All 36 backend checks pass;
+an empty list still does not satisfy the nonempty final gold.
+
+The three selector repairs, full-ancestry repair and incident-34 annotation
+continuation are queued behind the running candidate batch. A shared lock
+serializes owned full-snapshot MySQL execution. Original holds, reviews,
+students and preparation failures are retained; fresh independent review
+and all remaining gates are mandatory. No pinned production module changed
+during the active work. All 109 legacy artifacts remain unchanged.
+
+### 17.64 Preserved timeout boundary and independent continuation
+
+The ready-candidate batch stopped on an Azure API timeout during second-slot
+incident 133's independent contract review. Five responses were recorded;
+the sixth request has no response, result or completion receipt. The existing
+safe-boundary check explicitly rejects automatic retry. This is a retained
+operational block, not a question-quality rejection or a successful review.
+The exact error, request and role inventory are preserved separately; no
+native student has started and the source student is untouched.
+
+The three remaining candidates had never started downstream inference:
+second-slot incidents 134/322 and tenant question two. They are queued as a
+separate explicit batch rather than rerunning the interrupted reviewer.
+The launcher now supports an explicit lock-wait option and revalidates the
+selected source-ready tasks after acquiring the lock. Both successful
+dispatch and rejection of a task changed during the wait were tested without
+model/native calls. The original interrupted launcher was archived exactly.
+
+Second-slot incident 55's completed robustness hold has two support-only
+mismatches. Its changed five-date answer and thirteen-record witness cohort
+were already correct, but the availability expectation rejected the complete
+cohort and probes omitting either now-nonqualifying July 7 record. The
+correction derives support from the unchanged declared witnesses and exact
+probe order. All 20 actual backend checks pass. This does not equate the
+counterfactual answer with original gold or change the completed native
+outcome: correct answer, unsupported final, zero checkpoint progress. The
+original 10-call source and 12-call native students are retained.
+
+Second-slot incident 5's four MySQL join-scope errors were reproduced, then
+corrected with explicit JSON_TABLE ON TRUE and width-free TEXT. Eight actual
+answer/witness checks match the original DuckDB outputs; original MySQL
+equivalence is not claimed. Public wording, typed goals, checkpoint and
+reward are unchanged. Its ten-call source student will be reused; the first
+native student is allowed only after fresh source quality and native
+validation. Both repairs are queued for fresh review and the remaining gates.
+
+Other queued repairs continue independently of the ambiguous review. The
+latest verified totals are **22 attempts, 17 source-ready candidates and nine
+admissions**. All workers serialize owned full-snapshot access through the
+same lock; no pinned generation/grading module or original trace was changed.
+
+All three prepared selector revisions subsequently passed fresh source
+quality and their first source students: incident 36 r3 used 15 calls,
+incident 39 r4 used 12, and incident 166 r3 used 17. Their answers were
+grounded with complete proof observed. This brings source readiness to
+**19 of 22 logical attempts**, while admission remains nine.
+
+The repair worker then stopped on a second Azure read timeout, this time
+incident 36's contract-reviewer tenth request after nine recorded responses.
+Both timeouts occurred approximately 300.3 seconds after their requests,
+matching the pinned 300-second HTTP limit; no response or completed review
+was captured. The evidence identifies a transport read timeout, not a SQL
+timeout or proof of the provider's underlying cause. These two ambiguous
+reviews remain blocked without automatic retry.
+
+Incident 39 and 166's downstream roles had not started and are now queued
+separately. The ancestry repair has already advanced to fresh source review;
+other independent jobs retain their existing queue positions. No completed
+review/student is restarted, no timeout policy is silently changed, and
+every original failed request and error remains bound in the private record.
+
+### 17.65 Approved reviewer-only HTTP override and audited recovery
+
+The user explicitly approved increasing reviewer HTTP timeouts to **900
+seconds** and recovering incomplete reviews from their saved contexts.
+The scope is transport only: student HTTP remains 300 seconds, student SQL
+remains 30 seconds, private grading SQL remains 120 seconds, and the model,
+reasoning effort and per-response output budget are unchanged. Completed
+students and completed/accepted reviews may not be restarted.
+
+Two additional in-flight original-policy reviews timed out before the
+change was applied: incident 34's robustness reviewer and incident 134's
+contract reflection. The three workers still waiting on the batch lock were
+stopped before inference; the active worker was allowed to finish rather
+than being killed mid-request. All five interrupted histories have now been
+verified against their exact request/response/tool-result sequence.
+
+The opt-in transport client matches both a trusted reviewer result schema
+and its actual recorded role/request. It retains the original default client
+for students, authors and curators. Every overridden call records the
+original/effective configurations, policy fingerprint and exact request
+hash; received responses reference that receipt. The approved policy and
+new execution producer are separately archived. Frozen source, grading,
+role-interpreter and candidate-pipeline implementations remain byte-identical.
+The opt-in native owner uses the same verified snapshot, lock, read-only
+engines and lifetime checks rather than rewriting the historical runner.
+
+Recovery is explicit and append-only. It requires a recorded HTTP timeout
+with no response, no accepted finish and no result/completion/abstention.
+All earlier model and tool messages must reconstruct the exact next request.
+The existing role interpreter resumes that saved context at a new call
+index; the original unanswered request and error are never overwritten.
+Source inspections are restored and the original source/subject validators
+remain mandatory. A second uncertain recovery is not automatically retried.
+
+For the sealed incident-38 source error, recovery uses a copied, explicitly
+linked same-attempt source revision; the original error packet stays intact.
+Unsealed interrupted pipeline roles append audited calls in their existing
+directories and preserve every completed stage/student. Successful review
+recovery still must pass every remaining gate; it is not admission.
+
+Twenty-nine focused transport/source-quality tests pass, including exact
+history, accepted-finish protection, unchanged student routing, invalid
+source-result rejection and a second-timeout hold. Actual owned MySQL
+startup/readiness, matching DuckDB/MySQL reads, shutdown and unchanged SQL
+limits were verified without model calls. Pylance and Python 3.10 syntax
+checks pass. All 109 legacy artifacts remain unchanged.
+
+The approved recovery batch is now running, beginning with incident 38's
+source-quality review and then the four interrupted pipeline reviews.
+Independent untouched work will use the same approved reviewer policy,
+without retrying any completed student or silently changing an original
+runtime/model binding.
+
+### 17.66 Recovered decisions and verification of reviewer claims
+
+All five approved timeout recoveries completed without another transport
+failure. They did not automatically become admissions. Incident 38's source
+quality passed, but its first 15-call source answer used `name (number)`
+instead of the explicitly requested `name (PID number)` rendering. The
+seven process/PID pairs and their order are correct; the observed strict
+answer mismatch remains recorded. Gold must not be silently rewritten to
+award success, and the completed student cannot be rerolled.
+
+Incident 133's contract review identified an identity overclaim: the queries
+compare reported AccountName, whereas the public wording implied verified
+account identity despite failed-row domain/SID differences. Its retained
+source student already explicitly disclosed the domain difference. A
+correction must qualify the name comparison without introducing unseen
+evidence or changing that student's recorded citation failure. Incident 36
+requires an independently supported root-process checkpoint rather than
+requiring the final task-update evidence; the public "later chain" criterion
+still needs faithful source-comparison handling.
+
+Incident 34's corrected robustness expectations passed, followed by a
+canonical hold for one missing final-claim ActionType='ProcessCreated' fact.
+The checkpoint already has that inspected fact. A canonical-only continuation
+is queued, preserving the task, students and all passed stages.
+
+Incident 134's two contract reviewers asserted that unquoted ROLE is a
+reserved MySQL keyword and invalidates four programs. Actual isolated
+MySQL 8.4 testing disproved that claim: `INFORMATION_SCHEMA.KEYWORDS`
+reports ROLE with RESERVED=0, and all four original final/checkpoint answer
+and witness programs execute and match DuckDB. No query or task was changed.
+A distinct evidence-based reconsideration is queued: it first requires
+full-snapshot native validation, then fresh independent review and reflection
+against the original hold plus the newly measured backend evidence. The
+original completed reviews remain intact, other real defects still block
+admission, and no existing student is resampled.
+
+This distinction is essential: model review is a fallible, source-inspecting
+gate, not authority to change working SQL based on an unverified syntax
+assertion. Reconsideration must introduce material, verified evidence rather
+than repeatedly sampling the same review until it passes.
+
+### 17.67 Tenth admission and approved non-student transport scope
+
+Incident 34's second-slot canonical correction passed all remaining gates
+and became the tenth new admission. Its source-only difficulty is **43.33
+medium (B1/P2/R1/A1)**. The original task, source/native students and passed
+grading/native/baseline/robustness stages were retained. Totals are now
+**ten admissions, 19 source-ready candidates and 22 logical attempts**.
+
+Incident 134's evidence-based reconsideration confirmed that the original
+MySQL queries work, passed independent review/reflection and completed its
+first native student. Actual robustness then identified annotation defects,
+not the earlier alleged syntax error. A correction preserves every original
+intervention, changes two null answer expectations to typed empty sets and
+corrects the raw witness-support expectation for a same-address world.
+All 28 backend/claim checks pass. Four additional actual-backend checks
+invoke the real claim verifier and reject the original nonempty gold before
+witnesses can be accepted. Task SQL, typed gold and students remain unchanged;
+fresh independent annotation review and later gates are still required.
+
+The remaining queue stopped on a different transport boundary: incident
+322's robustness **author** timed out at its unchanged 300-second limit.
+The reviewer-only policy had deliberately not applied to that role.
+Its completed successful native student and prior gates were preserved.
+The user then explicitly approved **900-second HTTP timeouts for all
+non-student QA agents**, with audited incomplete-call recovery, while keeping
+GPT-6-Sol, student HTTP/SQL limits, reasoning/token budgets and completed
+outcomes unchanged.
+
+A separate V2 policy records that approval and the exact V1 predecessor.
+V1 policy files, execution bindings and producer bytes remain intact.
+New transport-execution records append the V2 scope instead of rewriting
+the old 300/900-second history. Scouts, task authors/repair authors,
+robustness authors, fact/difficulty curators and reviewers are selected by
+their exact recorded role plus trusted result schema. Blind/native-blind
+students still use the original 300-second client.
+
+Robustness-author recovery restores the exact unanswered context and
+original tool interface. It retains all original source-inspection,
+claim coverage, program-answer, fixture-membership and citation-probe
+validators. Accepted/completed outcomes cannot be restarted; another
+uncertain recovery is not automatically retried. Thirty-three focused
+transport/source-quality tests pass, including V1 compatibility,
+scope-specific routing, author recovery and immutable policy transition.
+The real ten-request/nine-response author history was verified before
+recovery. Frozen source/generation/grading kernels and all 109 legacy
+artifacts remain unchanged.
+
+The V2 batch is now running: recover that author, then process untouched
+tenant/incident candidates and the prepared source/annotation corrections
+under the shared batch lock. These operations do not add logical attempts
+or authorize training/release.
+
+### 17.68 V2 completion, thirteen admissions and the next source wave
+
+The seven-job V2 batch completed without another timeout. Three candidates
+became new admissions:
+
+| Candidate | Source-only difficulty | Retained native final/checkpoint |
+| --- | --- | --- |
+| Incident 39, second slot | 36.67 medium, B1/P2/R1/A0 | true / 0 |
+| Incident 322, second slot | 63.33 hard, B2/P3/R2/A0 | true / 0 |
+| Incident 55, second slot | 70.0 hard, B3/P2/R3/A0 | false / 0 |
+
+This milestone has **13 admitted new questions from 22 logical attempts**,
+with 19 source-ready candidates. Incident 322's interrupted author recovered
+from its exact context. Incident 55 demonstrates the intended distinction:
+a valid, fully checked question can be admitted while its original native
+student failure remains unchanged. No failed student was rerolled or awarded
+retrospective success.
+
+The remaining holds are retained explicitly. Incidents 5/36 need genuine
+intermediate checkpoint proofs, incident 166 needs a complete-cohort
+distinct-path proof alternative, and incident 133 needs truthful
+name-versus-identity wording. Tenant question two needs the inspected
+ProcessCreated source property in both canonical claims; its canonical-only
+continuation is queued without changing task/student data.
+
+Incident 134's prior corrected measurements were accepted, but two rationale
+sentences still incorrectly called an empty set null. Those descriptions
+are corrected without changing any existing intervention or expectation.
+A directly related missing-client-address negative control adds substantive
+coverage: SQL NULL is not an observed different address. The revised plan
+passes 32 actual backend/claim checks and six real claim-verifier checks
+rejecting original nonempty gold in the negative worlds. Fresh independent
+review and downstream gates remain queued; no prose-only pass or weakened
+final condition is assumed.
+
+An immutable private packet now contains **60 questions: 47 approved
+development plus 13 new admissions**, with **36 train / 11 test / 13
+unassigned**, all five grading policies and 4,843 hash-bound artifacts.
+Its cohort fingerprint is
+`1fcf993cd78f58b09af4f0d6c51effd8f2eb5262dd4867d3f578bb18977006e5`.
+Actual ZIP extraction and relocation loaded every question while access to
+all original data paths was forbidden; zero original accesses occurred.
+The ZIP is 28,048,637 bytes. The earlier 56-question packet is unchanged,
+and neither packet authorizes training or release or embeds the full database.
+
+The next bounded source wave covers eleven third-slot incident/tenant
+attempts under the same original 2,000-attempt envelope and approved
+non-student V2 policy. Source/annotation corrections remain queued behind
+its shared lock; held histories and completed students are not discarded.
+
+### 17.69 Third-wave holds and the fourteenth admission
+
+The third eleven-slot source wave completed under V2. The verified milestone
+is **33 logical attempts, 20 source-ready candidates and 14 admitted new
+questions**. The new admission is incident 134's second slot: its reviewed
+32-check robustness matrix and six original-gold rejection guards passed,
+followed by canonical facts, source-only difficulty and objective novelty.
+Its difficulty is **63.33 hard (B2/P2/R3/A0)**. The original completed students
+remain unchanged.
+
+Tenant question two passed its canonical correction and difficulty stages
+but remains held at objective novelty. Its SID-History target/result is the
+same scoped objective as admitted incident 39's first slot; a tenant entry
+point alone does not make that objective new. The question and its history
+are retained, not deleted or counted as an admission.
+
+Only incident 134's third slot was initially source-ready in the new wave.
+The other ten were held before any student started. Nine have exact
+public-selector or observation-window omissions, including misleading task
+ownership wording in incident 34 and an independence overclaim in incident
+36. Deterministic public clarifications for these nine were compiled and
+verified with **unchanged private gold, SQL, checkpoint goals, literal
+values, anchors and reward**. Preparation made zero model calls. Fresh
+source quality and only then the first source student are queued, followed
+by every downstream gate for qualifying candidates. Incident 134's ready
+third-slot candidate subsequently passed contract review, native
+validation/parity and the exact baseline, and completed its first native
+episode. Its robustness
+review passed, but actual measurements found four support-only mismatches.
+Two interventions correctly excluded the original earliest Bind and
+declared the remaining six-record witness; their support vectors marked
+the wrong single-omission probe. Deriving support from unchanged witness
+membership and the actual ordered probes corrects index 4 to index 5.
+All 32 backend checks then pass, while four real claim-verifier guards
+still reject original gold when the answer changes. An audited annotation
+continuation is queued with the original task, students, controls and
+passed stages retained. This is not a new admission.
+
+Incident 5's third slot has a distinct mechanical collection failure:
+each per-host witness bundle covers only one member of the two-host
+answer. Partial bundles cannot be alternative complete proofs of the set.
+Its prepared repair combines the original eight-record union into one
+complete incident-cohort proof, without changing public content, answer
+predicates, checkpoint proofs or reward. Both original partial-bundle
+failures were reproduced. The repair passes 12 actual DuckDB/MySQL
+answer/witness checks, four original-full-set rejection guards in partial
+source worlds, and six citation-availability probes. Each five-record
+host-only bundle is rejected; the complete eight-record bundle passes on
+both backends. Fresh source quality and subsequent gates are queued; this
+is a verified preparation, not a new admission or collection-gate waiver.
+
+No further logical slots are being allocated while these yield problems
+are addressed. GPT-6-Sol remains selected, with non-student HTTP timeout
+900 seconds and student HTTP timeout 300 seconds; SQL budgets are unchanged.
+No completed student is resampled. The 56- and 60-question portable packets
+remain immutable historical milestones: the 60-question packet contains
+13, not 14, new admissions. No release or training approval is implied.
+
+### 17.70 Preserving meaningful earlier-parent checkpoint credit
+
+Incident 5's second-slot checkpoint previously demanded the complete
+later four-command sequence to identify the earlier parent. A prepared
+private-proof revision instead requires the complete earlier sequence,
+both parent creation times, and the later parent's earliest first-command
+cohort. Strict earlier-finish/later-start ordering remains required, and
+aggregate minima prevent selecting a convenient later duplicate.
+
+The new seven-record intermediate proof and the original ten-record full
+proof are explicit alternatives in the same witness program. Retaining
+the full alternative matters: otherwise strict citation relevance would
+reject a previously valid complete finding merely for including the
+later sequence's remaining records. Neither alternative changes the
+final requirement for both complete ordered sequences.
+
+Actual DuckDB/MySQL fixtures pass 32 goal checks: baseline, the valid
+intermediate-only world, equal finish/start, tied parent creation times,
+and removal of each required earlier command. The original overconstraint
+is reproduced in the intermediate-only world; the repaired checkpoint
+passes there while the final still fails. Full and intermediate citation
+availability also pass, while missing comparison evidence does not.
+
+The public contract, typed final/checkpoint goals, checkpoint objective,
+reward and original ten-call source student are unchanged. Fresh source
+quality and all downstream gates are queued as a same-attempt revision.
+No native student had started, and no source student is resampled.
+
+During the queued public-contract repairs, a subsequent verified checkpoint
+reached **23 source-ready candidates from the same 33 logical attempts**.
+Admissions remained **14**; readiness gains are not counted as admissions
+before the remaining gates pass.
+
+### 17.71 Received protocol stop and source-verified follow-up
+
+All nine public-contract revisions finished: third-slot incidents
+34/36/38/55/133/166 became source-ready. Incident 39's first source student
+answered correctly but did not observe a complete proof; that outcome is
+retained without resampling. Incident 322 remained pre-blind on arbitrary
+MySQL declaration-width literals, and tenant question three remained
+pre-blind on undisclosed exact Rubeus command syntax.
+
+The downstream batch subsequently stopped at incident 55's contract
+reflection. Its thirteenth response was received with status `completed`,
+but supplied prose rather than a structured `finish` tool call. This was
+not an HTTP timeout or a token-truncated response. The original request,
+response and complete role history are hash-bound in a separate protocol
+diagnostic; no structured result, tool result or accepted finish was
+fabricated, and timeout recovery was not used. The two untouched ready
+candidates, incidents 133 and 166, were queued separately rather than
+restarting the batch.
+
+The received prose reported a real checkpoint defect: either of two
+process-bound connections to the directory destination identifies the
+process, but the checkpoint required both. Independent DuckDB/MySQL tests
+confirmed the defect and a material proof repair. Two complete five-record
+alternatives replace the mandatory six-record bundle; their union preserves
+the original complete finding as valid evidence. The final still requires
+all seven records and the complete three-endpoint set. Twenty goal checks
+and six availability checks pass. A new same-attempt task revision is
+queued with unchanged public/final contracts, typed checkpoint goal and
+original twenty-call source student. The stopped review is not retried.
+
+Other holds remain genuine gates, not automatic admissions. Incident 134's
+third-slot robustness correction and canonical facts passed, but difficulty
+review requests correcting a binding attribution: matching an already
+anchored message identifier is lookup; selecting the earliest Bind is the
+discovered selection. Incident 5's second-slot checkpoint semantics passed
+fresh review, but its private `:complete` group suffix lacks valid literal
+provenance. Its source student remains retained. Incident 5's third-slot
+complete collection also passed semantic review but remains pre-blind on
+MySQL declaration-width literals. None of these holds authorizes changed
+student scores, waived gates or additional admissions.
+
+### 17.72 Verified literal repairs and a received JSON-only author result
+
+Three further pre-blind corrections were prepared and queued under V2:
+incident 5 and incident 322 each replace sixteen MySQL JSON_TABLE VARCHAR
+declarations with TEXT, removing only their arbitrary capacity literals;
+tenant question three explicitly supplies its two existing command-substring
+patterns. All 24 original/corrected DuckDB/MySQL answer and witness checks
+pass, including exact ordered-answer comparisons. The tenant's private gold
+is unchanged. No source student had started for these revisions.
+
+Incident 5's earlier-parent checkpoint also has a prepared source-namespace
+correction: its arbitrary suffix is replaced by the actual public incident
+table namespace. Sixteen backend comparisons preserve both the seven-record
+intermediate and ten-record complete proofs, in full and intermediate-only
+worlds. The first preparation's verifier incorrectly applied the new literal
+allowlist to the archived old query; that harness failure and producer were
+preserved, then corrected using separate original/new verifiers. The source,
+student and new task's literal allowlist were not relaxed. This preparation
+has not yet been applied.
+
+The incident 55 checkpoint repair progressed past source quality, contract
+review, native execution and baseline. Its robustness author then returned
+a complete five-case plan in a JSON code block, not a `finish` call. The
+received response is complete, and its single plan is schema-valid and
+binds the exact repaired task, but it has not been published as an accepted
+author result. Recovering an already-received JSON result is distinct from
+the approved unanswered-HTTP-timeout recovery and requires an explicit
+decision. No author request is repeated and no fictional tool call is made.
+
+Both incident 133 and incident 134 third-slot candidates remain held on
+source-only difficulty-feature attribution after passing their earlier
+stages. Existing difficulty-curation revision support can be reused, but
+pipeline continuation currently imports stages only for robustness or
+canonical holds. An audited difficulty continuation must preserve the
+verified canonical and all earlier stages, and will be implemented only
+after the current bounded workers finish. No new logical slots or model
+switch are authorized by these preparations.
+
+### 17.73 Approved JSON recovery preserves the original inspection gate
+
+The user explicitly approved the audited, validation-only recovery rule for
+current and future non-student received-JSON stops. The isolated publisher
+requires the exact trusted result schema, an intact request/response/tool
+history, restored original inspections and the original role validator. It
+has no model client, excludes students and accepted/closed outcomes, and
+rejects prose-only, ambiguous, refused or truncated results. Successful
+publication is explicitly marked as received JSON, not a fictional tool
+call; partial publication is recoverable without resampling.
+
+Forty-seven focused JSON-recovery, transport and source-quality tests pass,
+with clear Pylance diagnostics and Python 3.10 syntax checks. All 109 legacy
+artifacts remain unchanged. The approved policy, exact producer and user
+selection are archived separately; frozen generation and grading producers
+were not modified.
+
+The first real validation correctly **did not publish** incident 55's
+received author plan. Its incident, alert and directory rows had been queried
+as concatenated summaries or identifiers, not the attributable raw-field
+projections required by the existing inspection gate. Replaying the trace
+therefore leaves three required rows uncredited. No source observations were
+added retroactively, no result/completion/certificate was created and no
+author call was repeated. An author continuation requiring new inference is
+outside this validation-only approval and needs a separate decision.
+
+### 17.74 Astra drafting and checkpointed review
+
+The user explicitly changed the generation workflow to **GPT-6-Astra on the
+same Azure endpoint**, with reviews at roughly **100-question checkpoints**
+and targeted repair/regeneration after failures. This supersedes keeping Sol
+for new drafting, not the preserved model identity of any existing trace.
+Independent reviewers and students remain on Sol.
+
+The new checkpoint policy preserves the original campaign, 2,000 logical
+slots, 1,000-new-question goal, development cohort and admitted questions.
+The default checkpoint contains 100 draft-ready candidates: five for each
+selected incident and 50 tenant candidates. Drafting combines discovery and
+authorship into one role, uses four independent workers and records the actual
+Astra configuration per request. Deterministic source/collection/literal checks
+run immediately; independent semantic review and students wait for the filled
+checkpoint. Failed generation attempts remain counted and separately visible.
+
+Checkpoint source reviews and downstream candidate pipelines are independent
+jobs. A failed item is recorded in the repair queue rather than aborting the
+remaining batch. A native-stage lease limits exclusive full-snapshot MySQL
+ownership to native validation, the student episode and captured-result replay.
+Source-only reviews, canonical work, difficulty work and isolated robustness
+fixtures can overlap. Final objective review/admission remains serialized so
+concurrent questions cannot validate against a stale admission inventory.
+
+Selected pre-blind review failures have a reusable same-attempt Astra
+repair/review command. Completed students and admitted questions are never
+automatically regenerated. Old source-wave runners cannot adopt checkpoint-owned
+attempts or accidentally resume Astra context using Sol.
+
+Ninety-one focused checkpoint/source/pipeline/admission/revision tests pass,
+including exact 100-candidate allocation, deferred reviews, parallel source work,
+failure isolation, model routing and native-lease boundaries. Thirty prior
+producer modules were archived before the orchestration change; the explicit
+source-runtime amendment changes only `preproduction.py`. All 14 prior
+admissions and all 109 legacy artifacts remain unchanged.
+
+The first two real Astra drafts completed in the same 100-candidate batch with
+an empty repair queue and no semantic reviewer or student started. Both provider
+responses identify `gpt-6-astra`. The campaign has now allocated 35 logical
+attempts; the two drafts do not increase the 14-admission total. The remaining
+checkpoint generation and its later reviews use the same recorded policy.
+
+### 17.75 Checkpoint readiness audit and finalization repair
+
+The first Astra checkpoint produced 100 drafts from 102 new logical attempts.
+Source-checkpoint processing yielded 92 source-ready candidates, seven revision
+holds and one operational error. The stopped validation run had 33 held
+candidate results, one operational error, four started prefixes without an item
+result and 54 untouched source-ready candidates.
+
+All 119 recorded completed-stage receipts passed integrity checks. Each of the
+four interrupted prefixes had already passed grading, native validation,
+baseline, robustness, canonical facts and difficulty; all original students
+were complete and there was no unfinished model-call boundary.
+
+The new orchestration had introduced a real lock defect: finalization held an
+exclusive lock, then objective review requested a shared lock on the same file
+through another descriptor. That blocked the first objective and left the other
+three candidates waiting. A nonblocking OS-lock regression reproduced the
+failure before the nested acquisition was removed.
+
+The exact old 29-module producer was archived. A narrow, append-only execution
+continuation now permits only this completed-prefix finalization boundary:
+source/grading kernels, task, model and prior stages must remain unchanged, and
+no objective request may have started. The four candidates resumed objective
+review and admission, and **all four were admitted**, raising the campaign from
+**14 to 18 admissions** with zero repeated source/native student calls.
+
+A separate read-only native investigation found a recurring MySQL 1210
+JSON_TABLE issue in generated CTE queries. Generic TEXT, CTE-string and SQL-NULL
+inputs execute successfully, so this is not a blanket prohibition on those
+constructs. Three actual failing queries execute when their JSON_TABLE inputs
+are explicitly cast to JSON, with answers matching their typed source gold;
+disabling derived-table merging also changes the observed behavior. These are
+diagnostic comparisons, not silently applied query changes.
+
+A read-only EXPLAIN screen detected all 12 known 1210 controls and flagged nine
+of the 54 untouched candidates. Those nine are retained as explicit native
+preflight repair holds, with no native answer validation claimed. The other
+**45 candidates are continuing through every original admission gate**; passing
+the planning screen is not native validation or admission.
+
+Other robustness holds include empty-collection versus null annotations,
+incorrect citation-support vectors, and negative-world witness queries that
+emit nonbehavior-only fragments. These need targeted source-backed corrections;
+the audit does not waive them. Focused finalization/pipeline tests and admission
+invariant tests pass, and all 109 legacy artifacts remain unchanged.
+
+### 17.76 Managed SQL service per snapshot
+
+The user approved a persistent SQL service for remaining validation and the
+next checkpoint. The service boundary is the **verified full-tenant snapshot**,
+not an individual incident or question. One owned MySQL process serves bounded
+concurrent native candidates through separate read-only connections.
+
+The implementation leaves frozen query/scoring kernels and existing traces
+unchanged. It adds server ownership, startup verification, read-only and
+super-read-only enforcement, a private socket, nonce-bound instance identity,
+health checks and graceful lease draining. Each candidate gets independent
+student/grader sessions with the original limits. The native evidence verifier
+uses the already verified source snapshot and its own private metadata cursor;
+it does not relax source identity, witness or answer checks.
+
+A registered service becomes the default for checkpoint review, pre-blind
+checkpoint repairs and individual validation. A configured service that is
+unavailable or bound to another snapshot fails closed. It does not trigger a
+second server or switch an existing in-flight pipeline to another provider.
+Mutation-based robustness fixtures remain separate.
+
+Sixty-three focused service, actual-MySQL, checkpoint, finalization and CLI
+tests pass. Real MySQL tests cover simultaneous native candidates, four
+distinct reader connections, session-state isolation, denied writes, bounded
+slots, rejected duplicate ownership, preserved source proof results and
+shutdown waiting for active leases.
+
+The tested producer and explicit approval are archived. The persistent owner
+is started with a safe handoff barrier: it waits for the old checkpoint worker
+to release its workflow before owning the datadir. A separate bounded
+activation check verifies concurrent sessions on the real snapshot and then
+registers it for the run. Until that readiness check finishes, deployment is
+pending; no currently running student is interrupted for this change.
+
+The safe handoff subsequently completed. Production verification exercised
+two simultaneous candidate leases with four distinct reader connections on
+the same server, checked source-row counts and the unchanged student/grader
+limits, and registered the service as the run's validation default. This made
+zero model calls and did not modify any original student. The service is now
+live with four native-candidate slots and remains running for later work.
+
+The first Astra checkpoint is sealed: of its 100 drafted candidates, 15 are
+admitted, 76 have downstream holds, one has a downstream operational error,
+and eight did not become source-ready. Two additional generation attempts
+failed and remain recorded. Including the earlier 14 admissions, the campaign
+now has **29 admitted new questions from 135 logical attempts**. Held items
+remain in the repair queue; registration of the service does not waive their
+validation requirements.
+
+### 17.77 Corrected validation workflow and first-checkpoint repair
+
+The user requested correction of the underlying pipeline and grading-contract
+problems before fresh validation of the first 100 questions. The original
+85-case audit, all original questions/students and the sealed checkpoint remain
+preserved. A separate repair approval and exact pre-change producer archive
+bind this work; further checkpoint and legacy-wave generation are blocked.
+
+The corrected workflow adds:
+
+- Versioned v2 robustness semantics: negative-world raw witnesses are distinct
+  from admissible behavior proofs. Context-only leftovers have no behavior
+  support; baseline and grounded-final requirements are unchanged.
+- One structural validator for robustness authors and execution, rejecting
+  unbound witness IDs and inconsistent enumerated support arrays before a
+  reviewer call. Qualified proof availability is not inferred from a
+  representative group.
+- Fresh DuckDB table state for each mutation world. The two reproduced
+  optimizer-dependent witness-ID substitutions disappear across 72 real
+  backend checks without disabling optimization.
+- Actual verifier omission diagnostics and explicit behavior/security-control
+  semantics for grading-contract reviewers.
+- Explicit selector issue fingerprints for source reviewers, rather than
+  asking them to reconstruct identifiers or confuse them with query hashes.
+- Early MySQL JSON_TABLE input-typing checks across answer, witness, obligation
+  and candidate SQL. The author still owns its recorded proposal; compilation
+  rejects unsafe typing rather than silently rewriting completed output.
+- Explicit, source-justified control repairs that preserve old case identities,
+  scopes and fixture members, with independent review of revised coverage.
+- Fresh validation of unchanged admitted tasks with retained native students
+  and separate revalidation receipts. Existing admissions are neither
+  overwritten nor counted twice.
+
+Preparation produced 55 versioned robustness proposals and 24 backend-query
+repair candidates. Twenty-two SQL candidates pass full real source/native
+parity, including the exact-case JSON property repair and its counterfactual
+matrix. Subsequent source-derived performance revisions also reproduce all
+eight native answer/witness programs for the two timeout candidates within
+the unchanged 120-second limit. The incident queries complete below 0.2
+seconds; the tenant queries complete below 84 seconds in that standalone run.
+The tenant query subsequently exceeded 120 seconds during full validation,
+so that standalone result does not establish a reliable repair. Those
+query-only preparations capped no rows and changed no indexes or global
+optimizer settings; distinct source IDs remained part of the materialized cohorts. Their fresh
+source-quality review and full source/native parity remain required.
+Prepared proposals are not admissions.
+Fresh validation of the complete first checkpoint remains pending; no later
+batch is authorized by these preparation results alone.
+
+The first corrected robustness wave subsequently admitted 17 more candidates;
+15 remained held and one difficulty role was unfinished. The following
+24-candidate SQL wave exposed a writer-orchestration defect: 23 candidates
+hit the nonblocking run lock before creating a revision or calling a model.
+One completed its source revision and reached a robustness hold. These are
+not 23 new question-quality failures. Short metadata transactions now have an
+explicit waiting mode, while exclusive whole-run ownership stays fail-fast.
+A real four-thread file-lock regression verifies queueing and complete,
+serialized publication. Only the verified never-started candidates are
+eligible for this lock-recovery retry.
+
+The completed contract and optional-context waves subsequently added seven
+admissions. Exact current-source, sealed-pipeline and admission-receipt
+reconciliation now establishes **47 admitted and 53 unadmitted** in the
+original 100. The original 15 admissions still require separate fresh
+revalidation certificates; they are not implicitly certified by this count.
+All 14 completed difficulty holds are source-feature annotation revisions,
+with no task defect reported by those reviews. The pipeline now exposes the
+existing feature-only revision process while retaining its five verified
+predecessor stages and completed students.
+
+The user explicitly approved a versioned generic native-index upgrade after
+the tenant35 anchor lookup alone took 100.6 seconds despite selecting one row.
+The v7 policy adds only
+`MicrosoftGraphActivityLogs(RequestMethod(16), TimeGenerated)` as a non-unique
+access path. Its deployment must drain active native episodes, verify exact
+source/native content for every indexed-table row, retain the original
+verification of untouched tables, append the native-index manifest and approval chain,
+and register a replacement read-only service. Original plans, index manifests,
+student histories, query budgets and admissions remain immutable. A versioned
+service-execution view carries the new index digest, while retained native
+episodes remain bound to their actual historical index version. This
+infrastructure authorization does not admit tenant35 or authorize a later QA
+batch; fresh parity, source-quality and downstream gates remain required.
+
+The v7 deployment verified all **1,238,201 affected rows** against their
+original per-record source digests and restored the four-slot read-only
+service under a new, appended registration. Tenant35's exact previously
+staged task now passes complete source/native answer-and-proof parity.
+Four concurrent validation lanes also pass; the slowest complete parity
+check takes **4.55 seconds**, below the unchanged 120-second per-query
+grading limit. The earlier failed staging request and timeout report remain
+unchanged. This is a verified infrastructure repair, not a source-quality
+approval or an admission.
+
+The subsequent feature-only continuation wave admitted nine of eleven
+candidates, bringing historical checkpoint admissions to **56/100**. Fresh
+validation of the original fifteen admissions produced **seven certificates
+and eight holds** (five grading, two difficulty, one robustness), with no
+student rerolls. These historical admissions are not counted as fresh passes
+while their new holds remain unresolved.
+
+Tenant05 exposed another context defect: its source-qualified candidate SQL
+actually defines the disputed smaller proof and `ready` CTE, but difficulty
+reviewers previously received only representative evidence sets and answer
+SQL. Curation v0.4 includes the source witness programs and their obligation/
+candidate contracts without changing difficulty mathematics or supplying
+student outcomes. Audited continuations now follow the original student
+through a retained-native replay, including fresh-validation holds on already
+admitted tasks. The frozen native evaluators remain unchanged.
+
+The source audit's broad implementation manifest also includes the difficulty
+context module, although source-quality evaluation does not call that context
+builder. A separate annotation-context amendment preserves exact old and new
+producers and verifies their AST boundaries: curation logic, source-quality
+semantics and the frozen evaluator kernels cannot change. This prevents an
+unrelated context fix from invalidating or rerolling every completed source
+review. The original audits/results remain immutable and must match a verified
+historical producer; unrelated runtime changes still fail closed.
+
+Recovery of a demonstrably author-history-contaminated robustness review is
+explicit and single-use; it cannot change the prior plan, waive controls or
+skip the actual backend matrix. Initially unsent credential/dispatch failures
+use a separate evidence-bound authorization covering every request, not the
+timeout certificate. Unknown send state and completed roles remain blocked.
+The user confirmed that this repair pass keeps the original cohort fixed:
+genuine exclusions are reported without replacement questions or later batches.
+
+The corrected 16-case recovery wave completed with six new admissions, two
+fresh revalidation certificates and eight holds, without operational
+interruptions or completed-student rerolls. Historical checkpoint admissions
+are now **62/100**; nine of the original fifteen have fresh certificates.
+Tenant35 and incident3904 are fully admitted after their preserved staging/
+transport histories were recovered.
+
+Five newly reviewed historical admissions have correct typed answers but
+overly exclusive proof contracts. Their prepared repairs preserve the exact
+public task and typed goals. A separate admitted-contract authorization now
+binds the historical admission, source-ready revision and both task
+fingerprints. Full fresh validation must retain the original native student
+and write a separate certificate; the old admission is never rewritten or
+counted again. Objective comparison descriptors come from the task pinned by
+the historical admission, so an unvalidated source revision cannot silently
+alter another candidate's comparison inventory. Materially false control
+rationales can be corrected through an explicit named source-backed repair,
+without altering already-correct numerical expectations.
+
+The following sixteen-case wave completed with six new admissions, three fresh
+certificates and seven holds. Reconciliation distinguishes **68 historical
+admissions from 65 current clearances**, including twelve current clearances
+among the original fifteen. It verifies the current task revision and exact
+certificate, not merely the existence of an older admission.
+
+Mixed-context probes identified a further query-contract defect: a valid
+source-qualified positive bundle already passes, but citation-availability
+filters can hide an incomplete comparison candidate and thereby remove its
+otherwise source-scoped records from the relevance set. Returning complete
+required bundles for candidates activated by a real supplied/source join fixes
+this without changing the frozen solver, inventing observed records, or
+accepting missing positive proof. Three corrections passed full source/native
+parity and 334 additional bounded mixed-context/partial-proof probes; they still
+require independent review and publication. Diagnostics now separate complete
+observed support from submitted-citation relevance.
+
+An explicit interrupted-native-prefix authorization also permits reuse of a
+completed native episode after a recorded robustness operational error, without
+fabricating a terminal pipeline report or rerunning the student. The normal
+native capture, producer, model, snapshot and bound checks remain mandatory.
+
+The interrupted native-prefix case subsequently passed all admission gates
+without another student episode. A ten-case annotation continuation then
+produced three admissions, one fresh historical-admission certificate, four
+downstream holds and two distinct transport interruptions (HTTP 500 and timeout).
+Sealed reconciliation now records **72 historical admissions, 70 current
+clearances and thirteen current clearances among the original fifteen**. Six
+source-backed scoped-objective duplicates are documented as fixed-cohort
+exclusions, not replacement slots; unresolved workflow failures remain separate.
+
+Further verification distinguished complete qualified-catalog relevance from
+representative evidence sets, corrected stale candidate-emission descriptions,
+and repaired a boundary-list program that emitted invalid NULL elements when
+an interval did not exist. Source/native comparison controls also showed that
+binary JSON identity projections could defeat process-identity index access:
+restoring the verified exact physical-column comparison reduced a complete
+native parity check to 1.109 seconds while preserving the original case and
+trailing-space controls. No index or query-budget change was needed.
+
+Source repair publication follows earlier sealed student provenance through
+quality-held and operational-error revisions. Two unadmitted checkpoints have
+explicitly scoped, typed-goal-preserving wording clarifications prepared before
+any native sample; one accidentally introduced public column typo is restored
+to the original question. These proposals still require fresh source review.
+HTTP 500 recovery is separately authorized against the exact nonstudent request,
+error and dispatch, with unchanged model settings and no automatic second retry.
+
+After both publication lanes covering eighteen candidates drained, sealed reconciliation
+records **76 current clearances and all fifteen original admissions freshly
+cleared**. Eight genuine scoped-objective duplicates are separately evidenced;
+sixteen other questions still have actionable holds. The fixed checkpoint is
+not yet complete, and subsequent generation remains blocked.
+
+The next orchestration correction addresses a demonstrated reviewer-context
+error: qualified support was described as "additionally" executing candidate
+queries, which was read as requiring representative containment first. The exact
+held plan passes both backends and supplies counterexamples to that extra
+prerequisite. Policy-specific context and an exact, one-use review recovery
+correct the explanation without changing the frozen solver or measured vectors.
+Native physical-column collation facts now reach grading as well as source
+review, preventing generic case-insensitive-default assumptions from rejecting
+verified binary/NO PAD predicates. Correct controls are retained across actual
+reviewed executable repairs, rather than forcing invented expectation changes.
+
+Further native-retention checks distinguish call attempts from actual model
+responses. The frozen generator counts explicit token-rate waits as calls.
+Retained imports now require a contiguous request journal; each response-less
+slot must have its exact recorded `retry_wait`, no executed tools, and an
+identical following request. Missing/unknown responses remain errors. Neither
+the student, failed SQL nor completed model output is rerun to repair accounting.
+
+The separate received-JSON recovery path likewise preserves explicit token
+waits while reconstructing the unchanged request history. A complete assessment
+returned as text is published only through its original role validator and the
+verified recorded inspection prefix, with zero inference and no fabricated
+`finish` call. Its errors, requests, responses and original operational failure
+remain in history; remaining gates resume on the original pipeline.
+
+Verified physical-column collation/padding facts also reach robustness author
+and reviewer contexts, including retained grading metadata and shared-service
+continuations. Generic MySQL defaults are not evidence about the verified
+snapshot; computed/JSON_TABLE text still needs its own exactness analysis.
+
+Two canonical holds exposed a genuine representational gap: a material source
+array can be empty, leaving no scalar member to select. The narrowly versioned
+`json_array_empty_v1` fact records only the verified structural observation
+`true` for that exact empty array. Null, missing, object and nonempty values are
+rejected. Legacy scalar/member semantics, fact IDs, unit weights and native
+kernels remain unchanged. An explicit dual-archive amendment checks the exact
+additive AST change before retaining old source audits. Canonical continuations
+must run fresh curation/review under the new producer; a difficulty continuation
+cannot silently import an old canonical stage across that producer change.
+
+The final fixed-cohort reconciliation accounts for **all 100 original questions:
+92 freshly cleared questions and eight genuine scoped-objective duplicate
+exclusions**. All fifteen original admissions are freshly cleared, no historical
+admission lacks a current clearance, and no recoverable pipeline or grading
+failure remains. Campaign historical admissions total 106; the original
+development cohort remains separate. No replacement questions, later batches,
+student rerolls, commits or pushes were introduced by this repair.
+
+The last difficulty repairs distinguish recipient identities from repeated
+delivery observations and an explicitly supplied message key from a discovered
+binding. The existing smaller 22-record recipient proof is exposed as a
+source-validated representative beside the full 35-record comparison route;
+qualified obligations/candidates and typed goals remain unchanged. Future
+drafting guidance requires such materially different representatives because
+the current difficulty interface binds explicit evidence-set fingerprints.
+
+An audited read-only source adapter also batches immutable private record-map
+metadata lookups without changing public SQL, attribution, row hashes or frozen
+native kernels. It reproduced the complete 495/765/33-row probe measurements
+exactly in approximately 50 seconds; the original finish-validation callback
+took 988 seconds. Its native cursor/lease compatibility and exact source/native
+parity were verified. A pre-review adapter failure remains preserved with an
+explicit exact-input, empty-stage recovery; no source/model history was erased.
+The final report retains all exclusion reviews, current certificates, producer
+archives and unique student-role inventory. Later generation remains blocked.
 
 This document specifies the proposed implementation. The comparison document
 remains the evidence appendix; neither document certifies the entire tenant as

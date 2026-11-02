@@ -29,11 +29,27 @@ def recorded_actions(role_directory: Path) -> list[tuple[str, str]]:
 
 
 def private_pilot_validation(candidate: Path, source: EvidenceVerifier, mysql: EvidenceVerifier,
-                             *, discovery_report: Path | None = None) -> ValidationReport:
+                             *, discovery_report: Path | None = None,
+                             require_source_quality: bool = False) -> ValidationReport:
     task = TaskRecord.model_validate_json((candidate / "task.json").read_text())
     summary = json.loads((discovery_report or candidate / "pilot_report.json").read_text())
     if summary["task_fingerprint"] != fingerprint(task) or summary["status"] != "candidate_for_mysql_validation":
         raise ValueError("candidate did not pass its version-bound discovery checks")
+    policy_path = candidate / "execution-policy.json"
+    policy = json.loads(policy_path.read_text()) if policy_path.exists() else {}
+    if not isinstance(policy, dict):
+        raise ValueError("candidate execution policy must be a JSON object")
+    quality_required = (
+        require_source_quality or "source_quality_policy" in policy
+        or "source_quality" in summary or (candidate / "quality").exists()
+    )
+    if quality_required:
+        from .quality import QUALITY_VERSION, validate_quality_gate
+
+        gate = json.loads((candidate / "quality/gate.json").read_text())
+        if policy.get("source_quality_policy") != QUALITY_VERSION or summary.get("source_quality") != gate:
+            raise ValueError("native validation requires the bound source quality policy and report")
+        validate_quality_gate(candidate, task)
     review = ReviewResult.model_validate_json((candidate / "refuter/result.json").read_text())
     if review.recommendation != "pass":
         raise ValueError("independent refutation did not pass")
@@ -59,7 +75,9 @@ def private_pilot_validation(candidate: Path, source: EvidenceVerifier, mysql: E
     for name, passed in outcomes.items():
         gates.append(GateResult(gate=name, status="pass" if passed else "fail",
                                 reason="Independent source-inspecting model review: " + reasons,
-                                artifact_refs=(str(candidate / "refuter/result.json"),)))
+                                artifact_refs=(str(candidate / "refuter/result.json"),) + (
+                                    (str(candidate / "quality/gate.json"),) if quality_required and name == "refutation" else ()
+                                )))
     gates.append(serving_parity(task, source, mysql))
     result = ValidationReport(task_id=task.task_id, task_fingerprint=fingerprint(task),
                               evaluator_version="private-pilot-validation-v1", gates=tuple(gates))
@@ -67,7 +85,8 @@ def private_pilot_validation(candidate: Path, source: EvidenceVerifier, mysql: E
 
 
 def evaluate_candidate(candidate: Path, output: Path, source: EvidenceVerifier, mysql: EvidenceVerifier, client,
-                       *, blind_from: Path | None = None, discovery_report: Path | None = None) -> dict:
+                       *, blind_from: Path | None = None, discovery_report: Path | None = None,
+                       require_source_quality: bool = False) -> dict:
     if output.exists():
         raise ValueError("candidate evaluation output must be new")
     output.mkdir(parents=True, mode=0o700)
@@ -75,7 +94,8 @@ def evaluate_candidate(candidate: Path, output: Path, source: EvidenceVerifier, 
     draft = TaskDraft.model_validate_json((candidate / "draft.json").read_text())
     if mysql.allowed_literals != frozenset(item.value for item in draft.allowed_literals):
         raise ValueError("MySQL verifier is not configured for the candidate literal policy")
-    validation = private_pilot_validation(candidate, source, mysql, discovery_report=discovery_report)
+    validation = private_pilot_validation(candidate, source, mysql, discovery_report=discovery_report,
+                                          require_source_quality=require_source_quality)
     (output / "private-pilot-validation.json").write_text(validation.model_dump_json(indent=2) + "\n")
     if validation.pilot_blockers(task):
         raise ValueError("; ".join(validation.pilot_blockers(task)))
@@ -97,7 +117,8 @@ def evaluate_candidate(candidate: Path, output: Path, source: EvidenceVerifier, 
                          task.public_task().model_dump(mode="json"), BlindSolution, blind_directory)
     proofs = mysql.preflight(task)
     correct = blind.answer.format == task.private_gold.final.expected.format and compare_typed_answers(task.private_gold.final.expected, blind.answer)
-    grounded = mysql.evidence_matches(Finding(answer=blind.answer, citations=blind.citations, step=0), proofs["final"])
+    grounded = mysql.evidence_matches(Finding(answer=blind.answer, citations=blind.citations, step=0),
+                                      proofs["final"], claim=task.private_gold.final)
     actions = recorded_actions(blind_directory)
     payload = Submission(answer=blind.answer, citations=blind.citations).model_dump_json()
     max_steps = len(actions) + 1
@@ -142,7 +163,7 @@ def evaluate_candidate(candidate: Path, output: Path, source: EvidenceVerifier, 
         raise ValueError("adapter components differ on the same recorded MySQL trajectory")
     if aggregate != secrl.evaluation.aggregate_reward:
         raise ValueError("adapter aggregate differs on the same recorded MySQL trajectory")
-    observed_complete = any(group <= set(secrl._observed) for group in proofs["final"])
+    observed_complete = mysql.complete_witness_observed(task.private_gold.final, proofs["final"], frozenset(secrl._observed))
     result = {
         "status": "private_pilot_completed", "candidate_checks_passed": True, "task_fingerprint": fingerprint(task),
         "serving_view_id": task.serving_view_id, "mysql_blind_answer_correct": correct,

@@ -231,6 +231,54 @@ the configured bounds are rejected, not sampled into purported completeness.
 `serving_parity` executes all claims on both public DuckDB and MySQL and requires
 the same typed answers and exact witness alternatives.
 
+#### Source-qualified complete proofs
+
+Verifier `source-witness-v1.3` additionally supports opt-in
+`QualifiedWitnessProgram` objects with
+`witness_policy="source-qualified-obligations-v1"`. Existing enumerated programs
+keep their serialized shape, task fingerprints and matching semantics. A claim
+cannot mix policies across its backend programs.
+
+- `query` still returns complete representative witnesses for private source
+  annotations and overlap/difficulty analysis.
+- `obligations_query` returns a nonempty, unique
+  `evidence_group, obligation_id` catalog from the full source scope. It cannot
+  depend on the student's citations.
+- `candidates_query` returns
+  `evidence_group, obligation_id, candidate_id, binding_key, table_name, record_id`.
+  It joins actual qualifying sources to the server-supplied
+  `proof_citations(table_name, record_id)` relation; it must not define/shadow
+  that relation. No arbitrary witness SQL is rewritten or source cohort filtered.
+- Each candidate is a whole bundle of all rows sharing its group, obligation
+  and candidate ID. One complete bundle is required for **every** obligation
+  in a complete group. Bundles cannot be spliced. Non-null binding keys attach
+  source-record identities that must agree across selected bundles; use
+  subject/role-qualified keys, and NULL for ordinary evidence. Derive labels
+  from source values or legitimately justified literals; private bookkeeping
+  strings are not automatically general domain constants.
+
+Required set members cannot disappear merely because their source records
+were not cited. Ranking, counts, absence and common-value claims still require
+their complete source comparison/support obligations, not a positive example
+or answer-query replay over a smaller dataset. Independent source/semantic
+review must establish that the catalog and predicates encode the whole claim.
+Every representative must itself pass the qualified contract.
+
+The grader checks citation relevance, coherent full-proof coverage and
+behavior-source requirements; the adapters also retain actual source-retrieval
+attribution checks. Observation coverage may include unrelated exploratory
+rows, unlike submitted evidence. SQL row/byte/time limits and a 10,000-state
+coherence-search limit are explicit errors, never truncated proofs or zero
+difficulty scores. Serving parity compares catalogs, candidate bundles and
+bindings for each representative and their union; new alternatives also need
+explicit backend regression probes.
+
+Pass the claim to `EvidenceVerifier.evidence_matches(..., claim=claim)` when
+using qualified programs. Discovery, final/checkpoint grading and native
+SecRL/ACE replay all use this path. Canonical runtime pins include the new
+contracts and verifier module. Old approvals/reviews are not silently rebound
+to changed task or runtime fingerprints.
+
 ### Opt-in SecRL and ACE adapters
 
 [SecRLV1Env](secrl_adapter.py) implements reset/step, public question/schema
@@ -275,7 +323,9 @@ errors and missing/empty footprints remain unscorable. Footprints must already
 represent validated evidence. No production coefficients, split thresholds,
 deduplication actions or model budgets are selected.
 
-The **329-test full suite passes with optional MySQL and ACE tests enabled**.
+The last complete suite before the difficulty prototype passed **329 tests
+with optional MySQL and ACE tests enabled**. The difficulty increment has
+additional focused validation described below.
 The fixture serving/evaluation slice is verified. The user has approved the
 conservative full-tenant profile, and its source audit/policy verification is
 complete. The public DuckDB projection now contains **61 tables and 13,276,298
@@ -321,6 +371,21 @@ The separately tagged `json_member_presence` kind records whether a named key
 exists in an **existing source JSON object**. It distinguishes missing members
 from explicit nulls, rejects missing/non-object ancestors, and never establishes
 real-world absence. Its kind participates in fact identity.
+
+`source-fact-curation-v1.2` also permits `json_array_empty_v1`: an atomic `true`
+observation at an explicitly selected JSON path, only when that verified source
+value is an empty array. An empty path selects the JSON root. Missing ancestors,
+nulls, objects and nonempty arrays fail explicitly; this is neither a synthetic
+count nor permission to select whole containers. Existing scalar/member facts,
+their IDs, and unit weights are unchanged. Existing source audits require an
+explicit dual-producer amendment with an AST-checked additive extension;
+affected canonical stages are freshly curated and reviewed, not silently reused.
+
+Materially different complete qualified routes also need source-validated
+representative groups for annotation: the difficulty interface binds explicit
+evidence-set fingerprints, not arbitrary qualified subsets. Representative
+selection must preserve the full comparison route and every required obligation,
+without introducing a representative-containment prerequisite into the solver.
 
 The initial six real-task annotations were all held by independent review:
 the curator omitted material scope/event-type predicates, and one annotation
@@ -691,6 +756,1236 @@ The user approved this exact 36/11 development split in a separate,
 fingerprint-bound review record. The original proposal/audit artifacts remain
 unchanged. Approval is development-only: production release/scoring choices,
 training runs and additional QA generation remain separate decisions.
+
+The next requested stage targets **1,000 new pre-production questions**:
+50 per selected incident plus 500 tenant questions, separate from the frozen
+47-question development cohort. The user selected capacity curves at overlap
+thresholds 0.25/0.50/0.75/0.90, not a hard rejection cap, using the existing
+equal-weight diagnostic score. The initial envelope is up to 100 new logical
+attempts per incident and 1,000 tenant attempts (2,000 total), with yield and
+capacity reporting before extension. No absolute capacity or accepted quota
+is guaranteed. See design Section 17.36.
+
+**Difficulty sidecar prototype:** the strict task contract remains unchanged;
+computed difficulty lives in separate private sidecars. The ExCyTIn 2.0 bootstrap includes structural
+hop bands and a small table/pivot heuristic, while its final tier comes from a
+solver panel that already includes Astra and Luna. We must not use that
+model-derived tier as the independent predictor for an Astra/Luna comparison.
+
+Design Sections 17.37-17.38 describe private, versioned difficulty sidecars based on
+necessary evidence breadth, logical dependency depth, reasoning operations and
+source-verified ambiguity. Raw graph size, entity types, output/citation
+burden and runtime statistics remain available as separate descriptors.
+Full overlap footprints are not assumed to be minimal reasoning graphs.
+Missing measurements stay unknown; existing task/native/fact fingerprints and
+blind prompts remain unchanged. The proposed score/bands are explicitly
+uncalibrated hypotheses, not generation gates or reward changes.
+
+A later, separately configured model evaluation will test grounded-success
+trends and paired model differences under recorded harness/budget settings.
+The first bounded pre-production attempt has completed every admission gate:
+one validated new question, from one logical attempt inside the approved
+envelope. No bulk wave or release/training approval is claimed.
+The separately approved, matched
+Luna/Sol/Astra development panel has completed all 141 episodes; it changes
+neither the heuristic nor its provisional labels or the frozen development split.
+
+### Opt-in pre-blind source quality gate
+
+[quality.py](quality.py) adds `source-quality-v1` without changing historical
+task contracts, grading, admissions or the approved development split.
+New guarded source pilots use `--quality-gate` (API: `quality_gate=True`).
+Their native caller must use `require_source_quality=True`; native validation
+also checks quality artifacts automatically whenever the candidate carries them.
+These settings are required for the planned pre-production runner, not retroactive
+changes to recorded development runs.
+
+The gate:
+
+- Screens every final/checkpoint answer, witness, obligation and candidate
+  query in both dialects for positional JSON paths, computed paths and
+  potentially serialization-dependent text comparisons. Named object keys
+  containing brackets are not array positions.
+- Executes each multi-member set/list answer on an isolated DuckDB view
+  containing **one complete witness alternative alone**. Other tables are
+  empty; private anchors and other alternatives are not implicitly supplied.
+  A declared-evidence-union control distinguishes individual proof failures
+  from an unresolved fixture. Existing result/time limits apply. Query errors
+  remain errors, never empty answers or passing checks.
+- Holds non-reproducing collections before a blind student starts. A question
+  or rubric repair is required; removing checkpoints is not a remedy.
+- Requires a fresh independent quality/refutation role to retrieve all
+  representative source records with actual source fields, review whole
+  claims and explicitly disposition every selector finding. Genuine publicly
+  specified order or exact representation can be justified with an exact
+  public quote; numerical paths are not universally banned.
+- Keeps the review away from student outcomes and retains its exact ordinary
+  review as the native refuter projection. Bound audit/review/runtime hashes
+  and captured inspection artifacts are checked on native admission.
+- Resumes completed roles without new model calls, preserves failed student
+  outcomes and rejects changed policies, inputs or existing quality artifacts.
+  Unordered set-result order is canonicalized for stable audit fingerprints;
+  ordered-list semantics are preserved.
+
+This is **not** a general proof of witness sufficiency. Scalar counts, absence,
+ranking/common-value cohorts and all qualifying alternatives still need
+semantic review and targeted robustness tests. The static scan is conservative,
+not a complete SQL analyzer; derived scalar aliases and safe scalar membership
+require explicit source-grounded review. The collection fixture executes
+DuckDB, not MySQL. Actual native parity and appropriate backend mutations remain
+separate gates. No difficulty/overlap quota or release approval is introduced.
+
+The read-only diagnostic command makes **no model calls** and does not change
+an existing question's admission:
+
+```bash
+python -m secgym.qagen.agentic audit-source-quality \
+  --task private-task.json --serving-bundle public-view \
+  --limits query-limits.json --allowed-literals reviewed-literals.json \
+  --output private-quality-audit.json
+```
+
+Its output always requires independent review. It exits nonzero for failed
+collection reproduction or operational errors and refuses to overwrite a file.
+Schemas are available as `source-quality-audit` and
+`source-quality-assessment`. Per-scope attempt accounting, complete resumable
+multi-stage orchestration and backend robustness automation remain prerequisites
+before the 1,000-new-question generation wave.
+
+### Isolated backend robustness checks
+
+[robustness.py](robustness.py) runs explicit source-bound counterfactual plans in
+disposable DuckDB and MySQL fixtures. The MySQL process, datadir and socket are
+created under an explicit scratch parent and removed after that process stops.
+The runner never accepts a writable connection to an existing snapshot.
+Source records are copied only after their actual values and provenance verify.
+
+Each plan binds the exact task fingerprint, identifies cell edits or physical
+record omissions, and specifies the expected answer, complete witness groups
+and proof-support outcomes for every final/checkpoint claim. Baseline fixtures
+must reproduce the full-source answers, representative witnesses and
+available-citation support before counterfactuals run. All records, no records
+and each single-record omission are tested as citation availability probes.
+Qualified catalogs/candidates/shared bindings are executed, not inferred from
+representative labels. Witness alternatives are compared as whole citation
+groups, independently of backend-specific bookkeeping labels.
+
+JSON helpers preserve numeric tokens exactly, distinguish whole-text formatting
+from explicit array operations, and reject nonexistent/no-op interventions.
+Singleton arrays cannot certify order invariance; prepend controls can still
+test whether a selector incorrectly assumes the first member. Empty set/list
+answers remain distinct from absent scalar answers. Incomplete baseline
+fixtures and query errors remain different non-passing outcomes.
+
+New plans use `isolated-source-robustness-v2`; archived v1 plans/reports remain
+readable. In v2 counterfactuals, context-only residual witness rows are recorded,
+but cannot support a behavior-required claim. Baseline behavior requirements,
+unknown-record rejection and grounded-final grading remain strict.
+Enumerated support is a program-level containment/lineage measurement, not a
+certificate that residual rows prove the original interval or typed answer.
+Independent plan reviewers receive only the current expectation arrays.
+Author revision history and prior verdicts are excluded; explicitly authorized
+intervention changes are compared without showing stale expected answers.
+
+The author and executor share structural expectation validation. Expected
+witness IDs must belong to the fixture. Enumerated availability vectors are
+checked against independently declared witnesses, actual source lineages and
+the exact probe order, not copied from counterfactual SQL output. Qualified
+support is still resolved from its obligations/candidates, never inferred from
+representative unions. Empty collections are not automatically coerced from
+null. Each DuckDB world recreates its tables before loading rows, preventing
+prior-world optimizer statistics from contaminating CTE/UNION witness results;
+optimizations are not disabled globally.
+
+Annotation-only revisions cannot change interventions. Explicit
+`--robustness-control-repairs` mappings authorize corrections to named prior
+controls with source-backed reasons. Every old case and its scope remain;
+existing fixture records cannot be removed, and fresh source inspection and
+independent semantic review are still required.
+
+```bash
+python -m secgym.qagen.agentic check-robustness \
+  --task private-task.json --plan robustness-plan.json \
+  --serving-bundle public-view --limits query-limits.json \
+  --allowed-literals reviewed-literals.json --mysqld /path/to/mysqld \
+  --scratch /path/to/project --output private-robustness-run
+```
+
+The report covers the finite declared tests, not general proof sufficiency,
+complete negative/ranking cohorts or all candidate combinations. Plan semantics
+still need review. A `portability_diagnostic` is not automatically an in-contract
+defect, and no diagnostic rewrites a question or changes admission.
+
+Fresh checkpoint validation is not the normal already-admitted shortcut.
+`finish-preproduction --fresh-validation` requires the existing native student
+trace for admitted questions and writes a separate immutable certificate under
+`revalidations/<task-id>/`. It does not replace the original admission, resample
+a student or increment the admitted count. A run-level
+`checkpoint-revalidation-required.json` blocks both checkpoint generation and
+legacy source waves while an approved revalidation is pending.
+Concurrent reservation, source-publication and admission metadata writes must
+queue using `locked_run(..., wait=True)`; contention is not a failed question.
+Keep model/network work outside these short transactions. Whole-run ownership
+continues to reject a second owner by default.
+
+The original first Astra checkpoint is now fully reconciled as a fixed cohort:
+**92 current validation clearances and eight independently verified scoped-objective
+duplicate exclusions**, accounting for all 100 original logical questions.
+All fifteen original admissions have fresh clearances; no historical admission
+lacks current validation, and no pipeline/grading hold remains unresolved.
+This does not mean all 100 were admitted. Original histories and completed
+students were retained, no replacements were generated, and subsequent batches
+remain blocked.
+
+For the five development selector flags, 80 actual backend claim checks and
+16 full-source typed-selector equivalence checks are retained. The tenant rule's
+computed paths traverse every parameter and withstand formatting, order and
+unrelated-parameter changes. Four alert questions rely on the verified compact
+JSON emitted by the core source producer: in-contract controls pass, while
+16 failures under direct post-serving reformatting remain explicit portability
+limitations. This resolves the fixed-snapshot evaluation question, not a blanket
+waiver for new generation; new questions should use typed, serialization-independent
+selectors.
+
+### Matched development model panel
+
+[model_panel.py](model_panel.py) runs new episodes over the already admitted
+47-question cohort. The approved panel is **141 episodes**, one per question
+for `gpt-6-luna`, `gpt-6-sol` and `gpt-6-astra`, on the existing Azure/Entra
+endpoint. Each episode has medium reasoning effort, at most 64 model responses
+and 64,000 total output tokens, at most 16,000 output tokens per response,
+a 300-second model request timeout, and SQL limits of 500 rows/64 KiB/30 seconds.
+The final request's output allowance is reduced to the remaining episode budget.
+Unsupported deployment/settings errors are not silently replaced by another model
+or profile.
+
+After repeated private-reference SQL timeouts, the user approved a versioned
+amendment allowing **120 seconds for private grading queries only**. Student
+SQL remains limited to 30 seconds; models, reasoning, tokens, response limits,
+rows and bytes are unchanged. Separate student/grader connections prevent
+the larger oracle timeout from reaching a model tool. Original manifests,
+evaluator source and completed outcomes remain preserved. A completed captured
+student can be imported into a new grading output with exact task/model/profile
+and trace bindings, without another model call.
+
+The amended panel explicitly distinguishes retained parent-runtime outcomes
+from newly graded outcomes. Analyze it with
+`--manifest manifest-amendment-01.json`; the report records the grading-timeout
+distribution. This changes neither question fingerprints nor heuristic values.
+
+Each model receives a fresh public-only context. Gold, checkpoint IDs and
+difficulty labels never enter the prompt. `store=False` and encrypted reasoning
+replay remain in effect. Original development students are not retried or
+overwritten. Completed episodes, including failures, are immutable; known safe
+boundaries can resume, but ambiguous completion boundaries require explicit
+recovery rather than another model sample. Grading interruptions can recover
+without restarting the student.
+
+The opt-in captured-result adapter validates **the exact SQL results received
+by the student**. It does not rerun failed student queries and accidentally grant
+evidence from a later successful execution. Unexecuted truncated output supplies
+no observations. SecRL and native ACE grade the same captured observations and
+must agree. Budget exhaustion/abstention can retain grounded checkpoint progress
+without inventing a final answer; operational failures remain ungraded/unknown.
+Default live adapters and historical outcomes are unchanged.
+
+[panel_analysis.py](panel_analysis.py) reports grounded final success, separate
+answer/citation outcomes, checkpoint progress, resource use, continuous-score
+correlation, per-band descriptive intervals and paired differences with
+scope-cluster bootstrap intervals. Incomplete panels are labeled partial;
+operational errors never become false zero-accuracy measurements.
+
+```bash
+python -m secgym.qagen.agentic analyze-model-panel \
+  --panel private-panel-run --output private-panel-analysis \
+  --bootstrap-samples 2000 --seed 42
+```
+
+This is exploratory validation of a frozen heuristic, not production
+calibration or a controlled parameter-count experiment. The cohort has
+10 medium, 31 hard, six very-hard and no easy questions. Small bands and shared
+evidence limit precision. Any later tuning needs independent pre-production
+confirmation; outcomes are never inputs to the four-axis score.
+
+The completed panel's grounded successes were:
+
+| Difficulty | Questions | Luna | Sol | Astra |
+|---|---:|---:|---:|---:|
+| Medium | 10 | 7/10 | 10/10 | 9/10 |
+| Hard | 31 | 7/31 | 23/31 | 24/31 |
+| Very hard | 6 | 0/6 | 2/6 | 0/6 |
+| All | 47 | 14/47 | 35/47 | 33/47 |
+
+This supports the ordering as an exploratory predictor of **grounded
+completion**, not calibrated general reasoning difficulty. Typed-answer
+correctness alone was 45/47, 47/47 and 47/47: 57 of the 59 unsuccessful grounded
+outcomes had a correct final answer. Citation/proof requirements drive most of
+the separation. Sol and Astra both outperform Luna on this cohort, but the
+paired Sol/Astra difference is not clearly resolved. No weights or thresholds
+have been tuned; retained-trace evidence review and independent pre-production
+confirmation remain necessary.
+
+The table above is the immutable **original grading** result. The subsequent
+four-task source-reviewed corrections described below change grounded totals
+to **Luna 15/47, Sol 35/47, Astra 37/47**, without new student samples. The
+subsequently approved complete audit-event alternative brings Astra to **38/47**;
+the time-unqualified alternative for incident 36 was rejected. Do not treat
+these small differences as an established model ordering.
+
+### Source-reviewed grading corrections and reflection
+
+[grading_review.py](grading_review.py) provides an opt-in, exact-task-bound
+grading amendment rather than rewriting the original task or evaluator:
+
+- **Supporting evidence:** the submitted citations must still contain a complete
+  original proof, including all qualified obligations and coherent bindings.
+  Additional citations must match explicit, claim-local source queries and
+  contain verified source IDs and fields. Other context cannot fill a missing
+  core proof member; fabricated, unobserved or out-of-scope records remain
+  uncredited.
+- **Checkpoint identities:** an alternative identifier must be an atomic
+  property of the same cited source record and, for JSON, the same source
+  subject object. The canonical property must equal the original checkpoint
+  value. This allows verified object-ID/UPN representations without fuzzy
+  aliases, role splicing, format changes or final-answer normalization.
+- **Review and reflection:** separate conversations inspect the actual source
+  records, with the second pass challenging the first review. Both must pass
+  all rules before the amendment is usable. Neither receives evaluated-model
+  identities, aggregate scores or desired difficulty labels. Reflections can
+  block a policy for repair; they cannot award a score by opinion or waive a
+  checkpoint.
+
+Legacy [evaluator.py](../../evaluator.py) permits its reflection model to replace
+the initial answer/step verdict. This workflow instead keeps deterministic,
+source-bound scoring authoritative and versions any approved rule correction.
+The reflection step currently reviews **grading-policy corrections**, not every
+student response. A rejected review is retained, not converted to a pass.
+
+`GradingAmendment` and `ReviewedGradingAmendment` schemas are exposed through
+`schema grading-amendment` and `schema reviewed-grading-amendment`.
+`review_grading_amendment` records the independent traces;
+`load_reviewed_grading` verifies their integrity and runtime bindings.
+`ReviewedEvidenceVerifier` is compatible with the existing SecRL/native ACE
+adapters. Its score components carry the reviewed-policy fingerprint. Existing
+callers using `EvidenceVerifier` keep their original strict behavior.
+
+For the two very-hard Sol-only successes, full-source investigation showed
+that Astra submitted the same accepted proof as Sol, plus genuine comparison
+records. The additions were two incident-member recovery-tampering alerts in
+incident 5 Q1, and a later same-editor/same-policy non-interactive sign-in in
+tenant Q10. All were genuinely retrieved. Tenant Q10 also recorded the editor's
+object ID rather than the private UPN spelling. These observations motivate
+the explicit amendments; they do not justify broadly accepting arbitrary
+additional citations or weakening proof completeness.
+
+Those two amendments now pass actual source/native validation and paired replay:
+Astra passes both very-hard finals and its object-ID checkpoint, while Luna's
+incident-5 complete-proof-plus-context submission also gains correct credit.
+Two further reviewed context rules fix incident 5 Q5 and tenant Q3 for Astra.
+Across the four corrected tasks, all three models were evaluated under the same
+rules; no original outcome was overwritten. The incident 166 audit-event alternative subsequently passed source/native,
+canonical and difficulty revalidation as an explicit r2 revision. Both original
+and alternative complete proofs remain supported, including the checkpoint.
+Incident 36's proposed route dropped a public time condition and was not admitted.
+
+### Guarded pre-production source waves
+
+[preproduction.py](preproduction.py) adds the source-wave/accounting foundation
+for the approved **1,000-new-question target**. Its immutable plan fixes 100
+logical attempts per selected incident and 1,000 tenant attempts: **2,000 total**.
+The targets remain 50 validated questions per incident and 500 tenant questions,
+not guaranteed yields. Existing development questions are novelty context,
+not new accepted questions.
+
+The plan pins the default validation/student model, endpoint digest/API settings,
+source and graph identities, query limits, checkpoint cap and implementation
+hashes. The legacy source-wave version accepts `gpt-6-sol`; the checkpoint
+workflow below separately binds Astra drafting without rewriting that plan. Source
+pilots always require `quality_gate=True`. The runner owns a project/run-local
+lock and immutable logical allocations, role traces, terminal source outcomes
+and wave reports.
+
+- Compile repairs and model requests do not allocate another logical attempt.
+- Completed attempts, including errors and quality holds, are not rerolled.
+- Safe interrupted tool boundaries can resume the same attempt. An ambiguous
+  completion, accepted finish without its result, or terminal abstention
+  requires explicit recovery rather than another model sample.
+- Source insufficiency, post-compilation review/solver holds and operational
+  errors remain distinct. An operational error is persisted and raised.
+- Per-scope reports expose source-candidate yield, remaining attempt budget,
+  recorded model calls and compile repairs. An exhausted search envelope is
+  not a claim of absolute source exhaustion.
+
+`run_source_wave` executes an explicit bounded wave; the mechanical CLI can
+verify its retained accounting:
+
+```bash
+python -m secgym.qagen.agentic schema preproduction-plan
+python -m secgym.qagen.agentic preproduction-progress --run private-preproduction-run
+```
+
+#### Astra generation with 100-candidate review checkpoints
+
+[checkpoint_batches.py](checkpoint_batches.py) separates drafting from semantic
+reviews and final admission. Its versioned policy routes **new author/repair
+roles to `gpt-6-astra` on the same endpoint**, with 900-second HTTP limits.
+Reviewers and students retain their original Sol settings. Every generation
+request records its actual model/configuration; started roles cannot switch
+models or replay another model's encrypted context.
+
+The default checkpoint contains **100 draft-ready candidates: five per selected
+incident and 50 tenant questions**. Allocation uses the original campaign's
+remaining logical slots, so neither the 2,000-attempt budget nor the 1,000-new
+admission target is reset. Unsupported/failed generation attempts remain
+recorded and counted. They do not count as completed drafts.
+
+Four independent workers perform discovery and authorship in one role per
+candidate, without a separate per-question scout/refuter cycle. Deterministic
+checks still run before a draft is accepted: source compilation, whole-collection
+proof coverage, explicit public-anchor literals and width-free MySQL declarations.
+These checks are not semantic approval. Source reviews and blind students cannot
+start until the checkpoint is filled.
+
+```bash
+python -m secgym.qagen.agentic generate-checkpoint \
+  --run private-preproduction-run --batch-id astra100-01 \
+  --serving-bundle private-public-view --graph-bundle private-evidence-graph \
+  --env-file private-model.env --checkpoint-size 100 --workers 4 \
+  --review-at-checkpoint --mysql-bundle private-mysql --workdir /tmp
+
+python -m secgym.qagen.agentic checkpoint-progress \
+  --run private-preproduction-run --batch-id astra100-01
+```
+
+`--max-new-attempts 2` supports a small generation smoke run in the same
+checkpoint; omitting it later resumes the remaining slots without resampling
+completed drafts. An unfilled checkpoint stays visibly unfilled. If all workers
+in a generation wave return operational errors, generation pauses instead of
+consuming the remaining campaign budget on a likely shared failure.
+
+At the checkpoint, independent source reviews run concurrently. Each outcome,
+including a hold or operational error, is persisted separately; one failed item
+does not abort the other reviews. Source-ready items then enter the existing
+admission gates in parallel. The full MySQL snapshot is leased **only during
+native validation/student/replay work**, not while source-only model roles run.
+Robustness fixtures remain isolated. Final objective novelty and admission are
+serialized against the current global inventory.
+
+The objective helper must not reacquire the finalization lock already held by
+its caller. An exclusive lock followed by a shared lock on another file
+descriptor self-deadlocks; a regression test now covers that exact case.
+For an interrupted pipeline whose grading, native, baseline, robustness,
+canonical and difficulty stages all passed, the explicit
+`finalization_runtime_archive` API can resume only finalization. It requires the
+exact archived original producer, unchanged task/source/student bindings and
+no started objective-review request. Only pipeline orchestration may differ.
+Original stage bindings remain intact; an appended execution certificate records
+the new runtime. Completed students and earlier model roles are not rerun.
+
+`review-checkpoint` runs review separately after generation. `repair-checkpoint`
+accepts selected `--task-ids` from a completed checkpoint and regenerates/reviews
+pre-blind source-quality failures as tracked same-attempt revisions. It preserves
+their typed goals and scope. Started/completed students require supervised
+retained-trace repair, not automatic regeneration. Later grading, robustness,
+canonical, difficulty and novelty holds remain in the repair queue.
+
+Progress reports distinguish drafts, source readiness, admission, retained
+failures and cumulative campaign counts. The original admissions, development
+split and legacy artifacts remain unchanged; 100 drafts never means 100
+admitted questions or release approval.
+
+#### Persistent read-only SQL service
+
+[snapshot_service.py](snapshot_service.py) owns one long-lived MySQL process for
+a verified tenant snapshot. Incident and tenant questions reuse that same full
+snapshot; task scope does not create another database copy. The service holds
+the existing datadir ownership lock and runs with both `read_only` and
+`super_read_only`, networking disabled and a private Unix socket.
+
+```bash
+# Run under a long-lived process/service supervisor.
+python -m secgym.qagen.agentic.snapshot_service serve \
+  --run private-preproduction-run --service-directory private-sql-service \
+  --serving-bundle private-public-view --mysql-bundle private-mysql \
+  --workdir /tmp --native-slots 4 --wait-for-workflow
+
+python -m secgym.qagen.agentic register-sql-service \
+  --run private-preproduction-run --service-directory private-sql-service
+
+python -m secgym.qagen.agentic sql-service-status --run private-preproduction-run
+```
+
+`--wait-for-workflow` waits for the existing checkpoint owner to finish before
+starting MySQL. It does not kill or restart in-flight students. Registration
+requires actual readiness; once registered, `finish-preproduction`,
+`review-checkpoint`, `repair-checkpoint` and automatic review after
+`generate-checkpoint` use the shared service. Unregistered runs retain their
+legacy behavior. A registered but unavailable or mismatched service fails
+explicitly rather than falling back to another server on the same datadir.
+
+Each native candidate leases a bounded slot and receives **two fresh,
+independent SELECT-only sessions**, one for the student and one for the grader.
+Their existing row/byte/time limits are unchanged. Session state cannot leak
+between candidates, and an instance nonce detects stale/restarted services.
+Snapshot/schema verification occurs at service startup; the native verifier
+reuses the candidate's already verified source snapshot with a separate private
+metadata cursor. Existing query/grading methods are unchanged. The native stage
+records the instance, connection IDs, source binding and effective limits.
+
+Robustness mutations continue to use separate disposable fixtures. They never
+modify the persistent public snapshot.
+
+```bash
+python -m secgym.qagen.agentic.snapshot_service stop \
+  --run private-preproduction-run --service-directory private-sql-service
+```
+
+Shutdown rejects new leases and waits for existing native candidates to drain.
+It cleans up its owned socket/process, not the snapshot data. New checkpoint
+batches reuse the registered service without changing their Astra generation
+or Sol validation/student model bindings.
+
+Native index upgrades require an explicit, append-only amendment, not an edit
+to the original run plan or index reports. The approved v7 addition is the
+non-unique `MicrosoftGraphActivityLogs(RequestMethod(16), TimeGenerated)` index.
+Drain the service, take exclusive datadir ownership, preserve all historical
+reports, and verify every indexed-table row against its original source digest
+before recording the upgrade through
+`record_native_index_amendment`. Start the replacement under a new service
+directory, then register it; routing appends a hash-linked revision and requires
+the previous service to have stopped. The allocation plan and completed student
+bindings retain their original index version. New native validation records
+the effective version; only explicitly approved historical versions can be
+imported. Student traces and query budgets are never rewritten or rerun.
+Unchanged tables retain their original complete-snapshot verification; the
+upgrade does not falsely claim a new full-snapshot scan.
+
+Feature-only difficulty holds can continue with `--parent-pipeline`,
+`--parent-runtime-archive`, and `--difficulty-feedback`. The continuation
+verifies and reuses the completed grading, native, baseline, robustness and
+canonical stages. It runs the existing source-only difficulty revision process
+against the sealed prior review, followed by the remaining admission gates.
+It does not rerun students, alter the question, waive a task defect, or reuse
+a stage whose protected implementation changed.
+
+Difficulty curation v0.4 supplies the complete DuckDB witness programs,
+including qualified-obligation catalogs and candidate queries, alongside the
+answer programs. Representative evidence sets are not an exhaustive list of
+qualified proof alternatives. Neither role receives student outcomes or
+requested difficulty scores.
+
+Source audit manifests historically also included the difficulty-context module.
+An archived annotation-context amendment can preserve those completed source
+reviews only after AST checks prove that curation logic and source-quality
+semantics are unchanged. Both exact producers are pinned; only the context
+builder/version and the explicit producer-chain guard may differ. Unknown
+producer histories or changes to source, query, scoring or difficulty rules
+still require fresh validation. An interrupted role resumes its original
+archived producer and original context, never a silently rewritten request.
+
+`--recover-contaminated-robustness-review` is a one-use recovery for a captured
+review that demonstrably included author-only history. It requires the exact
+unchanged current-policy plan, its held parent, prepared-plan path and feedback.
+It preserves every control, reserves the original request once, and still
+requires independent source inspection and a fresh backend matrix. Clean
+reviews, passing reviews and altered plans cannot use this route.
+
+Initially unsent nonstudent calls have a separate
+`authorize_pre_request_recovery` protocol. An explicit approval must bind every
+request and the recorded failure evidence; all request contexts must match,
+and no response, tool result or terminal completion may exist. Only proven
+credential-preflight or dispatch-guard failures qualify. This never fabricates
+a response or labels authentication failure as an HTTP timeout.
+Versioned transport amendments preserve the original policy and role budgets;
+run-level callers resolve their hash-linked current policy rather than silently
+rebinding an old policy file.
+
+An admitted question's private proof contract can be repaired only through a
+separate `record_admitted_contract_revision` authorization after a sealed,
+source-ready revision. The exact public task, typed goals, checkpoint weights,
+scope, reward and evidence-lineage requirements must remain unchanged.
+`--admitted-contract-revision` requires `--fresh-validation`, the original
+retained native student and all current gates. It writes a new revalidation
+certificate, never replaces the historical admission or counts the question
+twice. Novelty comparisons use the exact task pinned by the historical
+admission, not an unvalidated newer source revision.
+
+Named source-backed control-repair authorizations can also correct materially
+false rationale text without changing correct answer/witness/support vectors.
+Unrequested prose-only changes remain prohibited, and independent review and
+the actual backend matrix remain required.
+
+An operational interruption after a completed native stage has a distinct
+`record_native_prefix_import_authorization` path. It requires the owned,
+inactive pipeline, its actual downstream error, exact native-stage receipt,
+producer archive and unchanged artifact inventory. The authorization is not
+a held/passing pipeline report and does not admit a question. Normal retained
+import still verifies the original student termination, capture, limits and
+frozen evaluator before any reuse.
+
+Qualified proof diagnostics distinguish complete observed support from
+submitted-citation relevance. Candidate SQL must return complete required
+source bundles, even when some required rows are not supplied; the frozen
+solver rejects incomplete availability. Source candidates can be activated
+with actual supplied/source joins, but prematurely filtering out incomplete
+comparison bundles can wrongly reject a complete smaller proof with legitimate
+scoped context. Mixed-context, missing-essential-member and unrelated-extra
+controls are required alongside minimal-positive probes.
+
+An unanswered nonstudent call with an actual recorded HTTP 500 can use
+`ServerErrorRecoveryApproval` and
+`recover_review(..., server_error_approval=...)`. This is a separate, one-use
+recovery, not a timeout or an unsent-request certificate. It binds the request,
+error, dispatch receipt, original model settings and unchanged conversation;
+it cannot restart completed roles, recover students, or retry a second failure
+automatically. Deploy transport changes through the run's policy amendment
+chain before recovering an existing role.
+
+Checkpoint source repairs must follow sealed source ancestry when a failed
+review left the latest revision without a student pointer. That absence is not
+permission to resample an earlier completed student. Source reviewers also need
+actual native physical-column collation/padding evidence, not assumptions about
+MySQL defaults; computed/JSON-derived values require separate consideration.
+Probe relevance comes from the source-qualified catalog, which may contain
+legitimate records outside the representative evidence sets.
+
+Robustness author/reviewer contexts declare each claim's witness policy.
+Enumerated support requires whole emitted-group containment. Qualified support
+instead requires a coherent complete obligation/candidate proof; it does not
+add an emitted-representative-group prerequisite. Representative rows,
+availability support and typed-answer correctness remain separate measurements.
+This distinction does not waive semantic comparison/completeness review.
+
+`--qualified-support-review-recovery` accepts an exact
+`QualifiedSupportRecoveryApproval`. It requires the unchanged held plan, the
+identified ambiguous prior context, and a passing, producer-bound diagnostic
+covering every case/claim/backend with actual counterexamples to representative
+containment on both engines. Its one-use certificate permits fresh independent
+review and measurement, never admission by diagnostic result; the reviewer is
+not shown those diagnostic outcomes.
+
+Correct counterfactual controls may also survive a separately reviewed,
+goal-equivalent executable-contract repair unchanged. A source-task revision
+alone, program renaming, whitespace or comments cannot authorize resampling.
+The changed executable contract is recorded and still needs fresh semantic
+review and actual backend measurement.
+
+Shared validation captures native physical-column collations in a separate
+metadata-only SQL lease, then reuses the task/snapshot-bound context for grading.
+It never starts a student during that inspection or reuses its lease receipt
+for the later native stage. Context caches and their lease artifacts are
+validated on resume.
+
+Source readiness alone never counts toward the validated target.
+[preproduction_admission.py](preproduction_admission.py) now verifies the final
+private admission packet: exact native source/index/model/query bindings,
+source-quality checks, native SecRL/ACE agreement, actual complete backend
+robustness measurements plus their semantic review, a separately reviewed
+grading contract, canonical evidence, reviewed difficulty and a distinct
+scoped-objective review bound to the current comparison pool.
+
+```bash
+python -m secgym.qagen.agentic schema preproduction-admission-files
+python -m secgym.qagen.agentic admit-preproduction \
+  --run private-preproduction-run --files private-admission-files.json
+```
+
+Paths in the admission file are resolved relative to that file. Admission writes
+an immutable receipt, counts the logical question only once and never silently
+replaces an accepted revision. Sources stop generating new attempts for a scope
+once its validated target is reached. Surplus candidates are retained, not
+silently rejected or admitted beyond the target.
+Receipts pin both runtime-amendment records and their verified archive ZIPs;
+subsequent progress checks detect changes to either.
+
+A measured student failure does **not** make a validated question inadmissible.
+Likewise, reviewed but unavailable difficulty measurements retain a null score
+and band rather than creating a difficulty quota; actual task defects still
+block admission. There is no overlap admission cap or release/training approval.
+
+The source-wave runner and final admission validator are implemented. The first
+manually coordinated bounded attempt exercised every gate and produced one
+verified admission. The second remains held because its retained source solve
+did not observe the incident-alert bridge. The third completed the reusable
+pipeline, including a reviewed robustness-annotation correction, with private
+gold and completed students unchanged. The verified milestone is
+**2/1,000 new questions from 3 completed logical attempts**; a bounded
+three-attempt source wave is now underway within the original 2,000-attempt
+envelope. Source readiness alone never counts toward the target.
+
+[preproduction_pipeline.py](preproduction_pipeline.py) now connects contract
+review and independent reflection, actual native validation and captured-result
+SecRL/ACE grading, exact graph footprints, source-authored/semantically reviewed
+backend counterfactuals, canonical facts, model-independent difficulty, scoped
+objective review and the existing final admission boundary:
+
+```bash
+python -m secgym.qagen.agentic finish-preproduction \
+  --run private-preproduction-run --task-id preprod-v1-incident-34-01 \
+  --serving-bundle private-public-view --graph-bundle private-evidence-graph \
+  --mysql-bundle private-mysql-snapshot --env-file private-model.env \
+  --workdir /tmp \
+  --output private-preproduction-run/attempts/preprod-v1-incident-34-01/pipeline/r1
+```
+
+This command makes approved-model calls and owns a temporary-socket MySQL
+process on the verified snapshot; it never chooses an arbitrary existing
+service. Student and private-grader query limits stay distinct. Add `--resume`
+only for the same bound output; an already completed pass or hold is retained,
+and completed students are never rerolled. Interrupted grading reuses captured
+results, while partially published grades recover from a selected completed
+replay. Ambiguous requests or accepted-finish/incomplete-file boundaries fail
+closed rather than requesting another answer.
+
+Stage receipts bind inputs, code and artifacts. Outputs must be in a direct
+child of the attempt's separate `pipeline/` directory, never original/revised
+source history. A new task/policy revision with an existing native student
+requires supervised retained-trace import, not a fresh native episode. Existing
+task-bound reviewed policies may be supplied with `--grading-policy-directory`.
+For an equivalent private task revision, supply all three
+`--retained-native-pipeline`, `--retained-native-task` and
+`--retained-native-runtime-archive` paths, plus
+`--prepared-robustness-plan` and `--robustness-feedback`. This explicit mode
+currently requires a direct held parent with a completed native stage and
+the unchanged default grader; it cannot be combined with annotation-parent
+flags or a grading-policy override. Fresh source quality is required first.
+Public content must match exactly except for the revision identifier, and
+typed final/checkpoint goals, dependency structure, reward, snapshot, model,
+limits and generation/capture/grading protocols must be preserved.
+The archive must cover both parent-pipeline and native-stage producer bindings.
+The original student directory is referenced read-only, including abstentions
+and failed SQL. Native validation runs again for the repaired task, then both
+adapters replay only the original captured results. All referenced files and
+the archive are pinned in the final receipt. Missing import arguments cannot
+reopen an imported stage as a fresh student.
+Canonical orchestration reuses the established source resolver, prompts and
+contracts, adding separately pinned exact-role recovery without rewriting
+historical curation kernels or producer hashes.
+
+Sixty-five focused tests pass, including actual isolated MySQL robustness and native
+ACE replay recovery. An actual owned-snapshot cache check made zero model calls
+and left the first admission unchanged. Fresh live end-to-end execution and
+annotation-only continuation have now produced the second verified immutable
+admission; this is not a claim that the 1,000-question generation is complete.
+
+A held robustness **annotation** can continue in a new sibling output with
+`--parent-pipeline`, `--parent-runtime-archive` and `--robustness-feedback`.
+An optional `--prepared-robustness-plan` supplies a deterministic correction
+instead of calling another author. This requires the unchanged task/source/
+model/grading policy, an exact archived parent producer, unchanged protected
+kernels, and hash-verified completed grading/native/baseline stages. Those
+stages and their student recordings are referenced, not rerun or overwritten.
+Every original intervention and fixture member must remain; a prose-only
+change cannot resample a held proposal. Fresh independent source review and
+actual backend measurements are still mandatory.
+A robustness-held continuation may replace its unimported robustness runner
+and final-admission coordinator, as well as pipeline orchestration, under
+the exact parent archive. The runtime module inventory and every imported
+stage's protected kernels must remain unchanged. A canonical-held continuation
+still protects the already-passed robustness implementation.
+
+A canonical-fact hold can similarly continue with `--canonical-feedback`
+instead of `--robustness-feedback`. It also retains completed robustness
+measurements, passes the previous source-fact selection and independent review
+to the new curator, and requires materially changed references rather than
+prose-only resampling. A fresh independent source review remains mandatory;
+the task, baseline, grading and completed students cannot change.
+
+Robustness answer, raw witness-query output and available-citation support are
+separate measurements, not three interchangeable final-success signals.
+Citation probes vary availability without deleting fixture records. A negative
+world can have no scalar answer but nonempty cohort-query output; the real
+claim verifier still requires its answer query to match typed gold before
+accepting witnesses. Expected measurements must describe that behavior
+accurately rather than incorrectly declaring the raw output empty.
+For different alternative-program outputs, `answer.by_program` maps every
+answer-program ID across both dialects to its exact typed answer or null.
+Missing/unknown IDs and changed public answer formats fail before execution.
+Scalar, null and `"baseline"` expectations retain their existing strict
+meaning for every program. Both fixture execution and final admission verify
+the exact output-vector length and each program's result; null is not an
+empty collection or permission to ignore a failed SQL call.
+The incident-36 continuation passed all 36 checks and subsequent canonical,
+difficulty and objective reviews. Its reviewed source-only difficulty is
+**60.0 hard (B2/P1/R3/A1)**. The original 12-call source and 10-call native
+students were retained; native final success and zero checkpoint progress
+remain unchanged.
+
+Incident 55's actual r4 task has now become the third admitted question after
+52 passing backend checks and all remaining reviews. Its source-only difficulty
+is **70.0 hard (B2/P3/R2/A1)**; the first native student used 12 calls with final
+success and zero checkpoint progress. Incident 39's corrected 22-fact annotation,
+difficulty and objective reviews then passed without rerunning its completed
+native or 28-check robustness stages. It is the fourth admission, with
+**43.33 medium (B2/P2/R1/A0)**. The verified milestone is **4/1,000 new admissions
+from 6 completed logical attempts**; a bounded five-attempt source wave is
+underway. No release or training approval is implied.
+
+The first incident/tenant source round has now allocated 11 attempts. Three
+additional source-ready candidates (incidents 133/134 and tenant question 1)
+entered downstream validation. Tenant question 1 passed all gates, becoming
+the fifth admission with **46.67 medium (B1/P2/R2/A0)**, grounded native final
+success and full checkpoint progress. Incidents 133/134 were held for actual
+proof/predicate defects rather than dropped or resampled.
+
+The incident-166 title/storage-width repair and incident-322 complete
+alternative audit representation subsequently passed fresh source quality
+as r3 tasks. Incident 322 retained its original 16-call source student;
+incident 166 used its first student. Incident 166 then passed all downstream
+gates, including 56 robustness checks, and became the sixth admission:
+**36.67 medium (B1/P2/R1/A0)**, grounded native final success and zero
+checkpoint progress. Its source/native students each used eight calls.
+The completed first per-scope readiness round produced **nine admissions
+from 11 logical attempts**; the two original source-evidence holds remain.
+Incident 322 passed native evaluation (13 calls, grounded
+final success and full checkpoint progress), but two of its 36 robustness
+checks exposed an annotation-format limitation. Removing one alternative
+audit representation correctly produces an answer from the surviving route
+and no answer from the removed route. A single claim-wide answer expectation
+could not express that result. Program-bound expectations are now implemented
+in both robustness execution and admission verification; the revised
+44-check matrix passes, including symmetric and both-route removals. Fresh
+independent review and every remaining gate passed, making incident 322 the
+eighth admission: **70.0 hard (B2/P2/R3/A1)**, with both students preserved.
+
+Incident 133's prepared session/IP-group proof repair passed 44 actual
+two-backend controls without merging distinct source observations or dropping
+incident/onset/later-process coverage. Its supervised fresh source quality,
+retained-student revalidation, grading/native evaluation and 32 robustness
+checks passed after that batch released its lock. Its first native student
+used nine calls with grounded final success and zero checkpoint progress.
+Canonical review requested the three process observations' inspected
+ProcessCreated action-type facts in both claims. The canonical-only
+continuation passed, followed by difficulty and objective review, making
+incident 133 the seventh admission: **63.33 hard (B2/P2/R3/A0)**. No passed
+stage or student was rerun.
+Incident 134's prepared strict-before/Delivered correction
+passed eight baseline-equivalence checks, six original-defect regressions and
+76 backend/claim robustness checks. The tested retained-native workflow is
+passed its source revision and all downstream gates while preserving
+the original 14-call source and 14-call native students. It is the ninth
+admission: **53.33 hard (B2/P2/R2/A0)**, grounded native final success and zero
+checkpoint progress. Its new native stage made zero student calls and pins
+222 original dependencies. The held reviews remain intact.
+Preparations and source readiness are not
+admissions, and no training or release approval is implied.
+
+The program-bound robustness change passes 86 focused regression tests,
+including actual isolated DuckDB/MySQL execution and native ACE replay.
+Production Pylance diagnostics are clear and Python 3.10 syntax is preserved.
+The admission-only source-runtime amendment preserves the exact prior
+producer archive; all nine receipts and all 109 legacy artifacts reverify.
+The subsequent retained-native integration passes 94 focused tests, including
+real captured-result replay, failed-query and abstention preservation,
+interrupted replay recovery, foreign-student rejection and receipt dependency
+tamper detection. New candidate manifests also include every native-stage
+runtime dependency, including the private pilot validator.
+
+### Portable private question packets
+
+`export-private-bundle` packages the approved development snapshot and,
+optionally, every admitted question in a preproduction run. It preserves
+the explicit development split; new preproduction questions remain
+unassigned. It copies exact task/native/canonical/difficulty/policy files,
+original approvals, admission receipts and their dependencies. It does not
+reconstruct difficulty sidecars or imply training/release approval.
+
+```bash
+python -m secgym.qagen.agentic schema private-difficulty-index
+python -m secgym.qagen.agentic export-private-bundle \
+  --development "$DEV_SNAPSHOT" --difficulty-index "$DIFFICULTY_INDEX" \
+  --preproduction-run "$RUN" --output "$PRIVATE_PACKET"
+python -m secgym.qagen.agentic check-private-bundle --bundle "$PRIVATE_PACKET"
+```
+
+The difficulty index lists each development task's exact plan, review and
+sidecar paths and SHA-256 values. The loader verifies those bindings against
+the approved axes/score/band or immutable admission. Operational paths in the
+packet are relative; original host paths remain historical provenance keys,
+never fallback locations. Every packet file is hash-bound. The only file in
+the student directory is `student/tasks.json`, generated from public task
+contracts; the whole packet remains private because it includes gold and
+review evidence. The full source database is not embedded and must be supplied
+separately using its existing snapshot/graph/serving bindings.
+
+The first private packet contains **56 questions: 47 development plus nine
+new admissions**, with **36 train / 11 test / nine unassigned** and all five
+reviewed grading policies. Its 3,445 artifacts were ZIP-round-tripped and
+loaded with access to every original data path forbidden: zero original
+accesses occurred. Eight focused export tests cover relocation, byte
+integrity, altered assignments/difficulty, authorization dependencies, path
+escape and private-data leakage into the student directory.
+
+A new bounded eleven-attempt source wave is now covering the second slot
+for each selected incident and tenant slot two under the original
+1,000-new-question target and 2,000-attempt envelope.
+
+That wave completed with **22 total logical attempts, 16 source-ready
+candidates and nine admissions**. Seven new source-ready candidates are
+running full downstream gates. Four pre-blind holds have prepared source
+corrections: three public-selector/type repairs passed 24 actual backend
+checks, while incident 38's complete observed ancestry repair passed 28.
+The latter corrects a hidden five-entry cutoff to the seven-entry observed
+chain, preserving the direct-parent checkpoint and explicitly reporting
+the limited observed stopping boundary.
+
+Second-slot incident 34 also has a prepared empty-list-versus-null robustness
+annotation correction: all 36 checks pass without changing its task or
+students. These repairs await fresh independent review and downstream gates
+behind the current batch lock. Second-slot incident 5 remains held on a
+native JSON_TABLE join-scope error before its first native student.
+Source readiness and prepared passing controls are not admission.
+
+The seven-candidate batch later stopped on an Azure API timeout in
+second-slot incident 133's contract review. Its sixth request has no recorded
+response; the ambiguous boundary is preserved and **not automatically
+retried**. The three untouched candidates (134/322/tenant second slots) are
+queued separately. Explicit lock waiting revalidates their exact source
+bindings before work starts.
+
+Additional prepared corrections pass 20 backend checks for incident 55's
+raw cohort-support annotation and eight for incident 5's MySQL join-scope
+defect. Both require fresh independent review and preserve completed
+students; incident 55's recorded native failure is not resampled or
+retrospectively credited. Latest verified totals are **22 attempts,
+17 source-ready candidates and nine admissions**, with independent repairs
+and untouched candidates continuing under the same serialized batch lock.
+
+The three selector repairs then passed fresh quality and their first source
+solves (36: 15 calls; 39: 12; 166: 17), bringing source readiness to **19/22**
+with **nine admissions**. A second contract-reviewer request timed out for
+incident 36. Both failures are HTTP read timeouts at approximately 300.3
+seconds, not SQL failures; their missing-response boundaries remain blocked
+without retry. The repaired incident-39/166 downstream roles were untouched
+and are queued separately, while independent work continues. The configured
+timeout and all original student outcomes remain unchanged.
+
+The user subsequently approved **900-second HTTP timeouts for reviewer
+calls only**, with explicitly audited recovery of interrupted review contexts.
+[review_transport.py](review_transport.py) routes only exact, recorded
+reviewer roles/result schemas to the approved override; students, authors and
+curators retain their original client. It records per-call effective
+settings and request hashes. Student HTTP (300 seconds), student SQL
+(30 seconds), private grading SQL (120 seconds), model, reasoning effort and
+token budgets remain unchanged.
+
+An eligible recovery must have an explicit timeout, an unanswered request,
+consistent preceding messages/tool results and no accepted/completed outcome.
+It appends a new call from the exact retained context; it never replaces
+the original unanswered call, error or student trace. Original source
+validators and independently required inspections still apply. An uncertain
+recovery is not retried automatically.
+
+[review_execution.py](review_execution.py) is an opt-in owned-snapshot runner
+that delegates to the unchanged candidate pipeline. The separate owner is
+intentional: historical source/pipeline producers and their bindings are
+frozen, so the transport change does not rewrite them. The approved policy
+and new producer are archived separately. Twenty-nine transport/source-quality
+tests and an actual owned native lifecycle check pass. Five interrupted
+review contexts are entering audited recovery; unaffected unstarted work
+will continue under the same approved reviewer policy.
+
+All five interrupted reviews subsequently completed without another
+transport failure. Their substantive outcomes remain gated: identity wording
+and checkpoint proof defects require correction, an ancestry answer has a
+formatting-only strict-contract mismatch, and incident 34 needs one canonical
+event-property reference. Completed students are not rerolled.
+
+An alleged MySQL syntax defect from incident 134's reviewers was independently
+disproved: ROLE is nonreserved in the actual MySQL 8.4 keyword catalog, and
+all four original programs execute and match DuckDB. The task and SQL remain
+unchanged. A materially new native-evidence reconsideration requires
+full-snapshot validation plus fresh independent review/reflection; it does
+not silently waive the original hold or repeat the same review for a pass.
+That reconsideration and incident 34's canonical-only correction are queued
+behind the ongoing approved-policy work.
+
+Incident 34's canonical-only correction subsequently passed and became the
+**tenth admission**, with **43.33 medium (B1/P2/R1/A1)**. The source/native
+students and all passed earlier stages were preserved.
+
+A robustness-author call then hit its original 300-second limit; that role
+was intentionally outside the reviewer-only override. The user explicitly
+approved the versioned **non-student V2 policy**: scouts, authors/repair
+authors, robustness authors, fact/difficulty curators and reviewers now use
+900-second HTTP limits. GPT-6-Sol, student HTTP (300 seconds), student SQL
+(30 seconds), private grading SQL (120 seconds), reasoning/token budgets
+and completed outcomes remain unchanged.
+
+V2 retains the original V1 policy/execution bytes and appends a separately
+bound transition. Exact role/schema routing excludes blind/native-blind
+students. Author recovery preserves the original context/tool interface and
+the same source/claim/probe validators; no accepted outcome or uncertain
+recovery is automatically repeated. Thirty-three focused transport and
+source-quality tests pass. The V2 recovery/remaining-work batch is active
+under the same serialized lock.
+
+An additional, explicitly approved policy supports **validation-only recovery
+of already-received non-student JSON results** through
+[`recover_json_result`](json_result_recovery.py). It accepts no model client.
+The role must declare its exact trusted result schema and have a complete
+response containing one JSON object or one unambiguous `json` code block.
+Students, accepted finishes, closed stages, refusals, truncations, ambiguous
+objects and unresolved earlier boundaries are rejected.
+
+Recorded token-rate waits are not unresolved model responses: a response-less
+slot may be retained only with its exact `retry_wait` role/index, no executed
+tools, and the unchanged next request. Inspection restoration uses only the
+verified completed-response prefix, and completion counts retain every original
+request, including waits. Unknown send states still require separate recovery.
+
+Callers must provide the original bound role validator and the original
+source-tool interface. Fact inspections are restored solely from recorded
+successful queries; unrecorded additional observations cannot be supplied.
+Schema validity alone is insufficient. A validation failure publishes no
+result, completion or recovery certificate and does not trigger inference.
+
+On success, the original response/history remains byte-identical. The
+publisher adds a hash-bound recovery certificate, an exact producer snapshot,
+the validated result and completion metadata explicitly identifying received
+JSON recovery. It records an empty tool-result list for the response's actual
+zero tool calls; it does not invent a `finish` call. Interrupted publication is
+idempotently resumable, but changed artifacts are rejected. Ordinary source
+inspection replay and cached role loading then work without another model
+sample; independent reviews, measurements and admission gates remain required.
+The JSON-recovery policy is separate from HTTP recovery and does not change
+model, transport, student or SQL settings. Forty-seven focused JSON-recovery,
+transport and source-quality tests pass.
+
+Incident 134's unchanged SQL passed native reconsideration, but a subsequent
+raw-measurement annotation correction is still pending fresh independent
+review. It passes 28 backend checks plus four real claim-verifier controls
+rejecting unsupported original gold. Current milestone: **ten admissions,
+19 source-ready candidates, 22 attempts**; packaging and source readiness
+still do not authorize release or replace final gates.
+
+The seven-job V2 batch completed without a new timeout and added three
+admissions: incident 39 second slot (**36.67 medium**), incident 322 second
+slot (**63.33 hard**) and incident 55 second slot (**70.0 hard**). The latter's
+original native failure remains recorded; question validity is not a
+requirement that every student succeeds. The completed milestone is
+**13 admissions from 22 attempts**, with 19 source-ready candidates.
+
+The new immutable private packet contains **60 questions: 47 development
+plus 13 admitted preproduction**, keeping **36 train / 11 test / 13
+unassigned** and all five grading policies. All 4,843 artifacts passed actual
+ZIP relocation with original-data access forbidden. The prior 56-question
+packet remains unchanged.
+
+A bounded eleven-attempt third-slot source wave is running under V2.
+Tenant question two's canonical event-property repair is queued. Incident
+134's stale rationale correction plus a substantive missing-IP boundary
+passes 32 backend checks and six original-gold rejection controls, but still
+requires fresh review and subsequent gates. Checkpoint/proof/identity holds
+remain explicit; no completed student is rerolled or a failed question
+silently dropped.
+
+[preproduction_revisions.py](preproduction_revisions.py) preserves explicit
+same-attempt source repairs under numbered immutable revision receipts.
+Original holds and traces remain intact; current-source resolution follows
+the bound parent/outcome chain. Revisions add no logical attempt, and their
+model calls and compile repairs remain separately accounted. Scope and declared
+goals are preserved by default. A started or completed blind student requires
+supervised equivalence/recovery rather than automatic resampling.
+Compiled revisions are now checked for preserved goals before the next
+reviewer/student inference, not only after the pilot returns. Typed task
+fingerprints remain bound even on operational errors. Legacy errors without a
+task fingerprint require an explicit recovery request bound to their unchanged
+task artifact; the original error is never rewritten. Retained-source-student
+certificates also block automatic resampling.
+Source and revision reports are compared in their JSON representation, so a
+Python tuple and its serialized array are not falsely treated as different
+results. Actual report-content differences still produce retained errors.
+The affected incident-38 result was reconciled without changing its task or
+10-call source student; its actual evidence hold remains in place. The two
+source slots then completed with pre-blind public-selector holds, rather than
+rerunning that completed student. Six logical attempts are now allocated and
+two questions admitted. Prepared incident-39/55 public-context repairs are
+being checked with private gold and checkpoint objectives unchanged. Incident
+39's source review and first 13-call blind solve passed. Incident 55's
+schema-constant correction and first 13-call blind solve also passed. Both are
+proceeding through downstream validation; neither source pass alone is admission.
+
+An orchestration-only runtime amendment may enable these lifecycle features
+without rewriting the original plan. It requires an exact archived copy of
+the previous implementation and a continuous fingerprint-bound amendment
+chain. Changes outside the explicitly named pre-production orchestration
+modules are rejected: this mechanism cannot change source, model, SQL, grading
+or curation kernels. The first readiness question was held before any student
+because its exact alert-title filter was not quoted publicly. Its wording-only
+revision passed source and actual native checks. Independent grading review
+then corrected unnecessary downstream checkpoint records and creation-time
+predicates; a width-free MySQL extraction passed actual equivalence checks.
+The final r5 revision retains both completed students with zero new student
+calls during private repairs. Source-reviewed optional context never replaces
+the complete five-record final or three-record checkpoint proof.
+
+All 100 baseline/counterfactual backend checks and 36 supporting-context controls
+passed. Canonical and objective reviews passed, and independent source-only
+difficulty curation assigned **53.33 hard (B2/P2/R2/A0)**. Native SecRL/ACE replay
+still yields grounded final success and zero checkpoint progress. Three source
+revisions consume only the original logical attempt; original holds, traces
+and the approved 47-question development cohort remain unchanged.
+The bounded launcher has also passed read-only post-amendment continuation
+checks: it loads the original plan, validates current settings separately and
+rejects unamended runtime changes without starting any new attempt.
+
+### Observed-pool capacity curves
+
+The latest pooled diagnostic covers the 47 approved development questions plus
+two admitted new questions: 90 within-scope pairs, all measurable. Exact summed
+capacities across independent scopes are **36 / 46 / 49 / 49** at the four
+approved thresholds. These are descriptive subset counts, not source ceilings
+or admission limits; no question or split was changed.
+
+[capacity.py](capacity.py) reports per-incident and tenant capacity curves at
+the approved diagnostic overlap thresholds 0.25, 0.50, 0.75 and 0.90. Every
+example subset satisfies **pairwise aggregate overlap <= the threshold**;
+equality is allowed. The aggregate uses the unchanged quarter weights and
+the exact current native/canonical bindings. Pair results are streamed to CSV;
+the search retains compact per-threshold conflict graphs rather than a full
+matrix of rich pair objects.
+
+The deterministic search provides a verified compatible subset as a lower
+bound and a graph-coloring upper bound. An observed-pool maximum is labeled
+exact only when those bounds meet. The request must specify a positive
+`search_budget_states` per bucket/threshold; exhausted searches keep honest
+bounds. Missing overlap components make the bucket unscorable, not
+zero-overlap or zero-capacity. These curves never reject questions, force
+groups, alter train/test assignments or establish source exhaustion.
+
+```bash
+# Example request: {"search_budget_states": 10000}
+python -m secgym.qagen.agentic capacity-curves \
+  --inputs private-inputs.json --request capacity-request.json \
+  --output observed-capacity
+```
+
+Outputs are `capacity-report.json`, `capacity.csv` and
+`within-scope-pairs.csv`, including source/artifact hashes and example-subset
+certificates. Cross-scope overlap remains in the separate full overlap audit.
+The CLI returns nonzero for unscorable source comparisons. An empty or small
+observed pool is not an estimate of every question the source could support.
+
+### Difficulty profiling
+
+[difficulty.py](difficulty.py) implements the provisional four-axis formula
+and strict measurement/sidecar contracts. Reviewed plans identify one complete
+evidence alternative per final/checkpoint and a logical dependency DAG.
+Breadth, dependency depth and operation counts are calculated from that plan;
+semantic necessity and the completeness of the decision points still require
+review. Raw overlap-edge count is descriptive, not a score input.
+
+Ambiguity probes retrieve source-attributed candidate rows and count distinct
+observations or qualified identity fields. Repeated joined rows do not inflate
+counts. Exact probes cannot use LIMIT/OFFSET/sampling; empty, incomplete or
+unattributed results and query failures do not become difficulty evidence.
+A missing ambiguity plan yields no score; an explicitly reviewed empty plan
+declares no additional choice point.
+
+For populations larger than one result page, `PartitionedAmbiguityProbe` adds
+the explicit `retrieval_policy="exhaustive-record-ranges-v1"`. The original
+candidate query remains unchanged inside every partition, including its
+joins, time bounds, windows and semantic selection. A whole-scope census
+checks non-null source locators and exact row count. The server retrieves
+contiguous, disjoint locator ranges under the unchanged per-query limits and
+verifies every row's source attribution before deduplicating candidate
+identities across pages. A zero-row header query is schema inspection only,
+not candidate evidence or sampling.
+
+The private result includes all verified citations and a count-matched
+partition audit with query/result digests. Null/invalid locators, unsplittable
+oversized locator blocks, missing rows, query errors, more than 4,096 partition
+queries or more than 64 MiB of retained result data are explicit measurement
+errors: partial pages never produce a score. Existing single-result probes
+keep their serialized shape and still fail when their declared query exceeds
+its limits; pagination is opt-in, not a silent fallback.
+
+```bash
+python -m secgym.qagen.agentic schema difficulty-plan
+python -m secgym.qagen.agentic schema difficulty-review
+python -m secgym.qagen.agentic schema difficulty-inputs
+python -m secgym.qagen.agentic schema difficulty-sidecar
+
+# Descriptors only: no guessed reasoning depth, ambiguity or difficulty label.
+python -m secgym.qagen.agentic difficulty-profile \
+  --inputs private-inputs.json --output difficulty-inventory
+
+# Actual source measurements for the explicitly reviewed plans.
+python -m secgym.qagen.agentic difficulty-profile \
+  --inputs private-inputs.json --plans difficulty-inputs.json \
+  --serving-bundle /private/public-view --limits query-limits.json \
+  --output difficulty-measurements
+```
+
+The plans manifest has `entries`, each containing `task_id`, `plan` and an
+optional `review` path, relative to that manifest. An absent/failed review is
+reported as `needs_review`, never scored. The CLI writes one private sidecar
+per question, `difficulty.csv` and `summary.json`; requested incomplete
+measurements return a nonzero exit status. No task, native validation,
+canonical annotation or public prompt is rewritten.
+
+The frozen development prototype has 47 descriptor profiles. Two source-
+measured examples have provisional scores: incident 166 Q2 is 26.666667
+(medium), and incident 133 Q2 is 70 (hard). The remaining 45 are explicitly
+unmeasured, not easy by default. These manually source/program-reviewed
+controls exercise the measurement/scoring pipeline; they are not empirical
+model calibration. All 106 focused difficulty/split/CLI/canonical tests pass,
+and the approved development split and source bindings remain unchanged.
+
+### Source-inspecting feature curation
+
+[difficulty_curation.py](difficulty_curation.py) provides `curate_difficulty`
+for a private feature curator followed by a separate reviewer. Neither role
+receives student outcomes or numerical difficulty scores. Both must retrieve
+the selected proof records through source-attributed SQL results. Proposals
+are checked against the frozen claims, and ambiguity probes cannot select
+private witness IDs as an oracle.
+
+The reviewer sees the source measurements and reasoning plan, not a requested
+easy/hard tier. Source counts are not themselves proof that the probe's scope
+or identity definition is correct; those remain explicit review obligations.
+Only a passing plan-bound review enables deterministic scoring. A suspected
+question/rubric defect is held separately from a feature-annotation defect.
+
+Fresh revisions preserve prior outputs and keep earlier feedback out of the
+new reviewer's context. `resume=True` verifies input/runtime bindings,
+restores captured source inspections and retains completed roles, including
+when only a reviewer was interrupted. The initial automation rollout is a
+three-question source-feature pilot before the rest of the development
+cohort. It does not run model-ability evaluations or generate new QA.
+
+The first pilot surfaced two issues before wider rollout. Initial ambiguity
+annotations that dropped resolved identity/path bindings were held for
+feature-only correction; v0.2 clarifies candidate scope/identity and uses a
+smaller property-reference context while retaining mandatory source
+inspection. Original model reviews and scores are preserved, not relabeled
+as new reviews.
+
+Current curation v0.3 supports exhaustive retrieval and explicitly retains
+public semantic roles when measuring ambiguity: a compiler is not a competing
+Notepad child, a non-LDAP observation is not an alternative LDAP request, and
+other artifact types are not competing executables when executable type is
+given. Genuine within-role ranking/temporal/eligibility alternatives may
+still count. For paged populations, reviewers receive the full census and
+partition audit plus a citation-inventory count/digest; the full attributed
+inventory remains in the private measurement artifact. Neither context
+contains a desired numerical score or student performance.
+
+Separately, a read-only proof-fixture audit reproduced incomplete collection
+witness alternatives in incident-5 Q1/Q5 and tenant Q6: 18 of 30 alternatives
+across all 17 multi-valued development claims lost answer members. These are
+question/rubric proof defects, not missing difficulty features. Fresh QA
+revisions are in progress, and the original development approval remains
+historical rather than reusable proof for changed task fingerprints.
+The remaining feature queue and pre-production generation are not used to
+bypass these checks.
+
+Subsequent source-preserving selector audits are recorded in design Sections
+17.43-17.45. They distinguish actual question/program defects from feature
+holds, retain historical approvals/outcomes, and require fresh source/native
+and downstream bindings for changed questions. No pre-production generation
+or model-ability evaluation is authorized by a successful feature review.
 
 ## I4: private discovery pilot
 

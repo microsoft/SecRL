@@ -16,18 +16,19 @@ from sqlglot.lineage import Node, lineage
 
 from .contracts import (
     AnswerProgram, ClaimCheck, Contract, EvidenceReference, GateResult, NonnegativeInt, PublicCitation,
-    ScoreComponent, TaskRecord, TypedAnswer, ValidationReport, fingerprint,
+    QualifiedWitnessProgram, ScoreComponent, TaskRecord, TypedAnswer, ValidationReport, fingerprint,
 )
 from .graph import load_ledger
 from .ledger import attach_readonly
 from .mysql_serving import canonical_mysql_row, load_serving_report, mysql_column_name, mysql_identifier
 from .query import PublicQueryEngine, QueryFailure, Scalar, checked_select
+from .qualified_witnesses import QualifiedProofs, resolve_qualified_proofs, validate_qualified_program
 from .scoring import aggregate_evaluation, compare_checkpoint_finding, compare_typed_answers
 from .serving import row_digest
 from .sources import quote_identifier
 
 
-VERIFIER_VERSION = "source-witness-v1.2"
+VERIFIER_VERSION = "source-witness-v1.3"
 CitationOrigin = tuple[str, tuple[str, ...], str, tuple[int, ...]]
 
 
@@ -122,6 +123,8 @@ class EvidenceVerifier:
             tree = checked_select(program.query, program.engine, set(self.tables), gold=True, allowed_literals=allowed)
         except QueryFailure as error:
             raise QueryFailure(error.code, f"{program.engine} program {program.program_id}: {error}") from error
+        if isinstance(program, QualifiedWitnessProgram):
+            validate_qualified_program(program, set(self.tables), allowed)
         if expected is not None:
             for selected in tree.selects:
                 if not selected.find(exp.Column) and not isinstance(selected, exp.Star) and not any(
@@ -144,6 +147,7 @@ class EvidenceVerifier:
                 raise EvidenceFailure("executable answer disagrees with the typed gold value")
         alternatives: set[frozenset[PublicCitation]] = set()
         for program in witnesses:
+            self.validate_program(program)
             result = self.engine.execute(program.query, gold=True, allowed_literals=allowed)
             if result.columns != ("evidence_group", "table_name", "record_id") or not result.rows:
                 raise EvidenceFailure("witness query must return nonempty evidence_group/table_name/record_id rows")
@@ -156,8 +160,23 @@ class EvidenceVerifier:
                 lineages = {self.citation_lineage(c) for c in citations}
                 if claim.requires_behavior_evidence and not lineages & {"behavior", "security_control"}:
                     raise EvidenceFailure("detector/context-only witnesses cannot independently support a behavior claim")
+                if isinstance(program, QualifiedWitnessProgram):
+                    proof = resolve_qualified_proofs(program, self.engine, frozenset(citations), allowed)
+                    behavior = frozenset(c for c in citations if self.citation_lineage(c) in {"behavior", "security_control"})
+                    if not citations <= proof.relevant or proof.match(
+                        frozenset(citations), behavior=behavior, requires_behavior=claim.requires_behavior_evidence,
+                    ) is None:
+                        raise EvidenceFailure("representative evidence must satisfy every source-qualified proof obligation")
                 alternatives.add(frozenset(citations))
         return tuple(sorted(alternatives, key=lambda group: sorted((c.table, c.record_id) for c in group)))
+
+    def qualified_proofs(self, claim: ClaimCheck, citations: frozenset[PublicCitation]) -> tuple[QualifiedProofs, ...]:
+        allowed = self.allowed_literals | frozenset(self.tables)
+        return tuple(
+            resolve_qualified_proofs(program, self.engine, citations, allowed)
+            for program in claim.witness_programs
+            if isinstance(program, QualifiedWitnessProgram) and program.engine == self.engine.engine
+        )
 
     def preflight(self, task: TaskRecord) -> dict[str, tuple[frozenset[PublicCitation], ...]]:
         if (task.snapshot_id != self.report["snapshot_id"] or task.serving_view_id != self.report["serving_view_id"]
@@ -186,16 +205,38 @@ class EvidenceVerifier:
         return ValidationReport(task_id=task.task_id, task_fingerprint=fingerprint(task),
                                 evaluator_version=VERIFIER_VERSION, gates=gates)
 
-    def evidence_matches(self, finding: Finding, witnesses: tuple[frozenset[PublicCitation], ...]) -> bool:
+    def evidence_matches(self, finding: Finding, witnesses: tuple[frozenset[PublicCitation], ...], *,
+                         claim: ClaimCheck | None = None) -> bool:
         citations = frozenset(finding.citations)
         if not citations or len(citations) != len(finding.citations):
             return False
+        if claim is not None and any(isinstance(p, QualifiedWitnessProgram) for p in claim.witness_programs):
+            return self._qualified_matches(claim, citations, require_relevant=True)
         relevant = frozenset().union(*witnesses)
         if not citations <= relevant or not any(group <= citations for group in witnesses):
             return False
         for citation in citations:
             self.citation_lineage(citation)
         return True
+
+    def _qualified_matches(self, claim: ClaimCheck, citations: frozenset[PublicCitation], *,
+                           require_relevant: bool) -> bool:
+        proofs = self.qualified_proofs(claim, citations)
+        if not proofs:
+            raise EvidenceFailure("source-qualified witness program is missing for this backend")
+        relevant = frozenset(c for proof in proofs for c in proof.relevant)
+        if require_relevant and not citations <= relevant:
+            return False
+        available = citations & relevant
+        behavior = frozenset(c for c in available if self.citation_lineage(c) in {"behavior", "security_control"})
+        return any(proof.match(available, behavior=behavior, requires_behavior=claim.requires_behavior_evidence) is not None
+                   for proof in proofs)
+
+    def complete_witness_observed(self, claim: ClaimCheck, witnesses: tuple[frozenset[PublicCitation], ...],
+                                  observed: frozenset[PublicCitation]) -> bool:
+        if any(isinstance(p, QualifiedWitnessProgram) for p in claim.witness_programs):
+            return self._qualified_matches(claim, observed, require_relevant=False)
+        return any(group <= observed for group in witnesses)
 
     def observed_citations(self, result, query: str) -> set[PublicCitation]:
         if not any(isinstance(value, str) and value.startswith("r:") and len(value) == 66 for row in result.rows for value in row):
@@ -290,7 +331,7 @@ class EvidenceVerifier:
 
         answer = component("final-answer", "answer_correctness", float(correct), submission, "Strict typed answer comparison.")
         try:
-            grounded = submission is not None and self.evidence_matches(submission, proofs["final"])
+            grounded = submission is not None and self.evidence_matches(submission, proofs["final"], claim=task.private_gold.final)
         except EvidenceFailure:
             grounded = False
         evidence = component("final-evidence", "final_evidence", float(grounded), submission if grounded else None,
@@ -302,7 +343,7 @@ class EvidenceVerifier:
                 if not compare_checkpoint_finding(checkpoint.claim.expected, finding.answer):
                     continue
                 try:
-                    valid = self.evidence_matches(finding, proofs[checkpoint.checkpoint_id])
+                    valid = self.evidence_matches(finding, proofs[checkpoint.checkpoint_id], claim=checkpoint.claim)
                 except EvidenceFailure:
                     valid = False
                 if valid:
@@ -333,8 +374,15 @@ def serving_parity(task: TaskRecord, source: EvidenceVerifier, mysql: EvidenceVe
     if source.engine.engine != "duckdb" or mysql.engine.engine != "mysql":
         raise ValueError("serving parity requires both actual backend types")
     try:
-        if source.preflight(task) != mysql.preflight(task):
+        proofs = source.preflight(task)
+        if proofs != mysql.preflight(task):
             return GateResult(gate="serving_parity", status="fail", reason="Backend witness sets differ.")
+        claims = {"final": task.private_gold.final, **{cp.checkpoint_id: cp.claim for cp in task.private_gold.checkpoints}}
+        for key, claim in claims.items():
+            for citations in (*proofs[key], frozenset().union(*proofs[key])):
+                if source.qualified_proofs(claim, citations) != mysql.qualified_proofs(claim, citations):
+                    return GateResult(gate="serving_parity", status="fail",
+                                      reason="Backend qualified obligations, candidates or shared bindings differ.")
     except QueryFailure as error:
         return GateResult(gate="serving_parity", status="error", error_code=error.code, reason=str(error))
     except EvidenceFailure as error:

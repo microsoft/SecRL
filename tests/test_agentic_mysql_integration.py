@@ -270,6 +270,75 @@ class MySQLServingIntegrationTests(unittest.TestCase):
                                 self.assertEqual(failure["complete_witness_observed"], saw_evidence)
                                 self.assertEqual(failure["secrl_reward"], 0.5 if saw_evidence else 0.0)
                                 self.assertEqual(failure["aces_aggregate_reward"], failure["secrl_reward"])
+                            from secgym.qagen.agentic.generation import ReviewResult
+                            from secgym.qagen.agentic.quality import (
+                                QUALITY_VERSION, QualityAssessment, audit_source_quality, run_quality_gate,
+                            )
+
+                            audit = audit_source_quality(pilot_task, source_verifier, serving)
+                            review = ReviewResult.model_validate_json((candidate / "refuter/result.json").read_bytes())
+                            quality_review = QualityAssessment(
+                                task_fingerprint=fingerprint(pilot_task), audit_fingerprint=fingerprint(audit),
+                                review=review, whole_claim_proofs_supported=True,
+                                json_semantics_supported=True, dispositions=(),
+                            )
+                            quality_client = FakeClient([
+                                call("sql", {"query": "SELECT * FROM DeviceProcessEvents WHERE DeviceName='host.test'"}),
+                                call("finish", quality_review.model_dump(mode="json")),
+                            ])
+                            gate, projection = run_quality_gate(
+                                client=quality_client, task=pilot_task, verifier=source_verifier, serving_bundle=serving,
+                                output=candidate / "quality", instructions="Synthetic quality review.", review_context={},
+                            )
+                            self.assertEqual(gate["status"], "pass")
+                            self.assertEqual(projection, review)
+                            (candidate / "execution-policy.json").write_text(json.dumps({
+                                "source_quality_policy": QUALITY_VERSION,
+                                "source_quality_runtime_sha256": audit.implementation_sha256,
+                                "query_limits": limits.model_dump(mode="json"),
+                            }))
+                            summary = json.loads((candidate / "pilot_report.json").read_text())
+                            summary["source_quality"] = gate
+                            (candidate / "pilot_report.json").write_text(json.dumps(summary))
+                            guarded = evaluate_candidate(
+                                candidate, root / "pilot-quality-replayed", source_verifier, verifier, None,
+                                blind_from=root / "pilot-under-citation/mysql-blind", require_source_quality=True,
+                            )
+                            self.assertEqual(guarded["status"], "private_pilot_completed")
+                            self.assertEqual(guarded["secrl_reward"], 0.0)
+                            self.assertEqual(guarded["aces_aggregate_reward"], 0.0)
+                            validation = json.loads((root / "pilot-quality-replayed/private-pilot-validation.json").read_text())
+                            self.assertIn(str(candidate / "quality/gate.json"),
+                                          next(g for g in validation["gates"] if g["gate"] == "refutation")["artifact_refs"])
+                            from secgym.qagen.agentic.contracts import ValidationReport
+                            from secgym.qagen.agentic.model_panel import PanelProfile, run_episode
+                            from test_agentic_model_panel import ConfiguredFake
+
+                            panel_client = ConfiguredFake([
+                                call("sql", {"query": "SELECT * FROM DeviceProcessEvents WHERE DeviceName='host.test'"}),
+                                call("record_finding", {
+                                    "answer": pilot_task.private_gold.checkpoints[0].claim.expected.model_dump(mode="json"),
+                                    "citations": citations,
+                                }),
+                                call("finish", {"answer": pilot_task.private_gold.final.expected.model_dump(mode="json"),
+                                                "citations": citations, "confidence": "supported", "explanation": "Captured native fixture."}),
+                            ])
+                            panel_profile = PanelProfile(query_limits=limits)
+                            panel_validation = ValidationReport.model_validate_json(json.dumps(validation))
+                            panel_result = run_episode(
+                                task=pilot_task, validation=panel_validation, verifier=verifier, client=panel_client,
+                                profile=panel_profile, output=root / "matched-panel", run_id="matched-native-fixture",
+                                manifest_fingerprint="a" * 64,
+                            )
+                            self.assertEqual(panel_result["status"], "completed")
+                            self.assertTrue(panel_result["grounded_final"])
+                            self.assertEqual(panel_result["checkpoint_progress"], 1.0)
+                            self.assertEqual(panel_result["reward"], 1.0)
+                            self.assertEqual(run_episode(
+                                task=pilot_task, validation=panel_validation, verifier=verifier, client=ConfiguredFake([]),
+                                profile=panel_profile, output=root / "matched-panel", run_id="matched-native-fixture",
+                                manifest_fingerprint="a" * 64, resume=True,
+                            ), panel_result)
                         finally:
                             source_verifier.close()
                             source_engine.connection.close()
@@ -286,6 +355,7 @@ class MySQLServingIntegrationTests(unittest.TestCase):
                 with self.assertRaises(QueryFailure):
                     engine.execute("SELECT COUNT(*) FROM DeviceProcessEvents")
                 self.assertFalse(report["release_approved"])
+                self._qualified_witness_case(root, admin, socket, password)
             finally:
                 if engine is not None:
                     engine.connection.close()
@@ -297,6 +367,97 @@ class MySQLServingIntegrationTests(unittest.TestCase):
                 except subprocess.TimeoutExpired:
                     server.kill()
                     server.wait(timeout=30)
+
+    def _qualified_witness_case(self, root, admin, socket, password):
+        from agentic_runtime_fixture import qualified_runtime_draft
+        from secgym.qagen.agentic.contracts import PublicCitation
+        from secgym.qagen.agentic.evidence import Finding
+        from secgym.qagen.agentic.generation import compile_draft
+        _, _, serving, report = runtime_fixture(root / "qualified-fixture", extra_rows=2)
+        load_mysql_view(serving, admin, "secrl_v1_qualified_fixture")
+        cursor = admin.cursor()
+        cursor.execute("CREATE USER 'qualified_reader'@'localhost' IDENTIFIED BY %s", (password,))
+        cursor.execute("GRANT SELECT ON secrl_v1_qualified_fixture.* TO 'qualified_reader'@'localhost'")
+        cursor.close()
+        limits = QueryLimits(max_rows=100, max_bytes=65536, timeout_ms=3000)
+        source_engine = open_duckdb_engine(serving, limits)
+        mysql_engine = open_mysql_engine(serving, database="secrl_v1_qualified_fixture", limits=limits,
+                                         unix_socket=str(socket), user="qualified_reader", password=password)
+        source = EvidenceVerifier(serving, source_engine, frozenset({"43"}))
+        mysql = EvidenceVerifier(serving, mysql_engine, frozenset({"43"}))
+        try:
+            task = compile_draft(qualified_runtime_draft(serving, report), source, mode="tenant", incident_id=None,
+                                 task_id="qualified-mysql", revision_id="r1", checkpoint_cap=0.5)
+            self.assertEqual(serving_parity(task, source, mysql).status, "pass")
+            from secgym.qagen.agentic.contracts import AnswerProgram
+            from secgym.qagen.agentic.difficulty import PartitionedAmbiguityProbe, _probe
+            mysql_engine.limits = QueryLimits(max_rows=1, max_bytes=65536, timeout_ms=3000)
+            population = _probe(PartitionedAmbiguityProbe(
+                probe_id="population", decision_step="lookup", table="DeviceProcessEvents",
+                program=AnswerProgram(program_id="mysql-population", engine="mysql",
+                                      query="SELECT _record_id,ProcessId FROM DeviceProcessEvents"),
+                identity_kind="source_observation", retrieval_policy="exhaustive-record-ranges-v1",
+                scope_and_relaxation="Controlled whole-source fixture population.",
+            ), mysql)
+            self.assertEqual(population.status, "complete", population.reason)
+            self.assertEqual(population.candidate_count, 4)
+            self.assertEqual(population.retrieval.full_scope_rows, 4)
+            self.assertTrue(all(part.retrieved_rows <= 1 for part in population.retrieval.partitions))
+            mysql_engine.limits = limits
+            rows = mysql_engine.execute("SELECT _record_id,DeviceName FROM DeviceProcessEvents WHERE ProcessId=43").rows
+            all_citations = frozenset(PublicCitation(table="DeviceProcessEvents", record_id=row[0]) for row in rows)
+            representative = source.preflight(task)["final"][0]
+            other = next(PublicCitation(table="DeviceProcessEvents", record_id=record)
+                         for record, host in rows if host == "other.test")
+            alternate = tuple(sorted((all_citations - representative) | {other}, key=lambda item: item.record_id))
+            self.assertEqual(len(alternate), 2)
+            for claim in (task.private_gold.final, task.private_gold.checkpoints[0].claim):
+                self.assertEqual(source.qualified_proofs(claim, frozenset(alternate)),
+                                 mysql.qualified_proofs(claim, frozenset(alternate)))
+                proofs = mysql.claim_witnesses(claim)
+                self.assertTrue(mysql.evidence_matches(Finding(answer=claim.expected, citations=alternate, step=1),
+                                                        proofs, claim=claim))
+                self.assertFalse(mysql.evidence_matches(Finding(answer=claim.expected, citations=(other,), step=1),
+                                                         proofs, claim=claim))
+            payload = Submission(answer=task.private_gold.final.expected, citations=alternate).model_dump_json()
+            finding = Submission(answer=task.private_gold.checkpoints[0].claim.expected, citations=alternate).model_dump_json()
+            query = "SELECT _record_id,DeviceName FROM DeviceProcessEvents WHERE ProcessId=43"
+            review = reviewed_fixture(task)
+            env = SecRLV1Env(task, mysql, review, run_id="qualified-secrl", trajectory_ref="fixture:qualified", max_steps=4)
+            env.step(query)
+            env.record_finding(finding)
+            env.step(payload, submit=True)
+            self.assertEqual(env.evaluation.aggregate_reward, 1.0)
+            self.assertEqual(env.evaluation.checkpoint_progress, 1.0)
+            if find_spec("saber") and find_spec("inspect_ai"):
+                from saber.config.models import TaskConfig
+                from saber.scoring.context import ScoringContext
+                from saber.scoring.registry import ScoringStrategyRegistry
+                from saber.scoring.aggregation import aggregate_scorer_results
+                ace = SecRLV1Env(task, mysql, review, run_id="qualified-ace", trajectory_ref="fixture:qualified-ace",
+                                 max_steps=4, backend="acesevals")
+                tools = make_aces_tools(ace)
+                asyncio.run(tools[0](query=query))
+                asyncio.run(tools[1](finding=finding))
+                config = TaskConfig.model_validate(export_aces_task(
+                    task, instruction_template="fixture.j2", max_steps=4,
+                )["tasks"][0])
+                registry = ScoringStrategyRegistry()
+                register_aces_strategy(registry, {ace.run_id: ace})
+                scores = {}
+                for scorer in config.scorers:
+                    context = ScoringContext(submission=payload, tool_steps=(), messages=(), target="", task_id=config.task_id,
+                                             domain="excytin", metadata={"secrl_run_id": ace.run_id}, scorer=scorer)
+                    scores[scorer.scorer_name] = asyncio.run(registry.get(scorer.strategy).score(context, None)).value
+                aggregate, _ = aggregate_scorer_results(scorer_configs=config.scorers, raw_scores=scores,
+                                                       agg_config=config.scoring_aggregation)
+                self.assertEqual(aggregate, env.evaluation.aggregate_reward)
+                self.assertEqual(ace.evaluation.checkpoints, env.evaluation.checkpoints)
+        finally:
+            mysql.close()
+            source.close()
+            mysql_engine.connection.close()
+            source_engine.connection.close()
 
 
 if __name__ == "__main__":

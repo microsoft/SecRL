@@ -272,6 +272,15 @@ class AnswerProgram(Contract):
     query: Text
 
 
+class QualifiedWitnessProgram(AnswerProgram):
+    witness_policy: Literal["source-qualified-obligations-v1"]
+    obligations_query: Text
+    candidates_query: Text
+
+
+WitnessProgram: TypeAlias = QualifiedWitnessProgram | AnswerProgram
+
+
 class EvidenceSet(Contract):
     evidence_ids: Annotated[tuple[Identifier, ...], Field(min_length=1)]
     rationale: Text
@@ -286,13 +295,15 @@ class ClaimCheck(Contract):
     expected: TypedAnswer
     programs: Annotated[tuple[AnswerProgram, ...], Field(min_length=1)]
     evidence_sets: Annotated[tuple[EvidenceSet, ...], Field(min_length=1)]
-    witness_programs: tuple[AnswerProgram, ...] = ()
+    witness_programs: tuple[WitnessProgram, ...] = ()
     requires_behavior_evidence: bool = True
 
     @model_validator(mode="after")
     def unique_programs(self) -> ClaimCheck:
         require_unique(tuple(p.program_id for p in self.programs), "program IDs")
         require_unique(tuple(p.program_id for p in (*self.programs, *self.witness_programs)), "claim program IDs")
+        if len({isinstance(p, QualifiedWitnessProgram) for p in self.witness_programs}) > 1:
+            raise ValueError("a claim cannot mix enumerated and source-qualified witness policies")
         return self
 
 

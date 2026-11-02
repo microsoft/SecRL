@@ -27,7 +27,10 @@ from .similarity import EvidenceFootprint, WeightedFeature, decisive_features, e
 
 
 POLICY_VERSION = "question-level-overlap-reporting-v1"
-RUNTIME_FILES = ("canonical_facts.py", "fact_curation.py", "evidence.py", "generation.py", "query.py")
+RUNTIME_FILES = (
+    "canonical_facts.py", "fact_curation.py", "contracts.py", "evidence.py",
+    "qualified_witnesses.py", "generation.py", "query.py",
+)
 Partition = Literal["train", "test"]
 
 

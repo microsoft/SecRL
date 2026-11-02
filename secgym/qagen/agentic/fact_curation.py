@@ -16,7 +16,7 @@ from .query import QueryResult
 from .similarity import EvidenceFootprint
 
 
-CURATION_VERSION = "source-fact-curation-v1.1"
+CURATION_VERSION = "source-fact-curation-v1.2"
 
 CURATOR_INSTRUCTIONS = """Identify canonical source facts for the already validated task, not new QA or grading rules.
 The SQL tool is DuckDB. Inspect actual public source fields and the supplied complete evidence.
@@ -51,6 +51,10 @@ requires every ancestor and the object parent to exist, then derives true/false 
 This distinguishes a missing member from an explicit null; it says nothing about real-world absence.
 Never use a missing property_value path as an implicit null or false. Select member presence only when
 that structural observation materially supports a claim predicate (for example recorded Exec.Arguments).
+For a material recorded empty JSON array, use kind=json_array_empty_v1 and the exact JSON path
+(an empty path [] for the column's JSON root). This derives the atomic observation true only from an
+existing array with no elements. Missing paths, nulls, objects and nonempty arrays are rejected.
+It is not a synthetic count, a whole-container fact, or evidence that no real-world activity occurred.
 Keep numerical tokens, case, whitespace and timestamp precision unchanged. Missing/ambiguous paths must
 be corrected, not guessed. Explain each claim's property choices and any genuine limitations.
 The fact extraction is for private overlap diagnostics only. Do not change questions, answers, checkpoints,
@@ -70,6 +74,8 @@ every SQL-search result. Do not demand outside-window counterexamples solely to 
 boundary already established by the selected event times. Required in-scope alternatives must not be omitted.
 json_member_presence is an exact observation about an existing source JSON object's keys, not a value
 read at a missing path and not a claim that an activity or real-world attribute is absent.
+json_array_empty_v1 is a verified structural observation that the exact source array is empty.
+It does not select a whole container or summarize a nonempty one; inspect its materiality and exact path.
 Distinguish source-observation facts from claims about the world, successful actions or missing data.
 Event-bound subject IDs and exact source property paths must preserve actor/target and parent/child roles
 and time/context distinctions. Shared answer strings alone cannot justify merging facts. Different
@@ -173,7 +179,8 @@ def curate_source_facts(
         "revision_artifacts_sha256": revision_hashes,
         "implementation_sha256": {
             name: file_sha256(Path(__file__).with_name(name))
-            for name in ("canonical_facts.py", "fact_curation.py", "evidence.py", "generation.py", "query.py")
+            for name in ("canonical_facts.py", "fact_curation.py", "contracts.py", "evidence.py",
+                         "qualified_witnesses.py", "generation.py", "query.py")
         },
         "grading_changed": False, "release_approved": False,
     }, indent=2) + "\n")

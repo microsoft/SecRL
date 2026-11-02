@@ -58,6 +58,19 @@ Witness SQL returns exactly evidence_group, table_name, record_id. Each group is
 Use a public anchor literal for a common group key or CAST a source field as text; table-name literals are permitted.
 For multi-row proof, give every required source row the SAME evidence_group, using UNION ALL if needed.
 Include at least one behavior/security-control record for behavior claims; do not pad with irrelevant rows.
+When different source observations can prove the same claim, use witness_policy source-qualified-obligations-v1
+on BOTH backend witness programs. Keep query as a complete representative proof for private annotations.
+Add obligations_query returning evidence_group, obligation_id for EVERY required part of each complete alternative,
+derived from full source scope, never from student citations. Add candidates_query returning exactly
+evidence_group, obligation_id, candidate_id, binding_key, table_name, record_id. Every row sharing the first
+three columns belongs to ONE indivisible candidate bundle; every required obligation needs a whole bundle.
+Candidate SQL joins actual qualifying source records to the server-supplied proof_citations(table_name,record_id)
+relation. Do not define that relation yourself or treat its locators as proof without source qualification.
+Use non-null binding_key on source records whose identities must agree across selected bundles; namespace
+keys by subject and role. Use NULL for ordinary evidence rows. Do not split a required joined relationship
+into independently interchangeable records. Query limits still apply; do not enumerate Cartesian products
+of independent choices. Absence, ranking, counts and common-value claims need their complete comparison
+cohort and predicates, not a positive-row example. Never make a private MIN locator a public answer selector.
 Preserve full domains, file/path identity, process creation times and URL schemes. Do not infer causality from same-host proximity.
 Programs must work with actual schema types: many arrays/objects are JSON text, booleans differ by SQL engine.
 Every non-table-name literal in any gold query must appear in allowed_literals with a public-anchor or justified domain-constant rationale.
@@ -88,6 +101,10 @@ Reject irrelevant side investigations, padding, final-answer restatements and le
 At least one relevant checkpoint is mandatory. If none can be supported, recommend revising or rejecting
 the question; never approve an empty rubric or an unrelated replacement.
 Inspect the data yourself; do not rubber-stamp author SQL or graph edges. A detector echo is not independent behavior.
+For source-qualified witnesses, inspect the full obligation catalog independently of supplied citations.
+Every set member and required cohort/comparison must remain required when a student omits records.
+Challenge candidate bundles and shared bindings with missing members, wrong entities/times and spliced
+relationships. Representative examples alone do not validate all qualifying alternatives.
 Recommendation pass requires all booleans true and concrete evidence-based reasons; otherwise revise or reject.
 You do not approve dataset release, train/test splits, or certify acquisition completeness."""
 
@@ -97,7 +114,7 @@ def run_discovery_pilot(*, client, serving_bundle: Path, graph_bundle: Path, mod
                         resume: bool = False, revision_from: Path | None = None, revision_feedback: str | None = None,
                         task_id: str | None = None, related_from: Path | None = None,
                         relation: Literal["shared_evidence", "paraphrase"] | None = None,
-                        prior_questions: tuple[str, ...] = ()):
+                        prior_questions: tuple[str, ...] = (), quality_gate: bool = False):
     if revision_from is not None and related_from is not None:
         raise ValueError("a run cannot be both a revision and a new related task")
     if (related_from is None) != (relation is None) or (related_from is not None and task_id is None):
@@ -122,6 +139,12 @@ def run_discovery_pilot(*, client, serving_bundle: Path, graph_bundle: Path, mod
             "aggregate_model_call_ceiling": None, "aggregate_model_spend_ceiling": None,
             "release_approved": False,
         }
+        if quality_gate:
+            from .quality import AUTHOR_QUALITY_INSTRUCTIONS, QUALITY_VERSION, _persist, run_quality_gate, runtime_hashes
+
+            execution_policy["source_quality_policy"] = QUALITY_VERSION
+            execution_policy["source_quality_runtime_sha256"] = runtime_hashes()
+        author_instructions = AUTHOR_INSTRUCTIONS + (AUTHOR_QUALITY_INSTRUCTIONS if quality_gate else "")
         if task_id is not None or related_from is not None:
             execution_policy.update(task_id=chosen_task_id, related_from=str(related_from) if related_from else None,
                                     relation=relation)
@@ -137,7 +160,8 @@ def run_discovery_pilot(*, client, serving_bundle: Path, graph_bundle: Path, mod
         from .ledger import file_sha256
         provenance = {
             "implementation_sha256": {name: file_sha256(Path(__file__).with_name(name)) for name in (
-                "pilot.py", "generation.py", "azure_generation.py", "discovery_context.py", "evidence.py", "query.py",
+                "pilot.py", "generation.py", "azure_generation.py", "discovery_context.py", "contracts.py",
+                "evidence.py", "qualified_witnesses.py", "query.py",
             )},
             "resume": resume,
         }
@@ -222,7 +246,7 @@ def run_discovery_pilot(*, client, serving_bundle: Path, graph_bundle: Path, mod
             )
             draft_context.update(calibration_relation=relation, direction=direction,
                                  comparison_draft=json.loads((related_from / "draft.json").read_text()))
-        draft = run_role(client, tools, "author", AUTHOR_INSTRUCTIONS, draft_context, TaskDraft, output / "author", resume=resume)
+        draft = run_role(client, tools, "author", author_instructions, draft_context, TaskDraft, output / "author", resume=resume)
         attempt, previous_failures = 0, set()
         task = None
         while task is None:
@@ -240,14 +264,39 @@ def run_discovery_pilot(*, client, serving_bundle: Path, graph_bundle: Path, mod
                     raise ValueError("identical draft/error repeated; no productive repair") from error
                 previous_failures.add(key)
                 attempt += 1
-                draft = run_role(client, tools, "repair", AUTHOR_INSTRUCTIONS,
+                draft = run_role(client, tools, "repair", author_instructions,
                                  {**draft_context, "previous_draft": draft.model_dump(mode="json"), "mechanical_failure": failure},
                                  TaskDraft, output / f"repair-{attempt}", resume=resume)
             finally:
                 verifier.close()
-        (output / "task.json").write_text(task.model_dump_json(indent=2) + "\n")
-        (output / "draft.json").write_text(draft.model_dump_json(indent=2) + "\n")
-        (output / "mechanical-validation.json").write_text(mechanical.model_dump_json(indent=2) + "\n")
+        for name, value in (("task.json", task), ("draft.json", draft), ("mechanical-validation.json", mechanical)):
+            if quality_gate:
+                _persist(output / name, value)
+            else:
+                (output / name).write_text(value.model_dump_json(indent=2) + "\n")
+        quality = None
+        review = None
+        if quality_gate:
+            verifier = EvidenceVerifier(serving_bundle, engine, frozenset(item.value for item in draft.allowed_literals))
+            try:
+                quality, review = run_quality_gate(
+                    client=client, task=task, verifier=verifier, serving_bundle=serving_bundle,
+                    output=output / "quality", instructions=REFUTER_INSTRUCTIONS,
+                    review_context={"scope": context, "draft": draft.model_dump(mode="json")}, resume=resume,
+                )
+            finally:
+                verifier.close()
+            if quality["status"] != "pass":
+                report = {
+                    "status": "needs_revision", "task_fingerprint": fingerprint(task), "source_quality": quality,
+                    "blind_started": False, "mysql_validated": False, "release_approved": False,
+                }
+                _persist(output / "pilot_report.json", report)
+                return report
+            if review is None:
+                raise ValueError("passing source quality gate has no independent review")
+            (output / "refuter").mkdir(mode=0o700, exist_ok=resume)
+            _persist(output / "refuter/result.json", review)
         # No author context, graph access or private task fields enter this role.
         public_tools = DiscoveryTools(engine, initial.tables, record_findings=True)
         def validate_blind(result: BlindSolution):
@@ -261,17 +310,19 @@ def run_discovery_pilot(*, client, serving_bundle: Path, graph_bundle: Path, mod
         blind = run_role(client, public_tools, "blind", BLIND_INSTRUCTIONS,
                          task.public_task().model_dump(mode="json"), BlindSolution, output / "blind", resume=resume,
                          validate_result=validate_blind)
-        review = run_role(client, tools, "refuter", REFUTER_INSTRUCTIONS,
-                          {"scope": context, "draft": draft.model_dump(mode="json")},
-                          ReviewResult, output / "refuter", resume=resume, validate_result=validate_review)
+        if review is None:
+            review = run_role(client, tools, "refuter", REFUTER_INSTRUCTIONS,
+                              {"scope": context, "draft": draft.model_dump(mode="json")},
+                              ReviewResult, output / "refuter", resume=resume, validate_result=validate_review)
         correct = blind.answer.format == task.private_gold.final.expected.format and compare_typed_answers(task.private_gold.final.expected, blind.answer)
         verifier = EvidenceVerifier(serving_bundle, engine, frozenset(item.value for item in draft.allowed_literals))
         try:
             from .evidence import Finding
             proofs = verifier.preflight(task)
-            grounded = verifier.evidence_matches(Finding(answer=blind.answer, citations=blind.citations, step=0), proofs["final"])
+            grounded = verifier.evidence_matches(Finding(answer=blind.answer, citations=blind.citations, step=0),
+                                                 proofs["final"], claim=task.private_gold.final)
             observed = observed_role_citations(verifier, output / "blind", task)
-            witness_observed = any(group <= observed for group in proofs["final"])
+            witness_observed = verifier.complete_witness_observed(task.private_gold.final, proofs["final"], frozenset(observed))
         finally:
             verifier.close()
         checks = [review.scope_supported, review.evidence_independent, review.causal_claims_supported,
@@ -286,7 +337,11 @@ def run_discovery_pilot(*, client, serving_bundle: Path, graph_bundle: Path, mod
             "mechanical_release_blockers": mechanical.release_blockers(task),
             "mysql_validated": False, "release_approved": False,
         }
-        (output / "pilot_report.json").write_text(json.dumps(report, indent=2) + "\n")
+        if quality_gate:
+            report["source_quality"] = quality
+            _persist(output / "pilot_report.json", report)
+        else:
+            (output / "pilot_report.json").write_text(json.dumps(report, indent=2) + "\n")
         return report
     finally:
         if graph:
@@ -317,6 +372,7 @@ def main():
     parser.add_argument("--task-id")
     parser.add_argument("--related-from", type=Path)
     parser.add_argument("--relation", choices=("shared_evidence", "paraphrase"))
+    parser.add_argument("--quality-gate", action="store_true", help="Require source-quality-v1 before the blind solve")
     args = parser.parse_args()
     client = AzureGenerationClient(AzureGenerationConfig(
         env_file=args.endpoint_env, deployment=args.deployment, timeout_seconds=args.model_timeout_seconds,
@@ -332,6 +388,7 @@ def main():
             revision_from=args.revision_from,
             revision_feedback=args.revision_feedback.read_text() if args.revision_feedback else None,
             task_id=args.task_id, related_from=args.related_from, relation=args.relation,
+            quality_gate=args.quality_gate,
         )
         print(json.dumps(report, indent=2))
     except RoleAbstained as error:

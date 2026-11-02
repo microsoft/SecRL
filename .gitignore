@@ -440,6 +440,7 @@ deepinfrakey
 googlekey
 .venv/
 .venv-gen/
+secgym/database/duckdb_data/*
 
 # Local environment configuration; keep only credential-free templates.
 .env

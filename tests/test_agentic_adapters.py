@@ -105,7 +105,7 @@ class AdapterTests(unittest.TestCase):
         result = self.env.finish_for_scorer("")
         self.assertEqual(result.checkpoint_progress, 1.0)
         self.assertEqual(result.aggregate_reward, 0.5)
-        self.assertEqual(result.checkpoints[0].evaluator_version, "source-witness-v1.2")
+        self.assertEqual(result.checkpoints[0].evaluator_version, "source-witness-v1.3")
 
     def test_equivalent_aliased_cte_projections_are_observed_evidence(self):
         self.env.step("WITH c AS (SELECT _record_id AS k,FileName AS v FROM DeviceProcessEvents WHERE DeviceName='host.test') SELECT k AS evidence_key,v AS artifact FROM c")
