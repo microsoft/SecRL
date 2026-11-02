@@ -1,4 +1,4 @@
-# First 100 QA: difficulty, overlap and scope
+# First 100 QA: scope, difficulty and overlap
 
 **Cohort:** `astra100-01` | **Date:** 2026-11-02
 
@@ -7,17 +7,65 @@
 This report covers the original 100 questions, including eight duplicates
 excluded from the retained set of 92. Other batches are not included.
 
+- **Scope:** all questions use **one tenant dataset**. The original 50
+  incident-scoped / 50 tenant-scoped questions become **50 / 42** after
+  exclusions. There are no cross-tenant comparisons.
 - **Difficulty:** 70 of 98 measured questions are hard or very hard. The mean
   is **56.87/100**; reasoning and dependency depth drive the scores more than
   ambiguity.
 - **Overlap:** mean diagnostic overlap is **0.00739 globally**, but
   **0.18073 within the same incident**. Low global overlap hides concentrated
   reuse; the highest retained pair scores **0.93894**.
-- **Scope:** the original 50 incident / 50 tenant balance becomes **50 / 42**
-  after exclusions. Tenant questions typically span more raw tables and
-  longer windows, but scope breadth alone does not determine difficulty.
 
-## 1. Difficulty
+## 1. Scope: tenant and incidents
+
+**Tenant:** `e34d562e-ef12-4c4e-9bc0-7c6ae357c015`, the single supplied
+SecRL tenant dataset, identified by `SecurityIncident.TenantId`. All ten
+selected incidents belong to this tenant.
+
+- **Incident-scoped questions** start from a selected incident. They may use
+  relevant supporting evidence from elsewhere in the same tenant.
+- **Tenant-scoped questions** investigate entities or workloads anywhere in
+  this same dataset; they are not restricted to the ten selected incidents.
+- **Overlap compares questions, not tenants.** Two tenant-scoped questions
+  are two investigations within the same tenant. The 50 such questions yield
+  `50 * 49 / 2 = 1,225` unordered pairs.
+
+### Selected incidents
+
+| Incident | Source incident title | Questions |
+|---|---|---:|
+| 5 | Human-operated ransomware attack was launched from a compromised asset (attack disruption) | 5 |
+| 34 | Multi-stage incident involving Execution & Discovery on one endpoint | 5 |
+| 36 | Multi-stage incident involving Execution & Discovery on one endpoint | 5 |
+| 38 | Multi-stage incident involving Defense evasion & Discovery on one endpoint | 5 |
+| 39 | Multi-stage incident involving Privilege escalation on multiple endpoints reported by multiple sources | 5 |
+| 55 | Multi-stage incident involving Initial access & Lateral movement on multiple endpoints reported by multiple sources | 5 |
+| 133 | Hands-on keyboard attack was launched from a compromised account (attack disruption) | 5 |
+| 134 | BEC financial fraud attack was launched from a compromised account (attack disruption) | 5 |
+| 166 | SAP financial process manipulation (attack disruption) | 5 |
+| 322 | Multi-stage incident involving Initial access & Collection on multiple endpoints reported by multiple sources | 5 |
+| **Total incident-scoped** | **Ten incidents in one tenant** | **50** |
+
+### Scope breadth
+
+| Characteristic | Incident-scoped questions | Tenant-scoped questions |
+|---|---:|---:|
+| Original questions | 50 | 50 |
+| Retained questions | 50 | 42 |
+| Median declared answer window | 24.66 minutes | 2 hours |
+| Windows over 24 hours | 2/50 | 9/50 |
+| Median reviewed-route proof observations | 6 | 4 |
+| Median reviewed-route raw-table count | 1 | 2 |
+| Questions with a discovered cross-domain binding | 0/50 | 3/50 |
+
+The batch uses **37 evidence tables**, but most selected routes involve only
+one or two raw tables. A declared answer window, the supporting evidence
+footprint and the selected reasoning route are different boundaries.
+Broader temporal or tenant-wide scope does not automatically mean greater
+difficulty or cross-domain reasoning.
+
+## 2. Difficulty
 
 Difficulty is a **source-only reasoning heuristic**, not student accuracy.
 Four axes, each scored from 0 to 3, describe the least demanding supplied,
@@ -55,7 +103,7 @@ Tenant questions account for ten very-hard cases, versus three incident cases.
 their scores are unknown, not zero. Scores are heuristic, and the selected
 route is not a proven global minimum over every possible proof.
 
-## 2. Overlap metric and analysis
+## 3. Overlap metric and analysis
 
 Overlap measures **shared question evidence**, including final-answer and
 checkpoint support—not wording similarity or student citations.
@@ -75,31 +123,36 @@ J(X,Y) = shared feature weight / union feature weight
 D(q) = namespaced union of observation and fact features
 C(a,b) = weight(D(a) intersect D(b)) / min(weight(D(a)), weight(D(b)))
 
-S25 = (J_E + J_O + J_F + C) / 4
+Overlap score (equal weights) = (J_E + J_O + J_F + C) / 4
 ```
 
 This analysis uses **unit feature weights** and **diagnostic equal-quarter
 coefficients**. They are not calibrated production weights or duplicate
 thresholds. Matching answer strings alone do not establish shared facts.
+The earlier label **S25** meant **25% weight per component**. Scores range
+from 0 to 1; they are not percentages of duplicate questions.
 
 ### Where overlap is concentrated
 
-Means below use only pairs with all four components available.
+**Mean overlap** is the arithmetic average of the scorable question-pair
+scores in that row. For example, **0.014341** averages **1,176 pairs of
+tenant-scoped questions**, all from the same tenant. Missing scores are
+excluded from the mean, not counted as zero.
 
-| Pair scope | Total pairs | Scorable | Mean S25 | Maximum S25 |
+| Question-pair category (same tenant throughout) | Total pairs | Scorable | Mean overlap (equal weights) | Maximum overlap |
 |---|---:|---:|---:|---:|
 | **All pairs** | **4,950** | **4,851** | **0.007394** | **1.000000** |
-| Same incident | 100 | 100 | **0.180732** | 0.785071 |
-| Different incidents | 1,125 | 1,125 | 0 | 0 |
-| Tenant / tenant | 1,225 | 1,176 | 0.014341 | 1.000000 |
-| Tenant / incident | 2,500 | 2,450 | 0.000381 | 0.384153 |
+| Two questions from the same incident | 100 | 100 | **0.180732** | 0.785071 |
+| Questions from different incidents | 1,125 | 1,125 | 0 | 0 |
+| Two tenant-scoped questions | 1,225 | 1,176 | 0.014341 | 1.000000 |
+| One tenant-scoped and one incident-scoped question | 2,500 | 2,450 | 0.000381 | 0.384153 |
 
 All 100 same-incident pairs have positive overlap. By contrast, most global
 pairs compare unrelated scopes. The median **nearest-neighbor** score is
 **0.24575** across 99 scorable questions, despite a global pair median of zero.
 Global sparsity therefore does not imply that every question is independent.
 
-After the eight duplicate exclusions, mean S25 is **0.005302** over 4,095
+After the eight duplicate exclusions, mean overlap is **0.005302** over 4,095
 scorable retained pairs. The retained fact-only mean, **0.002893**, is just
 J_F—not the full overlap metric.
 
@@ -107,7 +160,7 @@ J_F—not the full overlap metric.
 
 Task names omit the common `preprod-v1-` prefix.
 
-| Pair | J_E | J_O | J_F | C | S25 |
+| Pair | J_E | J_O | J_F | C | Overlap score |
 |---|---:|---:|---:|---:|---:|
 | tenant-48 / tenant-49 | 1.0000 | 1.0000 | 0.7703 | 0.9855 | **0.9389** |
 | tenant-04 / tenant-06 | 1.0000 | 1.0000 | 0.7273 | 0.9091 | **0.9091** |
@@ -122,41 +175,6 @@ shared included event-bound features, not necessarily different hosts/accounts.
 pair scores unscorable; 91 such pairs remain in the retained set. Its other
 components are available. Missing scores are **NA, not zero**, and weights
 are not silently renormalized.
-
-## 3. Scope
-
-Incident questions start from an incident-linked investigation; tenant
-questions start from a source-defined entity or workload without an incident
-anchor. A declared answer window, an evidence footprint and a selected
-reasoning route describe different boundaries.
-
-| Scope characteristic | Incident | Tenant |
-|---|---:|---:|
-| Original questions | 50 | 50 |
-| Retained questions | 50 | 42 |
-| Median declared answer window | 24.66 minutes | 2 hours |
-| Windows over 24 hours | 2/50 | 9/50 |
-| Median reviewed-route proof observations | 6 | 4 |
-| Median reviewed-route raw-table count | 1 | 2 |
-| Questions with a discovered cross-domain binding | 0/50 | 3/50 |
-
-Incident coverage is five questions each for **5, 34, 36, 38, 39, 55, 133,
-134, 166 and 322**. Their characteristics differ:
-
-- **Incident 5** has the highest mean difficulty: **70.67**.
-- **Incident 36** has the lowest mean difficulty: **40.67**, but the strongest
-  individual incident overlap pair: **0.78507**.
-- **Incident 38** has the highest mean within-incident overlap: **0.29389**.
-
-The batch uses **37 evidence tables**, yet most selected routes involve only
-one or two raw tables, and only three contain a discovered cross-domain
-binding. Broad table coverage is not the same as broad cross-domain reasoning.
-
-**Interpretation:** tenant questions generally cover longer windows and more
-tables, while incident questions require more proof observations. Neither is
-automatically harder: a five-minute tenant question scores **93.33**, while
-a 62-day incident-anchored question scores **60.00**. Difficulty, overlap and
-scope should remain separate dimensions when shaping subsequent batches.
 
 **Detailed data:** [100-question inventory](CHECKPOINT_100_INVENTORY.csv);
 [4,950 pairwise overlap records](CHECKPOINT_100_OVERLAP.csv).
