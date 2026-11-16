@@ -6,8 +6,10 @@ import hashlib
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import Mock
 
 import duckdb
+import sqlglot
 
 from agentic_runtime_fixture import runtime_fixture
 from secgym.qagen.agentic.query import PublicQueryEngine, QueryFailure, QueryLimits, checked_select
@@ -187,6 +189,109 @@ class QueryGuardTests(unittest.TestCase):
                 engine.execute("SELECT n FROM Events ORDER BY n")
             self.assertEqual(engine.execute("SELECT n FROM Events ORDER BY n DESC LIMIT 2").rows, ((3,), (2,)))
             self.assertEqual(engine.execute("SELECT COUNT(*) FROM Events").rows, ((3,),))
+
+
+class MySQLQuerySerializationTests(unittest.TestCase):
+    def setUp(self):
+        self.connection = Mock()
+        self.cursor = self.connection.cursor.return_value
+        self.cursor.description = (("UserId",),)
+        self.cursor.fetchall.return_value = [("u",), ("v",)]
+        self.engine = PublicQueryEngine(
+            self.connection, "mysql", set(), QueryLimits(max_rows=2, max_bytes=4096, timeout_ms=1000),
+        )
+        self.query = (
+            "WITH s AS (SELECT 'u' AS UserId, '[1]' AS details UNION ALL SELECT 'v','[2]'), "
+            "i AS (SELECT 1 n), r AS (SELECT 'u' AS UserId UNION ALL SELECT 'v') "
+            "SELECT s.UserId FROM s JOIN i ON i.n=1 "
+            "JOIN JSON_TABLE(s.details,'$[*]' COLUMNS(v TEXT PATH '$')) p "
+            "LEFT JOIN r ON r.UserId=s.UserId"
+        )
+
+    def emitted(self, query):
+        self.engine.execute(query)
+        self.cursor.close.assert_called()
+        return self.cursor.execute.call_args.args[0]
+
+    def test_explicit_json_table_join_keeps_its_precedence_when_bounded(self):
+        expected = self.query.replace("JOIN JSON_TABLE", "INNER JOIN JSON_TABLE")
+        self.assertEqual(
+            self.emitted(self.query),
+            sqlglot.parse_one(expected, read="mysql").limit(3).sql(dialect="mysql", comments=False),
+        )
+        for query in (
+            self.query.replace("JOIN JSON_TABLE", "join /* JOIN fake, */ JSON_TABLE"),
+            "SELECT * FROM (" + self.query + ") nested",
+            "WITH nested AS (" + self.query + ") SELECT * FROM nested",
+            self.query + " UNION ALL SELECT 'w'",
+        ):
+            with self.subTest(query=query):
+                rendered = self.emitted(query)
+                self.assertIn("INNER JOIN JSON_TABLE", rendered)
+                self.assertNotIn("fake", rendered)
+
+    def test_real_comma_joins_are_not_promoted_to_explicit_joins(self):
+        prefix = "WITH a AS (SELECT 1 x WHERE FALSE), b AS (SELECT 1 x), c AS (SELECT 1 x) "
+        for source, expected in (
+            ("a, b RIGHT JOIN c ON c.x=b.x", "a, b RIGHT JOIN c ON c.x=b.x"),
+            ("a JOIN b RIGHT JOIN c ON c.x=b.x", "a INNER JOIN b RIGHT JOIN c ON c.x=b.x"),
+            ("a JOIN b, c", "a INNER JOIN b, c"),
+            ("a, b JOIN c", "a, b INNER JOIN c"),
+            ("a JOIN (b JOIN c)", "a INNER JOIN (b INNER JOIN c)"),
+        ):
+            with self.subTest(source=source):
+                self.assertEqual(
+                    self.emitted(prefix + "SELECT c.x FROM " + source),
+                    sqlglot.parse_one(prefix + "SELECT c.x FROM " + expected, read="mysql")
+                    .limit(3).sql(dialect="mysql", comments=False),
+                )
+        query = self.query.replace("JOIN JSON_TABLE", ", JSON_TABLE")
+        self.assertEqual(
+            self.emitted(query), sqlglot.parse_one(query, read="mysql").limit(3).sql(dialect="mysql"),
+        )
+
+    def test_join_conditions_modifiers_and_delayed_conditions_are_unchanged(self):
+        prefix = "WITH a AS (SELECT 1 x), b AS (SELECT 1 x), c AS (SELECT 1 x) SELECT a.x FROM a "
+        for join in (
+            "JOIN b ON a.x=b.x", "JOIN b USING(x)", "NATURAL JOIN b", "CROSS JOIN b",
+            "INNER JOIN b", "LEFT JOIN b ON a.x=b.x", "RIGHT OUTER JOIN b USING(x)",
+            "JOIN b JOIN c ON b.x=c.x ON a.x=b.x", "LEFT JOIN b",
+        ):
+            with self.subTest(join=join):
+                query = prefix + join
+                self.assertEqual(
+                    self.emitted(query), sqlglot.parse_one(query, read="mysql").limit(3).sql(dialect="mysql"),
+                )
+        query = "SELECT 'JOIN b, c' AS `JOIN` FROM (SELECT 1 x) a JOIN (SELECT 2 x) b"
+        rendered = self.emitted(query)
+        self.assertIn("'JOIN b, c' AS `JOIN`", rendered)
+        self.assertIn("INNER JOIN (SELECT 2 AS x)", rendered)
+
+    def test_join_fix_keeps_limits_and_validation_failures(self):
+        self.cursor.fetchall.return_value = [("v",)]
+        rendered = self.emitted(self.query + " LIMIT 1 OFFSET 1")
+        self.assertTrue(rendered.endswith("LIMIT 1 OFFSET 1"))
+        self.assertIn("INNER JOIN JSON_TABLE", rendered)
+        for query, code in (
+            (self.query + " LIMIT 1.5", "sql_limit"),
+            (self.query + "; SELECT 2", "sql_not_select"),
+            (self.query + " FOR UPDATE", "sql_disallowed"),
+            (self.query.replace("s.details,", "LOAD_FILE('x'),"), "sql_function"),
+            (self.query.replace("s.details,", "(SELECT x FROM private_table),"), "sql_private_table"),
+            (self.query.replace("LEFT JOIN r", "LEFT JOIN hidden.r"), "sql_external_source"),
+            (self.query.replace("SELECT s.UserId FROM s", "SELECT s._observation_id FROM s"), "sql_private_column"),
+            (self.query.replace("JOIN JSON_TABLE", "JOIN ON JSON_TABLE"), "sql_parse"),
+        ):
+            with self.subTest(query=query):
+                self.connection.reset_mock()
+                with self.assertRaises(QueryFailure) as caught:
+                    self.engine.execute(query)
+                self.assertEqual(caught.exception.code, code)
+                self.connection.cursor.assert_not_called()
+        self.cursor.fetchall.return_value = [("u",), ("v",), ("w",)]
+        with self.assertRaises(QueryFailure) as caught:
+            self.engine.execute(self.query)
+        self.assertEqual(caught.exception.code, "row_limit")
 
 
 if __name__ == "__main__":

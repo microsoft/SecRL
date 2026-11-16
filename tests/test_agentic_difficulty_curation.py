@@ -122,6 +122,26 @@ class DifficultyCurationTests(unittest.TestCase):
         self.assertIn("must inspect every selected proof record", json.dumps(client.contexts[1]))
         self.assertIn("must independently inspect", json.dumps(client.contexts[4]))
 
+    def test_both_roles_receive_source_necessity_and_unmeasured_identity_guidance(self):
+        client = FakeClient(self.responses())
+        self.run_case(client, self.root / "necessity")
+        for context in (client.contexts[0], client.contexts[2]):
+            instructions = context[0]["content"]
+            for text in ("singleton eligible", "not also aggregation", "set/list is not aggregation",
+                         "previously unknown source identity", "projected JSON-entry aliases",
+                         "ambiguity_probes null", "exact alert-title membership lookup are unscored",
+                         "AlertIds membership traversal is not dynamic_json",
+                         "unknown winning entity/group", "Pure scalar arithmetic",
+                         "Terminal-specific citations must materially support",
+                         "scalar/type/nonblank eligibility checks",
+                         "ranking even when the observed values tie",
+                         "pair/triple/sequence candidates or decoded groups",
+                         "late-only member is comparison evidence",
+                         "Workload=Exchange on a token-issuance",
+                         "broader private answer/support envelope"):
+                self.assertIn(text, instructions)
+            self.assertNotIn("record that work as breadth/aggregation", instructions)
+
     def test_paged_measurements_keep_full_private_inventory_and_compact_reviewer_context(self):
         self.engine.limits = QueryLimits(max_rows=1, max_bytes=65536, timeout_ms=3000)
         probe = PartitionedAmbiguityProbe(

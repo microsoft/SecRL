@@ -27,7 +27,7 @@ from .query import QueryResult, checked_select
 from .question_splits import SplitQuestion, binding_for
 
 
-CURATION_VERSION = "difficulty-feature-curation-v0.4"
+CURATION_VERSION = "difficulty-feature-curation-v0.6"
 RUNTIME_FILES = (
     "difficulty.py", "difficulty_curation.py", "canonical_facts.py", "fact_curation.py",
     "generation.py", "contracts.py", "evidence.py", "qualified_witnesses.py", "query.py",
@@ -54,18 +54,39 @@ steps must cover exactly that claim's selected evidence IDs. Steps are real logi
 column, alias or checkpoint. Public anchors, representation/membership navigation and plain output projection are not
 discovered bindings. A necessary identity/selection step may be a discovered binding; a qualified multi-column identity
 is one binding. Keep given evidence and scope lookups in unscored anchor steps so their sources remain accounted for.
+Resolving a previously unknown source identity through the public predicates is a discovered binding; looking up another
+representation of an already known identity is not. Apply this distinction to the first source-selection step too.
+The supplied incident number and exact alert-title membership lookup are unscored even when their record locators were
+initially unknown. AlertIds membership traversal is not dynamic_json work. In contrast, resolving an unknown typed
+host/account/role from Entities/Roles is identity discovery, with dynamic_json when that array selection is necessary.
+A combined step gets one binding for that identity, not an additional binding for the supplied alert lookup.
+Selecting an unknown winning entity/group or qualifying source-observation set is not plain output projection merely
+because the input cohort was already enumerated. Pure scalar arithmetic or a numeric maximum is not automatically
+another identity binding; distinguish selection from calculation and do not duplicate already resolved identities.
 For derived sets/counts, account for the complete validated input cohort without turning every homogeneous row into a hop.
 
 Use dependencies only when one step actually needs the other's output or verification. Do not serialize independent
 lookups to inflate depth, duplicate bindings under new names, or add redundant dependencies to create reconvergence.
 A final terminal means the proof of that claim is complete, including necessary scope checks; it need not be the node
 that emits the answer value. Shared work can be reused across final/checkpoint terminals.
+Terminal-specific citations must materially support the stated operation or its necessary comparison, not be arbitrary
+members of an inherited cohort. Preserve every required comparison input even when it does not contribute to the output.
 
 Mark ONLY necessary operation families: ranking_ordering, aggregation, request_deduplication, dynamic_json,
 temporal_alignment, comparison_presence. Ordinary filtering on a supplied interval and simple scalar JSON projection
 are not automatically nontrivial reasoning. Distinguish event Timestamp selection from ProcessCreationTime ranking when
 both matter. Literal formatting, optimizer workarounds, duplicated backend SQL and repeated uses of one family do not add
 new operation families. Do not infer real-world absence, causation or successful effects from these source observations.
+Selecting MIN/MAX or the first item from a singleton eligible cohort is not substantive ranking. A real extremum
+comparison is ranking_ordering, not also aggregation merely because SQL spells it MIN/MAX. Formatting already distinct
+values as a set/list is not aggregation. Credit aggregation only for a necessary reduction across source values, and
+request_deduplication only when repeated observations must actually collapse to distinct requests. Inspect the source
+cohort rather than inferring these operations from SQL syntax. Named-step/array traversal can be dynamic_json work at
+the initial selection, not only when comparing a later result.
+Ordinary scalar/type/nonblank eligibility checks are not a separate comparison_presence operation. Distinguish those
+checks from actual cross-record or old/new set comparisons. Comparing multiple eligible values remains substantive
+ranking even when the observed values tie. Several observations needed to form one request pair are not automatically
+duplicate requests requiring request_deduplication.
 
 Ambiguity probes must preserve the public anchor/scope and remove only the relevant disambiguating criterion. They return
 candidate rows with actual source _record_id and source fields, not COUNT(*) alone. No LIMIT/OFFSET/sampling. Derive anchor
@@ -82,7 +103,8 @@ Retain public semantic roles and named types: csc.exe is not an alternative Note
 an alternative LDAP request, and an EndRequest is not an alternative BeginRequest. Other artifact classes are not
 competing executables when executable type is given. Removing a defining public role/type is not disambiguation.
 Explain which plausible candidates the omitted criterion rules out. If it rules out none, do not inflate ambiguity merely
-because many correct records were enumerated; record that work as breadth/aggregation and explain the deterministic choice.
+because many correct records were enumerated; describe the inspected breadth and deterministic choice without automatically
+crediting aggregation or ranking.
 Attach each probe to the decision step it measures. Explicitly explain coverage of ALL choice points. An empty probe list
 means you verified that the route has no additional ambiguous choice; null means unmeasured and will not get a scalar.
 An exact query that cannot be measured under the limits is not evidence of high difficulty; revise its measurement scope
@@ -92,8 +114,22 @@ The server retrieves the unchanged query through exhaustive, disjoint source-loc
 and every row's source attribution, and applies the same per-query limits. Do not add paging filters or LIMIT yourself.
 This is not sampling or a COUNT-only shortcut. Unsplittable rows, missing locators, query errors and exhausted retrieval
 budgets remain unmeasured errors, not high scores. Retain the actual request/process/artifact identity for deduplication.
+Qualified identity_columns currently resolve fields of the raw source record, not projected JSON-entry aliases. Multiple
+eligible entries in one JSON array are not one candidate merely because they share a source locator. If the actual
+decision unit cannot be represented by the supported identity contract, explain that measurement limitation and leave
+ambiguity_probes null. Never substitute a wrong source-row count or an empty deterministic probe list for a real choice.
+Likewise, a count of constituent records is not a measurement of pair/triple/sequence candidates or decoded groups.
+Preserve the actual conditional decision unit and its established bindings; leave it unmeasured when the supported
+identity contract cannot express it. A required comparison observation is not automatically a competing candidate:
+for an already bound early/late set difference, a late-only member is comparison evidence, not an early-set alternative.
 
 """ + DOMAIN_GUIDANCE + """
+Workload=Exchange on a token-issuance observation does not establish an email action. A Graph table or property name
+alone does not establish content access or a management-plane action; use the actual observed request/resource semantics.
+An alert entity is an anchor, not a separately observed business-domain activity.
+Distinguish public selection predicates from a broader private answer/support envelope. A support window containing
+earlier process-creation evidence does not itself widen the public command/event interval. Check the actual public
+task and executable predicates before alleging a scope defect; a genuine mismatch still requires task revision.
 The supplied canonical facts are a relevance aid, not a requirement to union every alternative. The saved answer/witness
 programs are verified references, not necessarily the only or minimal implementation. Flag a genuine task/rubric defect
 in limitations rather than masking it with a feature plan. Return DifficultyProposal."""
@@ -109,6 +145,8 @@ query or the union of all source rows is not automatically a minimal reasoning r
 column counting, serialized independent work, and invented branch convergence. Given anchors/membership/representation
 lookups are unscored; actual identity or selection bindings are different. Do not demand unrelated source history merely
 to illustrate a boundary already established by the in-scope proof.
+Terminal-specific citations must materially support the stated operation or its necessary comparison, not be arbitrary
+members of an inherited cohort. Preserve every required comparison input even when it does not contribute to the output.
 
 Check each ambiguity probe against public scope and the actual decision criterion. The pre-review measurements establish
 source provenance/count execution, not semantic scope correctness. Inspect or execute the query as needed. It must not
@@ -128,8 +166,40 @@ the source census and contiguous partition audits must be complete; the provided
 full independently attributed record inventory retained in the private measurement artifact, not a sampled population.
 Separate ordinary public-window filters and formatting from nontrivial temporal roles, ranking, aggregation, deduplication
 and dynamic-structure work. Preserve actor/target, parent/child and observation-time/process-time distinctions.
+Resolving a previously unknown source identity through public predicates is a discovered binding, including an initial
+selection; a known-identity representation lookup is not.
+The supplied incident number and exact alert-title membership lookup are unscored even when their record locators were
+initially unknown. AlertIds membership traversal is not dynamic_json work. In contrast, resolving an unknown typed
+host/account/role from Entities/Roles is identity discovery, with dynamic_json when that array selection is necessary.
+A combined step gets one binding for that identity, not an additional binding for the supplied alert lookup.
+Selecting an unknown winning entity/group or qualifying source-observation set is not plain output projection merely
+because the input cohort was already enumerated. Pure scalar arithmetic or a numeric maximum is not automatically
+another identity binding; distinguish selection from calculation and do not duplicate already resolved identities.
+Selecting MIN/MAX or the first item from a singleton eligible
+cohort is not substantive ranking. A real extremum comparison is ranking_ordering, not also aggregation merely because SQL
+spells it MIN/MAX. Formatting already distinct values as a set/list is not aggregation. Credit aggregation only for a
+necessary reduction across source values, and request_deduplication only for actual repeated-observation reduction.
+Named-step/array traversal may be necessary at the first selection. Inspected breadth alone does not add an operation.
+Ordinary scalar/type/nonblank eligibility checks are not a separate comparison_presence operation. Distinguish those
+checks from actual cross-record or old/new set comparisons. Comparing multiple eligible values remains substantive
+ranking even when the observed values tie. Several observations needed to form one request pair are not automatically
+duplicate requests requiring request_deduplication.
+Qualified identity_columns resolve raw record fields, not projected JSON-entry aliases. If several actual candidates
+occupy one source array and the identity contract cannot represent them, require an explicit unmeasured limitation with
+ambiguity_probes null, not a collapsed source-row count or an empty probe list claiming no choice. This is not a waiver
+of a task defect or of proof, dependency, operation and scope review; no numeric score or band is assigned to the gap.
+Likewise, a count of constituent records is not a measurement of pair/triple/sequence candidates or decoded groups.
+Preserve the actual conditional decision unit and its established bindings; leave it unmeasured when the supported
+identity contract cannot express it. A required comparison observation is not automatically a competing candidate:
+for an already bound early/late set difference, a late-only member is comparison evidence, not an early-set alternative.
 
 """ + DOMAIN_GUIDANCE + """
+Workload=Exchange on a token-issuance observation does not establish an email action. A Graph table or property name
+alone does not establish content access or a management-plane action; use the actual observed request/resource semantics.
+An alert entity is an anchor, not a separately observed business-domain activity.
+Distinguish public selection predicates from a broader private answer/support envelope. A support window containing
+earlier process-creation evidence does not itself widen the public command/event interval. Check the actual public
+task and executable predicates before alleging a scope defect; a genuine mismatch still requires task revision.
 Pass only for a complete, defensible feature plan. Otherwise give concrete annotation corrections. If the problem is the
 question/gold/rubric itself, list it in task_defect_reasons and request revision; do not demand a feature-only waiver.
 Do not use expected model strength, any desired score/band or a model's success/failure as evidence. Do not change tasks,

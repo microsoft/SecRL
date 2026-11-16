@@ -1,6 +1,6 @@
 # First 100 QA: scope, difficulty and overlap
 
-**Cohort:** `astra100-01` | **Date:** 2026-11-02
+**Cohort:** `astra100-01` | **Date:** 2026-11-02 | **Updated:** 2026-11-04
 
 ## Executive summary
 
@@ -10,8 +10,8 @@ excluded from the retained set of 92. Other batches are not included.
 - **Scope:** all questions use **one tenant dataset**. The original 50
   incident-scoped / 50 tenant-scoped questions become **50 / 42** after
   exclusions. There are no cross-tenant comparisons.
-- **Difficulty:** 70 of 98 measured questions are hard or very hard. The mean
-  is **56.87/100**; reasoning and dependency depth drive the scores more than
+- **Difficulty:** 69 of 97 measured questions are hard or very hard. The mean
+  is **56.80/100**; reasoning and dependency depth drive the scores more than
   ambiguity.
 - **Overlap:** mean diagnostic overlap is **0.00739 globally**, but
   **0.18073 within the same incident**. Low global overlap hides concentrated
@@ -86,22 +86,24 @@ Difficulty = (20*B + 30*P + 30*R + 20*A) / 3
 |---|---|---:|---:|
 | Easy | `[0,25)` | 0 | 0 |
 | Medium | `[25,50)` | 28 | 25 |
-| Hard | `[50,75)` | 57 | 52 |
+| Hard | `[50,75)` | 56 | 51 |
 | Very hard | `[75,100]` | 13 | 13 |
-| Unmeasured | Not scored | 2 | 2 |
+| Unmeasured | Not scored | 3 | 3 |
 
-The full-batch mean is **56.87** across 98 measured questions; the retained
-mean is **57.22** across 90. Both medians are **56.67**, with scores ranging
+The full-batch mean is **56.80** across 97 measured questions; the retained
+mean is **57.15** across 89. Both medians are **56.67**, with scores ranging
 from **26.67 to 93.33**.
 
 **Interpretation:** 55 questions reach the maximum reasoning axis, 68 have
-dependency level 2, and 50 have zero additional ambiguity. The batch is
+dependency level 2, and 49 have zero additional ambiguity. The batch is
 primarily reasoning/dependency-heavy rather than uniformly search-heavy.
 Tenant questions account for ten very-hard cases, versus three incident cases.
 
-**Limitations:** incident-134-04 and incident-38-06 have unmeasured ambiguity;
-their scores are unknown, not zero. Scores are heuristic, and the selected
-route is not a proven global minimum over every possible proof.
+**Limitations:** incident-134-04, incident-38-04 and incident-38-06 have
+unmeasured ambiguity; their scores are unknown, not zero. In incident-38-04,
+two process candidates share one alert record: a raw-record count cannot
+measure that process choice. Scores are heuristic, and the selected route is
+not a proven global minimum over every possible proof.
 
 ## 3. Overlap metric and analysis
 

@@ -11,18 +11,106 @@ from unittest.mock import patch
 
 import test_agentic_preproduction as source_tests
 from secgym.qagen.agentic.contracts import TaskRecord, fingerprint
+from secgym.qagen.agentic.difficulty_curation import CURATION_VERSION
 from secgym.qagen.agentic.ledger import file_sha256
 from secgym.qagen.agentic.preproduction import SourceOutcome, _artifacts, source_progress
 from secgym.qagen.agentic.preproduction_revisions import (
     SourceRevision, current_source, effective_runtime, record_runtime_amendment, run_source_revision,
     validate_source_audit_runtime, _validate_empty_array_change, EMPTY_ARRAY_AMENDMENT,
+    _validate_array_length_change, ARRAY_LENGTH_AMENDMENT,
+    _validate_difficulty_guidance_change, DIFFICULTY_GUIDANCE_AMENDMENT,
+    _validate_difficulty_identity_change, DIFFICULTY_IDENTITY_AMENDMENT, RuntimeAmendment, _validate_runtime_amendment,
+    _validate_multi_record_fact_change, MULTI_RECORD_FACT_AMENDMENT,
+    _validate_nested_json_fact_change, NESTED_JSON_FACT_AMENDMENT,
 )
 
 
 MODULES = Path(__file__).resolve().parents[1] / "secgym/qagen/agentic"
 
 
+def before_identity_guard(current):
+    tree = ast.parse(current)
+    function, = [node for node in tree.body if isinstance(node, ast.FunctionDef) and node.name == "_probe"]
+    condition = ast.parse('probe.identity_kind == "source_observation"', mode="eval").body
+    branch, = [node for node in ast.walk(function) if isinstance(node, ast.If)
+               and ast.dump(node.test) == ast.dump(condition)]
+    branch.orelse.pop(2)
+    return ast.unparse(tree).encode()
+
+
+def before_nested_json(current, name="canonical_facts.py"):
+    if name == "canonical_facts.py":
+        for variable in (b"current", b"observed", b"parent"):
+            current = current.replace(
+                b"while isinstance(" + variable + b", str):", b"if isinstance(" + variable + b", str):",
+            )
+    elif name == "fact_curation.py":
+        current = current.replace(
+            b"Repeated JSON-string serialization layers are decoded when locating a container for traversal or a\n"
+            b"structural fact. Keep the same source path and exact keys; no extra path component denotes decoding.\n"
+            b"Literal scalar columns and selected scalar leaves retain their original quoting, types and precision.\n",
+            b"",
+        ).replace(b"source-fact-curation-v1.5", b"source-fact-curation-v1.4")
+    return current
+
+
+def before_multi_record(current, name="canonical_facts.py"):
+    current = before_nested_json(current, name)
+    if name == "fact_curation.py":
+        return current.replace(b"source-fact-curation-v1.4", b"source-fact-curation-v1.3").replace(
+            b"claim.expanded_references", b"claim.references",
+        )
+    if name != "canonical_facts.py" or b"class SourceFactReferenceBatch(" not in current:
+        return current
+    start = current.index(b"class SourceFactReferenceBatch(")
+    end = current.index(b"class ClaimFactSelection(", start)
+    current = current[:start] + current[end:]
+    current = current.replace(
+        b"    references: Annotated[\n"
+        b"        tuple[SourceFactReference | SourceFactReferenceGroup | SourceFactReferenceBatch, ...], Field(min_length=1)\n"
+        b"    ]",
+        b"    references: Annotated[tuple[SourceFactReference | SourceFactReferenceGroup, ...], Field(min_length=1)]",
+    )
+    current = current.replace(
+        b"                citations = (reference.citation,) if isinstance(reference, SourceFactReferenceGroup) else reference.citations\n",
+        b"",
+    )
+    return current.replace(b"citation=citation, column=selection.column", b"citation=reference.citation, column=selection.column").replace(
+        b"for citation in citations for selection in reference.properties)", b"for selection in reference.properties)",
+    )
+
+
+def before_array_length(current):
+    current = before_multi_record(current)
+    tree = ast.parse(current)
+    tree.body = [node for node in tree.body if not (
+        isinstance(node, ast.ClassDef) and node.name in {"SourcePropertySelection", "SourceFactReferenceGroup"}
+    )]
+    for node in ast.walk(tree):
+        if isinstance(node, ast.AnnAssign) and isinstance(node.target, ast.Name) and node.target.id == "FactKind":
+            node.value = ast.parse(
+                'Literal["property_value", "json_member_presence", "json_array_empty_v1"]', mode="eval",
+            ).body
+        if isinstance(node, ast.FunctionDef) and node.name in ("source_leaf", "presence_path", "atomic_value"):
+            node.body = [statement for statement in node.body if not (
+                isinstance(statement, ast.If) and "json_array_length_v1" in ast.unparse(statement.test)
+            )]
+        if isinstance(node, ast.ClassDef) and node.name == "ClaimFactSelection":
+            node.body = [method for method in node.body if not (
+                isinstance(method, ast.FunctionDef) and method.name == "expanded_references"
+            )]
+            reference, = [field for field in node.body if isinstance(field, ast.AnnAssign)
+                          and isinstance(field.target, ast.Name) and field.target.id == "references"]
+            reference.annotation = ast.parse(
+                "Annotated[tuple[SourceFactReference, ...], Field(min_length=1)]", mode="eval",
+            ).body
+        if isinstance(node, ast.Attribute) and node.attr == "expanded_references":
+            node.attr = "references"
+    return ast.unparse(tree).encode()
+
+
 def legacy_canonical_source(current):
+    current = before_array_length(current)
     tree = ast.parse(current)
     for node in ast.walk(tree):
         if isinstance(node, ast.AnnAssign) and isinstance(node.target, ast.Name) and node.target.id == "FactKind":
@@ -247,7 +335,7 @@ class SourceRevisionTests(TestCase):
                 data = (MODULES / name).read_bytes()
                 old.writestr(name, data)
                 if name == "difficulty_curation.py":
-                    data = data.replace(b"difficulty-feature-curation-v0.4", b"difficulty-feature-curation-v0.5")
+                    data = data.replace(CURATION_VERSION.encode(), (CURATION_VERSION + "-context-test").encode())
                     updated[name] = hashlib.sha256(data).hexdigest()
                 new.writestr(name, data)
         from secgym.qagen.agentic.quality import runtime_hashes as source_hashes
@@ -285,21 +373,142 @@ class SourceRevisionTests(TestCase):
                                          reason="Invalid validation change.")
         self.assertFalse(any((self.output / "runtime-amendments").glob("*.json")))
 
+    def test_difficulty_guidance_amendment_preserves_exact_historical_source_audits(self):
+        _, candidate = self.held()
+        task = TaskRecord.model_validate_json((candidate / "task.json").read_bytes())
+        before, after = self.output / "before-guidance.zip", self.output / "after-guidance.zip"
+        updated = dict(self.plan.implementation_sha256)
+        with zipfile.ZipFile(before, "x") as old, zipfile.ZipFile(after, "x") as new:
+            for name in updated:
+                data = (MODULES / name).read_bytes()
+                old.writestr(name, data)
+                if name == "difficulty_curation.py":
+                    data = data.replace(CURATION_VERSION.encode(), (CURATION_VERSION + "-guidance-test").encode())
+                    data = data.replace(b"This is private feature measurement", b"This is source-only feature measurement")
+                    data = data.replace(b"not a numerical difficulty score", b"never a numerical difficulty score")
+                    updated[name] = hashlib.sha256(data).hexdigest()
+                new.writestr(name, data)
+        from secgym.qagen.agentic.quality import runtime_hashes as source_hashes
+        recorded = source_hashes()
+        with patch("secgym.qagen.agentic.preproduction_revisions.runtime_hashes", return_value=updated), \
+             patch("secgym.qagen.agentic.quality.runtime_hashes",
+                   return_value={name: updated[name] for name in recorded}):
+            with self.assertRaisesRegex(ValueError, "both exact"):
+                record_runtime_amendment(self.plan, self.output, archive=before, difficulty_guidance=True,
+                                         reason="Missing prompt archive.")
+            with self.assertRaisesRegex(ValueError, "separate prompt-only"):
+                record_runtime_amendment(self.plan, self.output, archive=before, current_archive=after,
+                                         difficulty_guidance=True, empty_array_facts=True, reason="Mixed changes.")
+            with self.assertRaisesRegex(ValueError, "curation or measurement kernels"):
+                record_runtime_amendment(self.plan, self.output, archive=before, current_archive=after,
+                                         reason="The old context policy must not authorize prompt changes.")
+            amendment = record_runtime_amendment(
+                self.plan, self.output, archive=before, current_archive=after, difficulty_guidance=True,
+                reason="Controlled independently reviewed source-necessity prompt clarification.",
+            )
+            self.assertEqual(amendment.policy_version, DIFFICULTY_GUIDANCE_AMENDMENT)
+            self.assertEqual(effective_runtime(self.plan, self.output), updated)
+            validate_source_audit_runtime(candidate, task, recorded)
+        with after.open("ab") as stream:
+            stream.write(b"tamper")
+        with self.assertRaisesRegex(ValueError, "updated annotation producer changed"):
+            effective_runtime(self.plan, self.output)
+
+    def test_difficulty_guidance_rejects_code_context_domain_and_unversioned_changes(self):
+        original = (MODULES / "difficulty_curation.py").read_bytes()
+        versioned = original.replace(CURATION_VERSION.encode(), (CURATION_VERSION + "-guidance-test").encode())
+        replacements = (
+            (original, "new curation version"),
+            (versioned.replace(b"question = SplitQuestion.model_validate(question)", b"question = question"),
+             "curation, context or measurement kernels"),
+            (versioned.replace(b"task = question.task", b"task = None"), "curation, context or measurement kernels"),
+            (versioned.replace(b"Cross-domain means", b"Cross-domain always means"),
+             "curation, context or measurement kernels"),
+            (versioned.replace(b'CURATOR_INSTRUCTIONS = """', b'CURATOR_INSTRUCTIONS = str() + """', 1),
+             "only static instruction text"),
+        )
+        for changed, message in replacements:
+            with self.subTest(message=message), self.assertRaisesRegex(ValueError, message):
+                _validate_difficulty_guidance_change("difficulty_curation.py", original, changed)
+        with self.assertRaisesRegex(ValueError, "another annotation module"):
+            _validate_difficulty_guidance_change("difficulty.py", original, versioned)
+
+    def test_difficulty_identity_amendment_accepts_only_the_exact_guard_and_static_guidance(self):
+        self.output.mkdir()
+        before, after = self.output / "before-identity.zip", self.output / "after-identity.zip"
+        previous, current = {}, {}
+        with zipfile.ZipFile(before, "x") as old, zipfile.ZipFile(after, "x") as new:
+            for name in self.plan.implementation_sha256:
+                source = (MODULES / name).read_bytes()
+                old_source = before_identity_guard(source) if name == "difficulty.py" else source
+                new_source = source.replace(CURATION_VERSION.encode(), (CURATION_VERSION + "-identity-test").encode()) \
+                    if name == "difficulty_curation.py" else source
+                previous[name], current[name] = hashlib.sha256(old_source).hexdigest(), hashlib.sha256(new_source).hexdigest()
+                old.writestr(name, old_source)
+                new.writestr(name, new_source)
+        amendment = RuntimeAmendment(
+            policy_version=DIFFICULTY_IDENTITY_AMENDMENT, plan_fingerprint=fingerprint(self.plan),
+            previous_runtime_sha256=previous, current_runtime_sha256=current,
+            archive=before.name, archive_sha256=file_sha256(before),
+            current_archive=after.name, current_archive_sha256=file_sha256(after),
+            reason="Controlled source identity projection guard and prompt-only clarification.",
+        )
+        _validate_runtime_amendment(amendment, self.output, previous)
+        for policy in ("preproduction-annotation-context-amendment-v2", DIFFICULTY_GUIDANCE_AMENDMENT):
+            with self.subTest(policy=policy), self.assertRaisesRegex(ValueError, "cannot change"):
+                _validate_runtime_amendment(amendment.model_copy(update={"policy_version": policy}), self.output, previous)
+        missing_guidance = {**current, "difficulty_curation.py": previous["difficulty_curation.py"]}
+        with self.assertRaisesRegex(ValueError, "both the exact guard and versioned guidance"):
+            _validate_runtime_amendment(amendment.model_copy(update={"current_runtime_sha256": missing_guidance}),
+                                        self.output, previous)
+        with after.open("ab") as stream:
+            stream.write(b"tamper")
+        with self.assertRaisesRegex(ValueError, "updated annotation producer changed"):
+            _validate_runtime_amendment(amendment, self.output, previous)
+
+    def test_difficulty_identity_amendment_rejects_changed_guard_or_other_measurement_logic(self):
+        current = (MODULES / "difficulty.py").read_bytes()
+        previous = before_identity_guard(current)
+        _validate_difficulty_identity_change(previous, current)
+        for changed in (
+            current.replace(b'column in result.columns and (', b'column not in result.columns and ('),
+            current.replace(b'1 <= self.candidate_count', b'0 <= self.candidate_count'),
+            current.replace(b'candidate_count=len(keys)', b'candidate_count=len(rows)'),
+        ):
+            with self.subTest(change=hashlib.sha256(changed).hexdigest()), self.assertRaisesRegex(ValueError, "difficulty identity"):
+                _validate_difficulty_identity_change(previous, changed)
+
     def test_empty_array_amendment_preserves_exact_legacy_source_audits(self):
         _, candidate = self.held()
         task = TaskRecord.model_validate_json((candidate / "task.json").read_bytes())
         before, after = self.output / "before-empty.zip", self.output / "after-empty.zip"
         previous = dict(self.plan.implementation_sha256)
+        intermediate = {}
         with zipfile.ZipFile(before, "x") as old, zipfile.ZipFile(after, "x") as new:
             for name in previous:
-                data = (MODULES / name).read_bytes()
+                data = before_multi_record((MODULES / name).read_bytes(), name)
+                if name == "canonical_facts.py":
+                    data = before_array_length(data)
+                elif name == "fact_curation.py":
+                    data = data.replace(b"source-fact-curation-v1.3", b"source-fact-curation-v1.2")
                 new.writestr(name, data)
+                intermediate[name] = hashlib.sha256(data).hexdigest()
                 if name == "canonical_facts.py":
                     data = legacy_canonical_source(data)
                 elif name == "fact_curation.py":
                     data = data.replace(b"source-fact-curation-v1.2", b"source-fact-curation-v1.1")
                 old.writestr(name, data)
                 previous[name] = hashlib.sha256(data).hexdigest()
+        for target, value in (
+            ("secgym.qagen.agentic.preproduction_revisions.runtime_hashes", intermediate),
+            ("secgym.qagen.agentic.preproduction.runtime_hashes", intermediate),
+        ):
+            patched = patch(target, return_value=value)
+            patched.start()
+            self.addCleanup(patched.stop)
+        version = patch("secgym.qagen.agentic.preproduction_pipeline.CURATION_VERSION", "source-fact-curation-v1.2")
+        version.start()
+        self.addCleanup(version.stop)
         self.plan = self.plan.model_copy(update={"implementation_sha256": previous})
         (self.output / "plan.json").write_text(self.plan.model_dump_json())
         with self.assertRaisesRegex(ValueError, "both exact"):
@@ -349,25 +558,270 @@ class SourceRevisionTests(TestCase):
             effective_runtime(self.plan, self.output)
 
     def test_empty_array_amendment_cannot_change_old_semantics_or_weaken_the_new_guard(self):
-        current = (MODULES / "canonical_facts.py").read_bytes()
+        current = before_array_length((MODULES / "canonical_facts.py").read_bytes())
         previous = legacy_canonical_source(current)
         _validate_empty_array_change("canonical_facts.py", previous, current)
         for before, after in (
             (b"weight=1.0", b"weight=2.0"),
-            (b'FACT_VERSION = "canonical-source-facts-v2"', b'FACT_VERSION = "canonical-source-facts-v3"'),
-            (b'        return "true"', b'        return "false"'),
+            (b"FACT_VERSION = 'canonical-source-facts-v2'", b"FACT_VERSION = 'canonical-source-facts-v3'"),
+            (b"        return 'true'", b"        return 'false'"),
             (b"if not isinstance(observed, list) or observed:", b"if not isinstance(observed, list):"),
         ):
             changed = current.replace(before, after)
             self.assertNotEqual(changed, current)
             with self.subTest(change=before), self.assertRaises(ValueError):
                 _validate_empty_array_change("canonical_facts.py", previous, changed)
-        curation = (MODULES / "fact_curation.py").read_bytes()
+        curation = before_multi_record((MODULES / "fact_curation.py").read_bytes(), "fact_curation.py").replace(
+            b"source-fact-curation-v1.3", b"source-fact-curation-v1.2",
+        )
         old = curation.replace(b"source-fact-curation-v1.2", b"source-fact-curation-v1.1")
         with self.assertRaisesRegex(ValueError, "curation kernels"):
             _validate_empty_array_change(
                 "fact_curation.py", old, curation.replace(b"validation.pilot_blockers(task)", b"()"),
             )
+
+    def test_array_length_amendment_is_strictly_additive(self):
+        current = before_multi_record((MODULES / "canonical_facts.py").read_bytes())
+        previous = before_array_length(current)
+        _validate_array_length_change("canonical_facts.py", previous, current)
+        for before, after in (
+            (b"weight=1.0", b"weight=2.0"),
+            (b'FACT_VERSION = "canonical-source-facts-v2"', b'FACT_VERSION = "canonical-source-facts-v3"'),
+            (b"return str(len(observed))", b'return "1"'),
+            (b"if not isinstance(observed, list) or not observed:", b"if not isinstance(observed, list):"),
+            (b"int(value.text) <= 0", b"int(value.text) < 0"),
+            (b"for selection in reference.properties)", b"for selection in reference.properties[:1])"),
+            (b"json_path=selection.json_path", b"json_path=None"),
+            (b"class SourceFactResolver:", b"class RenamedFactResolver:"),
+            (b'        return "true"', b'        return "false"'),
+        ):
+            changed = current.replace(before, after)
+            self.assertNotEqual(changed, current)
+            with self.subTest(change=before), self.assertRaises(ValueError):
+                _validate_array_length_change("canonical_facts.py", previous, changed)
+        curation = before_multi_record((MODULES / "fact_curation.py").read_bytes(), "fact_curation.py")
+        old = curation.replace(b"source-fact-curation-v1.3", b"source-fact-curation-v1.2")
+        _validate_array_length_change("fact_curation.py", old, curation)
+        with self.assertRaisesRegex(ValueError, "curation kernels"):
+            _validate_array_length_change(
+                "fact_curation.py", old, curation.replace(b"validation.pilot_blockers(task)", b"()"),
+            )
+        with self.assertRaises(ValueError):
+            _validate_array_length_change("fact_curation.py", old, old)
+
+    def array_extension_archives(self):
+        hashes = {version: {} for version in ("old", "middle", "current")}
+        paths = {version: self.output / f"array-{version}.zip" for version in hashes}
+        for version, path in paths.items():
+            with zipfile.ZipFile(path, "x") as saved:
+                for name in self.plan.implementation_sha256:
+                    data = before_multi_record((MODULES / name).read_bytes(), name)
+                    if version != "current":
+                        if name == "canonical_facts.py":
+                            data = before_array_length(data) if version == "middle" else legacy_canonical_source(data)
+                        elif name == "fact_curation.py":
+                            data = data.replace(
+                                b"source-fact-curation-v1.3",
+                                b"source-fact-curation-v1.2" if version == "middle" else b"source-fact-curation-v1.1",
+                            )
+                    saved.writestr(name, data)
+                    hashes[version][name] = hashlib.sha256(data).hexdigest()
+        for target in ("secgym.qagen.agentic.preproduction_revisions.runtime_hashes",
+                       "secgym.qagen.agentic.preproduction.runtime_hashes"):
+            patched = patch(target, return_value=hashes["current"])
+            patched.start()
+            self.addCleanup(patched.stop)
+        version = patch("secgym.qagen.agentic.preproduction_pipeline.CURATION_VERSION", "source-fact-curation-v1.3")
+        version.start()
+        self.addCleanup(version.stop)
+        return hashes, paths
+
+    def test_multi_record_amendment_is_exactly_lossless_and_checks_every_inspection(self):
+        for name in ("canonical_facts.py", "fact_curation.py"):
+            current = before_nested_json((MODULES / name).read_bytes(), name)
+            previous = before_multi_record(current, name)
+            _validate_multi_record_fact_change(name, previous, current)
+            changes = (
+                (b"else reference.citations", b"else reference.citations[:1]"),
+                (b"require_unique(self.record_ids", b"require_unique(()"),
+                (b"json_path=selection.json_path", b"json_path=None"),
+                (b"weight=1.0", b"weight=2.0"),
+            ) if name == "canonical_facts.py" else (
+                (b"claim.expanded_references", b"claim.references"),
+                (b"validation.pilot_blockers(task)", b"()"),
+            )
+            for original, replacement in changes:
+                modified = current.replace(original, replacement)
+                self.assertNotEqual(modified, current)
+                with self.subTest(name=name, change=original), self.assertRaisesRegex(ValueError, "multi-record"):
+                    _validate_multi_record_fact_change(name, previous, modified)
+
+    def test_multi_record_amendment_requires_exact_archives_and_its_separate_policy(self):
+        self.output.mkdir()
+        before, after = self.output / "before-batches.zip", self.output / "after-batches.zip"
+        previous, current = {}, {}
+        with zipfile.ZipFile(before, "x") as old, zipfile.ZipFile(after, "x") as new:
+            for name in self.plan.implementation_sha256:
+                data = before_nested_json((MODULES / name).read_bytes(), name)
+                old_data = before_multi_record(data, name)
+                previous[name], current[name] = hashlib.sha256(old_data).hexdigest(), hashlib.sha256(data).hexdigest()
+                old.writestr(name, old_data)
+                new.writestr(name, data)
+        self.plan = self.plan.model_copy(update={"implementation_sha256": previous})
+        (self.output / "plan.json").write_text(self.plan.model_dump_json())
+        runtime = patch("secgym.qagen.agentic.preproduction_revisions.runtime_hashes", return_value=current)
+        runtime.start()
+        self.addCleanup(runtime.stop)
+        with self.assertRaisesRegex(ValueError, "both exact"):
+            record_runtime_amendment(self.plan, self.output, archive=before, multi_record_facts=True,
+                                     reason="Missing exact new producer.")
+        with self.assertRaisesRegex(ValueError, "separate transport-only"):
+            record_runtime_amendment(self.plan, self.output, archive=before, current_archive=after,
+                                     multi_record_facts=True, array_length_facts=True, reason="Mixed policies.")
+        amendment = record_runtime_amendment(
+            self.plan, self.output, archive=before, current_archive=after, multi_record_facts=True,
+            reason="Exact lossless source-reference batching without source, grading or fact-identity changes.",
+        )
+        self.assertEqual(amendment.policy_version, MULTI_RECORD_FACT_AMENDMENT)
+        self.assertEqual(effective_runtime(self.plan, self.output), current)
+        with self.assertRaises(ValueError):
+            _validate_runtime_amendment(amendment.model_copy(update={"policy_version": ARRAY_LENGTH_AMENDMENT}),
+                                        self.output, previous)
+        with after.open("ab") as stream:
+            stream.write(b"changed")
+        with self.assertRaisesRegex(ValueError, "updated annotation producer"):
+            effective_runtime(self.plan, self.output)
+
+    def test_nested_json_amendment_only_repeats_container_decoding(self):
+        for name in ("canonical_facts.py", "fact_curation.py"):
+            current = (MODULES / name).read_bytes()
+            previous = before_nested_json(current, name)
+            _validate_nested_json_fact_change(name, previous, current)
+            changes = (
+                (b"while isinstance(current, str):", b"if isinstance(current, str):"),
+                (b"return encode_json(current)", b"return encode_json(str(current))"),
+                (b"weight=1.0", b"weight=2.0"),
+                (b"return str(len(observed))", b'return "1"'),
+                (b'        return "true"', b'        return "false"'),
+            ) if name == "canonical_facts.py" else (
+                (b"source-fact-curation-v1.5", b"source-fact-curation-v1.6"),
+                (b"validation.pilot_blockers(task)", b"()"),
+                (b"claim.expanded_references", b"claim.references"),
+            )
+            for old, new in changes:
+                modified = current.replace(old, new)
+                self.assertNotEqual(modified, current)
+                with self.subTest(name=name, change=old), self.assertRaisesRegex(ValueError, "nested JSON"):
+                    _validate_nested_json_fact_change(name, previous, modified)
+            with self.assertRaises(ValueError):
+                _validate_nested_json_fact_change(name, current, current)
+
+    def test_nested_json_amendment_requires_both_exact_archives_and_separate_policy(self):
+        self.output.mkdir()
+        before, after = self.output / "before-nested-json.zip", self.output / "after-nested-json.zip"
+        previous, current = {}, {}
+        with zipfile.ZipFile(before, "x") as old, zipfile.ZipFile(after, "x") as new:
+            for name in self.plan.implementation_sha256:
+                data = (MODULES / name).read_bytes()
+                old_data = before_nested_json(data, name)
+                previous[name], current[name] = hashlib.sha256(old_data).hexdigest(), hashlib.sha256(data).hexdigest()
+                old.writestr(name, old_data)
+                new.writestr(name, data)
+        self.plan = self.plan.model_copy(update={"implementation_sha256": previous})
+        (self.output / "plan.json").write_text(self.plan.model_dump_json())
+        with self.assertRaisesRegex(ValueError, "both exact"):
+            record_runtime_amendment(
+                self.plan, self.output, archive=before, nested_json_facts=True, reason="Missing current archive.",
+            )
+        with self.assertRaisesRegex(ValueError, "separate"):
+            record_runtime_amendment(
+                self.plan, self.output, archive=before, current_archive=after,
+                nested_json_facts=True, multi_record_facts=True, reason="Mixed policies.",
+            )
+        amendment = record_runtime_amendment(
+            self.plan, self.output, archive=before, current_archive=after, nested_json_facts=True,
+            reason="Decode only container serialization layers without changing scalar leaves or identities.",
+        )
+        self.assertEqual(amendment.policy_version, NESTED_JSON_FACT_AMENDMENT)
+        self.assertEqual(effective_runtime(self.plan, self.output), current)
+        with self.assertRaises(ValueError):
+            _validate_runtime_amendment(amendment.model_copy(update={"policy_version": MULTI_RECORD_FACT_AMENDMENT}),
+                                        self.output, previous)
+        with after.open("ab") as stream:
+            stream.write(b"changed")
+        with self.assertRaisesRegex(ValueError, "updated annotation producer"):
+            effective_runtime(self.plan, self.output)
+
+    def test_array_length_amendment_preserves_historical_audits_and_recovers_unsupported_annotations(self):
+        _, candidate = self.held()
+        task = TaskRecord.model_validate_json((candidate / "task.json").read_bytes())
+        hashes, paths = self.array_extension_archives()
+        self.plan = self.plan.model_copy(update={"implementation_sha256": hashes["middle"]})
+        (self.output / "plan.json").write_text(self.plan.model_dump_json())
+        with self.assertRaisesRegex(ValueError, "both exact"):
+            record_runtime_amendment(self.plan, self.output, archive=paths["middle"], array_length_facts=True,
+                                     reason="Missing current archive.")
+        with self.assertRaisesRegex(ValueError, "two structural"):
+            record_runtime_amendment(self.plan, self.output, archive=paths["middle"], current_archive=paths["current"],
+                                     array_length_facts=True, empty_array_facts=True, reason="Ambiguous extension.")
+        amendment = record_runtime_amendment(
+            self.plan, self.output, archive=paths["middle"], current_archive=paths["current"], array_length_facts=True,
+            reason="Add exact nonempty-array extent without changing legacy facts.",
+        )
+        self.assertEqual(amendment.policy_version, ARRAY_LENGTH_AMENDMENT)
+        self.assertEqual(effective_runtime(self.plan, self.output), hashes["current"])
+        from secgym.qagen.agentic.quality import runtime_hashes as source_hashes
+        validate_source_audit_runtime(candidate, task, {name: hashes["middle"][name] for name in source_hashes()})
+        self.check_array_abstention(task, candidate, hashes["middle"], "source-fact-curation-v1.2")
+        with paths["current"].open("ab") as stream:
+            stream.write(b"changed")
+        with self.assertRaisesRegex(ValueError, "updated annotation producer"):
+            effective_runtime(self.plan, self.output)
+
+    def check_array_abstention(self, task, candidate, previous, version):
+        from secgym.qagen.agentic.preproduction_pipeline import _canonical_abstention_extension, _json_hashes
+        parent = candidate.parent / "pipeline/unsupported-array"
+        canonical = parent / "canonical"
+        (canonical / "curator").mkdir(parents=True)
+        binding = {"task_fingerprint": fingerprint(task), "curation_version": version,
+                   "implementation_sha256": previous}
+        (canonical / "binding.json").write_text(json.dumps(binding))
+        (canonical / "curator/abstention.json").write_text(json.dumps({
+            "status": "no_supported_result", "role": "fact-curator", "reason": "Array extent is not expressible.",
+        }))
+        (parent / "pipeline-report.json").write_text(json.dumps({
+            "status": "held", "stage": "canonical", "task_fingerprint": fingerprint(task),
+            "artifacts_sha256": _json_hashes(parent),
+        }))
+        destination = parent.parent / "extended-array/canonical"
+        context = _canonical_abstention_extension(canonical, binding, destination)
+        self.assertEqual(context["approved_annotation_extension"], ARRAY_LENGTH_AMENDMENT)
+        self.assertEqual(_canonical_abstention_extension(canonical, binding, destination), context)
+        with self.assertRaisesRegex(ValueError, "immutable"):
+            _canonical_abstention_extension(canonical, binding, parent.parent / "resampled-array/canonical")
+        with self.assertRaisesRegex(ValueError, "exact additive"):
+            _canonical_abstention_extension(
+                canonical, {**binding, "implementation_sha256": {**previous, "canonical_facts.py": "f" * 64}}, destination,
+            )
+
+    def test_chained_empty_and_length_extensions_preserve_original_abstention_boundary(self):
+        _, candidate = self.held()
+        task = TaskRecord.model_validate_json((candidate / "task.json").read_bytes())
+        hashes, paths = self.array_extension_archives()
+        self.plan = self.plan.model_copy(update={"implementation_sha256": hashes["old"]})
+        (self.output / "plan.json").write_text(self.plan.model_dump_json())
+        with patch("secgym.qagen.agentic.preproduction_revisions.runtime_hashes", return_value=hashes["middle"]):
+            record_runtime_amendment(
+                self.plan, self.output, archive=paths["old"], current_archive=paths["middle"], empty_array_facts=True,
+                reason="First exact empty-array extension.",
+            )
+        record_runtime_amendment(
+            self.plan, self.output, archive=paths["middle"], current_archive=paths["current"], array_length_facts=True,
+            reason="Second exact nonempty-array extent extension.",
+        )
+        self.check_array_abstention(task, candidate, hashes["old"], "source-fact-curation-v1.1")
+        certificate, = (self.output / "canonical-extension-recoveries").glob("*.json")
+        self.assertEqual(len(json.loads(certificate.read_bytes())["runtime_amendment_fingerprints"]), 2)
 
     def test_wrong_archive_cannot_rebind_the_original_producer(self):
         self.held()

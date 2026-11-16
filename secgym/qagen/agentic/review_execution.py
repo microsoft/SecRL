@@ -16,14 +16,13 @@ import time
 
 import mysql.connector
 
-from .azure_generation import AzureGenerationConfig
 from .contracts import TaskRecord, fingerprint
 from .evidence import EvidenceVerifier
 from .generation import TaskDraft
 from .ledger import file_sha256
 from .model_panel import immutable_json
 from .mysql_serving import open_duckdb_engine, open_mysql_engine
-from .preproduction import PreproductionPlan, configured_model_binding
+from .preproduction import PreproductionPlan, configured_model_binding, task_generation_config, task_model_binding
 from .preproduction_admission import admission_progress
 from .preproduction_pipeline import _citations, _continuation, _review_validator, _validate_plan_revision, run_candidate_pipeline
 from .preproduction_revisions import current_source
@@ -227,13 +226,12 @@ def run_review_pipeline(
         "student_query_limits": plan.query_limits.model_dump(mode="json"),
         "recover_role": str(recover_role.relative_to(output.resolve())) if recover_role is not None else None,
     })
-    config = AzureGenerationConfig(
-        env_file=env_file, deployment=plan.model.deployment, timeout_seconds=plan.model.request_timeout_seconds,
-        max_completion_tokens=plan.model.max_completion_tokens, reasoning_effort=plan.model.reasoning_effort,
-    )
+    config = task_generation_config(plan, run, task_id, env_file)
     client = azure_review_client(config, policy, (output,))
     try:
-        if configured_model_binding(client) != plan.model:
+        from .preproduction import validate_task_client
+        validate_task_client(plan, run, task_id, client)
+        if configured_model_binding(client) != task_model_binding(plan, run, task_id):
             raise ValueError("review override changed the original default/student model binding")
         with owned_review_engines(plan, serving_bundle, mysql_bundle, workdir,
                                   frozenset(item.value for item in draft.allowed_literals)) as (source, native, student, mysqld):

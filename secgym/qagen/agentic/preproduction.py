@@ -11,7 +11,8 @@ import fcntl
 import hashlib
 import json
 from pathlib import Path
-from typing import Literal
+from functools import lru_cache
+from typing import Callable, Literal
 
 import duckdb
 from pydantic import Field, model_validator
@@ -19,6 +20,7 @@ from pydantic import Field, model_validator
 from .batch import DevelopmentAttempt, development_attempts
 from .contracts import Contract, Digest, Identifier, SELECTED_INCIDENTS, TaskRecord, Text, fingerprint, require_unique
 from .generation import RoleAbstained
+from .gateway import GatewayOptIn
 from .ledger import file_sha256
 from .model_panel import immutable_json
 from .pilot import run_discovery_pilot
@@ -29,7 +31,12 @@ from .query import QueryLimits
 VERSION = "preproduction-source-waves-v1"
 
 
-class ModelBinding(Contract):
+@lru_cache(maxsize=32)
+def _planned_attempts(batch_id: str, incident_ceiling: int, tenant_ceiling: int) -> tuple[DevelopmentAttempt, ...]:
+    return development_attempts(batch_id, incident_ceiling, tenant_ceiling)
+
+
+class ModelBinding(GatewayOptIn):
     deployment: Literal["gpt-6-sol"]
     endpoint_sha256: Digest
     api_version: Text
@@ -74,7 +81,7 @@ class PreproductionPlan(Contract):
         return self
 
     def attempts(self) -> tuple[DevelopmentAttempt, ...]:
-        return development_attempts(self.batch_id, self.incident_attempt_ceiling, self.tenant_attempt_ceiling)
+        return _planned_attempts(self.batch_id, self.incident_attempt_ceiling, self.tenant_attempt_ceiling)
 
 
 class SourceOutcome(Contract):
@@ -94,6 +101,8 @@ def runtime_hashes() -> dict[str, str]:
             "preproduction.py": file_sha256(Path(__file__)),
             "batch.py": file_sha256(Path(__file__).with_name("batch.py")),
             "model_panel.py": file_sha256(Path(__file__).with_name("model_panel.py")),
+            "provider_defaults.py": file_sha256(Path(__file__).with_name("provider_defaults.py")),
+            "transport_amendments.py": file_sha256(Path(__file__).with_name("transport_amendments.py")),
             "preproduction_admission.py": file_sha256(Path(__file__).with_name("preproduction_admission.py")),
             "preproduction_revisions.py": file_sha256(Path(__file__).with_name("preproduction_revisions.py"))}
 
@@ -101,6 +110,14 @@ def runtime_hashes() -> dict[str, str]:
 def configured_model_binding(client) -> ModelBinding:
     from dotenv import dotenv_values
 
+    if client.config.gateway is not None:
+        return ModelBinding(
+            deployment=client.config.deployment,
+            endpoint_sha256=hashlib.sha256(client.config.gateway.base_url.encode()).hexdigest(),
+            api_version="openai-responses", request_timeout_seconds=client.config.timeout_seconds,
+            max_completion_tokens=client.config.max_completion_tokens, reasoning_effort=client.config.reasoning_effort,
+            gateway=client.config.gateway,
+        )
     values = dotenv_values(client.config.env_file)
     endpoint, api_version = values.get("AZUREAI_OPENAI_BASE_URL"), values.get("AZUREAI_OPENAI_API_VERSION")
     if not endpoint or not endpoint.startswith("https://") or not api_version:
@@ -112,16 +129,80 @@ def configured_model_binding(client) -> ModelBinding:
     )
 
 
+def recorded_task_model_binding(plan: PreproductionPlan, run: Path, task_id: str) -> ModelBinding:
+    """Resolve only an allocated task's immutable, batch-scoped transport opt-in."""
+    from .checkpoint_batches import batch_directory, load_batch_policy
+
+    folder = run / "attempts" / task_id
+    path = folder / "generation-batch.json"
+    if not path.exists():
+        return plan.model
+    reservation = json.loads(path.read_bytes())
+    policy = load_batch_policy(batch_directory(run, reservation["batch_id"]) / "policy.json")
+    if policy.plan_fingerprint != fingerprint(plan) or reservation["policy_fingerprint"] != fingerprint(policy):
+        raise ValueError("task transport does not bind the original plan and generation batch")
+    if policy.gateway is None:
+        return plan.model
+    item_path = batch_directory(run, policy.batch_id) / "items" / (task_id + ".json")
+    item = json.loads(item_path.read_bytes())
+    encoded = json.dumps(item, sort_keys=True, separators=(",", ":"), allow_nan=False).encode()
+    if (item["attempt"]["task_id"] != task_id or item["policy_fingerprint"] != fingerprint(policy)
+        or hashlib.sha256(encoded).hexdigest() != reservation["reservation_fingerprint"]):
+        raise ValueError("task transport lacks its exact allocated batch reservation")
+    return plan.model.model_copy(update={
+        "gateway": policy.gateway, "endpoint_sha256": hashlib.sha256(policy.gateway.base_url.encode()).hexdigest(),
+        "api_version": "openai-responses",
+    })
+
+
+def task_model_binding(plan: PreproductionPlan, run: Path, task_id: str) -> ModelBinding:
+    """Resolve future execution, not the provenance of an already recorded student."""
+    from .provider_defaults import forward_model_binding
+
+    return forward_model_binding(plan, run, recorded_task_model_binding(plan, run, task_id))
+
+
+def task_generation_config(plan: PreproductionPlan, run: Path, task_id: str, env_file: Path):
+    from .azure_generation import AzureGenerationConfig
+    from .provider_defaults import AUTHORITY, ForwardDefault, load_provider_default
+
+    model = task_model_binding(plan, run, task_id)
+    authority = load_provider_default(plan, run)
+    return AzureGenerationConfig(
+        env_file=Path(authority.credential_env_file) if authority is not None else env_file,
+        deployment=model.deployment, timeout_seconds=model.request_timeout_seconds,
+        max_completion_tokens=model.max_completion_tokens, reasoning_effort=model.reasoning_effort, gateway=model.gateway,
+        forward_default=ForwardDefault(run=run.resolve(), task_id=task_id, authority_sha256=file_sha256(run / AUTHORITY))
+        if authority is not None else None,
+    )
+
+
+def validate_task_client(plan: PreproductionPlan, run: Path, task_id: str, client) -> None:
+    from .provider_defaults import load_provider_default, validate_forward_config
+
+    if load_provider_default(plan, run) is None:
+        return
+    if configured_model_binding(client) != task_model_binding(plan, run, task_id):
+        raise ValueError("execution client differs from the task's approved live provider/model")
+    reference = client.config.forward_default
+    if reference is None or (reference.run, reference.task_id) != (run.resolve(), task_id):
+        raise ValueError("forward execution requires explicit task-bound provider-default provenance")
+    validate_forward_config(client.config)
+
+
 def _bucket(attempt: DevelopmentAttempt) -> str:
     return f"incident:{attempt.incident_id}" if attempt.mode == "incident" else "tenant"
 
 
-def _artifacts(directory: Path) -> dict[str, str]:
-    return {str(path.relative_to(directory)): file_sha256(path) for path in sorted(directory.rglob("*.json"))}
+def _artifacts(directory: Path, *, hash_file: Callable[[Path], str] | None = None) -> dict[str, str]:
+    digest = hash_file or file_sha256
+    return {str(path.relative_to(directory)): digest(path) for path in sorted(directory.rglob("*.json"))}
 
 
-def _check_artifacts(directory: Path, expected: dict[str, str]) -> None:
-    if _artifacts(directory) != expected:
+def _check_artifacts(directory: Path, expected: dict[str, str], *,
+                     hash_file: Callable[[Path], str] | None = None) -> None:
+    actual = _artifacts(directory) if hash_file is None else _artifacts(directory, hash_file=hash_file)
+    if actual != expected:
         raise ValueError("retained source attempt artifacts changed")
 
 
@@ -165,7 +246,8 @@ def locked_run(output: Path, *, wait: bool = False):
         yield
 
 
-def source_progress(plan: PreproductionPlan, output: Path) -> dict:
+def source_progress(plan: PreproductionPlan, output: Path, *,
+                    hash_file: Callable[[Path], str] | None = None) -> dict:
     from .preproduction_revisions import current_source
 
     buckets = {f"incident:{incident}": {
@@ -176,19 +258,23 @@ def source_progress(plan: PreproductionPlan, output: Path) -> dict:
     historical = []
     revision_counts = Counter()
     started = Counter()
-    expected_ids = {attempt.task_id for attempt in plan.attempts()}
+    attempts, plan_fp = plan.attempts(), fingerprint(plan)
+    expected_ids = {attempt.task_id for attempt in attempts}
     if any(path.name not in expected_ids for path in (output / "attempts").glob("*") if path.is_dir()):
         raise ValueError("unallocated logical attempts exist outside the approved envelope")
-    for attempt in plan.attempts():
+    for attempt in attempts:
         path = output / "attempts" / attempt.task_id
         if not (path / "attempt.json").exists():
             continue
         binding = json.loads((path / "attempt.json").read_bytes())
-        if binding["plan_fingerprint"] != fingerprint(plan) or binding["attempt"] != attempt.model_dump(mode="json"):
+        if binding["plan_fingerprint"] != plan_fp or binding["attempt"] != attempt.model_dump(mode="json"):
             raise ValueError("logical attempt binding changed")
         started[_bucket(attempt)] += 1
         if (path / "source-outcome.json").exists():
-            _, outcome, revisions = current_source(plan, output, attempt.task_id)
+            _, outcome, revisions = (
+                current_source(plan, output, attempt.task_id) if hash_file is None
+                else current_source(plan, output, attempt.task_id, hash_file=hash_file)
+            )
             if outcome is None:
                 raise ValueError("recorded source outcome is unavailable")
             outcomes.append(outcome)
@@ -236,7 +322,11 @@ def run_source_wave(
         raise ValueError("checkpoint revalidation is pending; legacy source-wave generation is blocked")
     if type(wave_size) is not int or wave_size <= 0:
         raise ValueError("wave size must be a positive number of logical attempts")
-    if effective_runtime(plan, output) != runtime_hashes() or configured_model_binding(client) != plan.model:
+    from .provider_defaults import load_provider_default
+    authority = load_provider_default(plan, output)
+    if effective_runtime(plan, output) != runtime_hashes() or (
+        authority is None and configured_model_binding(client) != plan.model
+    ):
         raise ValueError("preproduction model or source-quality runtime differs from its pinned plan")
     serving_report = serving_bundle / "serving_report.json"
     graph_report = graph_bundle / "graph_report.json"
@@ -287,9 +377,15 @@ def run_source_wave(
             })
             if source_directory.exists():
                 safe_unfinished_roles(source_directory)
+            execution_client = client
+            if authority is not None:
+                from .azure_generation import AzureGenerationClient
+                execution_client = AzureGenerationClient(task_generation_config(
+                    plan, output, attempt.task_id, Path(authority.credential_env_file),
+                ))
             try:
                 result = runner(
-                    client=client, serving_bundle=serving_bundle, graph_bundle=graph_bundle,
+                    client=execution_client, serving_bundle=serving_bundle, graph_bundle=graph_bundle,
                     mode=attempt.mode, incident_id=attempt.incident_id, task_id=attempt.task_id,
                     output=source_directory, limits=plan.query_limits, checkpoint_cap=plan.checkpoint_cap,
                     prior_questions=prior, resume=source_directory.exists(), quality_gate=True,
@@ -320,6 +416,9 @@ def run_source_wave(
                     status = "no_supported_candidate"
             except (ValueError, RuntimeError, OSError, duckdb.Error) as error:
                 status, reason, task_fp = "operational_error", f"{type(error).__name__}: {error}", None
+            finally:
+                if execution_client is not client:
+                    execution_client.close()
             outcome = SourceOutcome(plan_fingerprint=fingerprint(plan), attempt_binding_sha256=file_sha256(directory / "attempt.json"),
                                     attempt=attempt, status=status,
                                     task_fingerprint=task_fp, reason=reason, artifact_sha256=_artifacts(source_directory))

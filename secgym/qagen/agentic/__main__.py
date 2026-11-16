@@ -1,7 +1,7 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-"""V1 preparation and mechanical validation; no external model calls."""
+"""V1 preparation, validation and explicitly requested model workflows."""
 
 import argparse
 import json
@@ -124,14 +124,24 @@ def main() -> None:
     service_register.add_argument("--service-directory", type=Path, required=True)
     service_status = commands.add_parser("sql-service-status", help="Check the run's registered readonly SQL service")
     service_status.add_argument("--run", type=Path, required=True)
+    gateway_check = commands.add_parser("check-gateway-models", help="Probe exact QA model IDs with synthetic Responses tool calls; no production batch")
+    gateway_check.add_argument("--gateway-config", type=Path, required=True)
+    gateway_check.add_argument("--env-file", type=Path, required=True)
+    gateway_check.add_argument("--models", nargs="+", default=["gpt-6-astra", "gpt-6-sol", "gpt-6-luna"])
     checkpoint_generate = commands.add_parser("generate-checkpoint", help="Generate Astra drafts concurrently; semantic reviews wait for the checkpoint")
     for name in ("run", "serving-bundle", "graph-bundle", "env-file"):
         checkpoint_generate.add_argument("--" + name, type=Path, required=True)
     checkpoint_generate.add_argument("--batch-id", required=True)
     checkpoint_generate.add_argument("--checkpoint-size", type=int, default=100)
     checkpoint_generate.add_argument("--workers", type=int, default=4)
+    checkpoint_generate.add_argument("--quota-aware", action="store_true",
+                                    help="Allocate only remaining per-scope admission quotas and available attempts")
+    checkpoint_generate.add_argument("--gateway-config", type=Path,
+                                     help="Explicit nonsecret Copilot gateway binding for a new batch; omitted means Azure")
     checkpoint_generate.add_argument("--max-new-attempts", type=int)
     checkpoint_generate.add_argument("--review-at-checkpoint", action="store_true")
+    checkpoint_generate.add_argument("--parallel-finalization", action="store_true",
+                                     help="Opt in to parallel objective preparation and freshness-checked atomic admission")
     checkpoint_generate.add_argument("--mysql-bundle", type=Path)
     checkpoint_generate.add_argument("--workdir", type=Path)
     for name in ("review-checkpoint", "repair-checkpoint"):
@@ -141,6 +151,9 @@ def main() -> None:
         command.add_argument("--batch-id", required=True)
         if name == "repair-checkpoint":
             command.add_argument("--task-ids", nargs="+", required=True)
+        else:
+            command.add_argument("--parallel-finalization", action="store_true",
+                                 help="Use parallel finalization for fresh candidate pipelines on the registered SQL service")
     preprod_admit = commands.add_parser("admit-preproduction", help="Verify every private gate and record one new-question admission; no generation or release")
     preprod_admit.add_argument("--run", type=Path, required=True)
     preprod_admit.add_argument("--files", type=Path, required=True)
@@ -156,6 +169,10 @@ def main() -> None:
     preprod_finish.add_argument("--prepared-robustness-plan", type=Path)
     preprod_finish.add_argument("--robustness-feedback", type=Path)
     preprod_finish.add_argument("--canonical-feedback", type=Path)
+    preprod_finish.add_argument("--canonical-scope-review-recovery", type=Path,
+                                help="Re-review one held canonical selection after an independently reconciled proof-scope conflict; retain curator and students.")
+    preprod_finish.add_argument("--annotation-journal-loss-approval", type=Path,
+                                help="Use an exact loss-bound approval to retain completed stages and restart only an interrupted nonstudent annotation role.")
     preprod_finish.add_argument("--difficulty-feedback", type=Path,
                                 help="Authorize a feature-only continuation using the held source-only difficulty review.")
     preprod_finish.add_argument("--recover-contaminated-robustness-review", action="store_true",
@@ -180,7 +197,12 @@ def main() -> None:
     private_check.add_argument("--bundle", type=Path, required=True)
     args = parser.parse_args()
     try:
-        if args.command == "register-sql-service":
+        if args.command == "check-gateway-models":
+            from .gateway import GatewayConfig, check_gateway_models
+
+            output = check_gateway_models(GatewayConfig.model_validate_json(args.gateway_config.read_bytes()),
+                                          args.env_file, tuple(args.models))
+        elif args.command == "register-sql-service":
             from .shared_validation import register_snapshot_service
 
             output = register_snapshot_service(args.run, args.service_directory)
@@ -199,9 +221,17 @@ def main() -> None:
             if args.command == "checkpoint-progress":
                 output = checkpoint_progress(args.run, args.batch_id)
             elif args.command == "generate-checkpoint":
+                from .gateway import GatewayConfig, check_gateway_models
+
                 if args.review_at_checkpoint and (args.mysql_bundle is None or args.workdir is None):
                     raise ValueError("checkpoint review requires --mysql-bundle and --workdir")
-                create_batch(args.run, args.batch_id, checkpoint_size=args.checkpoint_size, workers=args.workers)
+                if args.parallel_finalization and not args.review_at_checkpoint:
+                    raise ValueError("--parallel-finalization requires --review-at-checkpoint")
+                gateway = GatewayConfig.model_validate_json(args.gateway_config.read_bytes()) if args.gateway_config else None
+                if gateway is not None:
+                    check_gateway_models(gateway, args.env_file, ("gpt-6-astra", "gpt-6-sol"))
+                create_batch(args.run, args.batch_id, checkpoint_size=args.checkpoint_size, workers=args.workers,
+                             quota_aware=args.quota_aware, gateway=gateway)
                 output = generate_checkpoint(
                     run=args.run, batch_id=args.batch_id, serving=args.serving_bundle, graph=args.graph_bundle,
                     env_file=args.env_file, max_new_attempts=args.max_new_attempts,
@@ -212,12 +242,14 @@ def main() -> None:
                     output = review_checkpoint(
                         run=args.run, batch_id=args.batch_id, serving=args.serving_bundle, graph=args.graph_bundle,
                         mysql_bundle=args.mysql_bundle, env_file=args.env_file, workdir=args.workdir,
+                        **({"parallel_finalization": True} if args.parallel_finalization else {}),
                     )
             else:
                 kwargs = dict(run=args.run, batch_id=args.batch_id, serving=args.serving_bundle, graph=args.graph_bundle,
                               mysql_bundle=args.mysql_bundle, env_file=args.env_file, workdir=args.workdir)
                 output = (repair_checkpoint(**kwargs, task_ids=tuple(args.task_ids)) if args.command == "repair-checkpoint"
-                          else review_checkpoint(**kwargs))
+                          else review_checkpoint(**kwargs, **({"parallel_finalization": True}
+                                                             if args.parallel_finalization else {})))
         elif args.command == "export-private-bundle":
             from .private_bundle import export_private_bundle
 
@@ -299,6 +331,8 @@ def main() -> None:
                 robustness_review_recovery=args.recover_contaminated_robustness_review,
                 qualified_support_review_recovery=args.qualified_support_review_recovery,
                 admitted_contract_revision=args.admitted_contract_revision,
+                canonical_scope_review_recovery=args.canonical_scope_review_recovery,
+                annotation_journal_loss_approval=args.annotation_journal_loss_approval,
                 retained_native_pipeline=args.retained_native_pipeline, retained_native_task=args.retained_native_task,
                 retained_native_runtime_archive=args.retained_native_runtime_archive,
                 fresh_validation=args.fresh_validation,

@@ -9,18 +9,18 @@ import fcntl
 import json
 from pathlib import Path
 
-from .azure_generation import AzureGenerationConfig
 from .checkpoint_batches import (
     CheckpointBatchPolicy, ITEM_ERRORS, _check_policy, _client, _items, _workflow_lock, batch_directory,
-    draft_candidate, repair_checkpoint, review_checkpoint, review_source,
+    draft_candidate, load_batch_policy, repair_checkpoint, review_checkpoint, review_source, source_repair_feedback,
 )
-from .contracts import TaskRecord, fingerprint
-from .evidence import EvidenceVerifier
+from .contracts import GateResult, TaskRecord, fingerprint
+from .evidence import EvidenceVerifier, serving_parity
 from .generation import TaskDraft
 from .ledger import file_sha256
 from .model_panel import immutable_json
 from .mysql_serving import open_duckdb_engine
-from .preproduction import PreproductionPlan, configured_model_binding
+from .preproduction import PreproductionPlan, configured_model_binding, task_generation_config, task_model_binding
+from .preproduction_admission import AdmissionSnapshotStore
 from .preproduction_pipeline import native_text_semantics, run_candidate_pipeline
 from .preproduction_revisions import current_source, effective_native_plan, native_index_history, run_source_revision
 from .review_transport import azure_review_client, load_run_transport_policy
@@ -108,6 +108,7 @@ def registered_snapshot_pool(run: Path) -> SnapshotServicePool | None:
 def finish_shared_checkpoint_candidate(
     *, plan: PreproductionPlan, run: Path, policy: CheckpointBatchPolicy, task_id: str, serving: Path,
     graph: Path, mysql_bundle: Path, env_file: Path, workdir: Path, pool: SnapshotServicePool,
+    finalization_store: AdmissionSnapshotStore | None = None,
 ) -> dict:
     _check_policy(plan, run, policy)
     source, _, _ = current_source(plan, run, task_id)
@@ -116,11 +117,40 @@ def finish_shared_checkpoint_candidate(
         run=run, task_id=task_id, serving_bundle=serving, graph_bundle=graph, mysql_bundle=mysql_bundle,
         env_file=env_file, workdir=workdir, output=run / "attempts" / task_id / "pipeline" / task.revision_id,
         pool=pool,
+        **({"finalization_store": finalization_store} if finalization_store is not None else {}),
     )
 
 
+def _recorded_native_execution(plan: PreproductionPlan, task: TaskRecord, artifact: Path, output: Path) -> dict:
+    artifact, output = artifact.resolve(), output.resolve()
+    if len(output.parents) < 4 or artifact.name != "native-source-preflight.json" or (
+        not artifact.is_relative_to(output.parents[3])
+    ):
+        raise ValueError("native execution evidence must be an owned source preflight artifact")
+    recorded = json.loads(artifact.read_bytes())
+    if (recorded.get("task_fingerprint"), recorded.get("plan_fingerprint"), recorded.get("serving_view_id"),
+        recorded.get("native_snapshot_sha256")) != (
+        fingerprint(task), fingerprint(plan), task.serving_view_id, plan.native_snapshot_sha256,
+    ):
+        raise ValueError("native execution evidence belongs to another task, plan or snapshot")
+    gate = GateResult.model_validate_json(json.dumps(recorded.get("baseline_source_native_parity")))
+    if gate.gate != "serving_parity" or gate.status != "pass":
+        raise ValueError("native execution evidence requires a passing actual source/native parity result")
+    return {
+        "source_preflight_artifact": str(artifact), "source_preflight_sha256": file_sha256(artifact),
+        "task_fingerprint": fingerprint(task), "plan_fingerprint": fingerprint(plan),
+        "serving_view_id": task.serving_view_id, "native_snapshot_sha256": plan.native_snapshot_sha256,
+        "baseline_source_native_parity": gate.model_dump(mode="json"),
+        "mutation_world_semantics_still_require_validation": True,
+        "scope": "Recorded execution of this exact task's source/native reference programs on its bound snapshot. "
+                 "This establishes observed baseline execution, not just physical-column metadata; it does not "
+                 "establish semantic correctness for every input or replace independent contract/robustness review.",
+    }
+
+
 def shared_native_review_context(plan: PreproductionPlan, task: TaskRecord, source: EvidenceVerifier,
-                                 pool: SnapshotServicePool, output: Path) -> dict | None:
+                                 pool: SnapshotServicePool, output: Path, *,
+                                 source_preflight: Path | None = None) -> dict | None:
     destination = output / "native-review-context.json"
     if not destination.exists() and (output / "binding.json").exists():
         return None
@@ -135,6 +165,13 @@ def shared_native_review_context(plan: PreproductionPlan, task: TaskRecord, sour
                 fingerprint(plan), fingerprint(task), plan.native_snapshot_sha256,
             ) or not lease_path.is_relative_to(output.resolve()) or file_sha256(lease_path) != context["lease_artifact_sha256"]:
                 raise ValueError("recorded native review context or its exact snapshot lease changed")
+            execution = context.get("recorded_native_contract_execution")
+            if execution is not None:
+                artifact = Path(execution["source_preflight_artifact"]).resolve()
+                if source_preflight is not None and source_preflight.resolve() != artifact:
+                    raise ValueError("recorded native execution evidence was rebound to another artifact")
+                if execution != _recorded_native_execution(plan, task, artifact, output):
+                    raise ValueError("recorded native execution evidence changed")
             return context
         measurements = output / "native-context-measurements"
         measurements.mkdir(mode=0o700, exist_ok=True)
@@ -143,6 +180,9 @@ def shared_native_review_context(plan: PreproductionPlan, task: TaskRecord, sour
             context = native_text_semantics(plan, task, native)
         lease_path = (directory / "shared-service.json").resolve()
         context.update(lease_artifact=str(lease_path), lease_artifact_sha256=file_sha256(lease_path))
+        context["recorded_native_contract_execution"] = (
+            _recorded_native_execution(plan, task, source_preflight, output) if source_preflight is not None else None
+        )
         immutable_json(destination, context)
         return context
 
@@ -161,8 +201,13 @@ def run_shared_pipeline(
     robustness_review_recovery: bool = False,
     qualified_support_review_recovery: Path | None = None,
     admitted_contract_revision: Path | None = None,
+    canonical_scope_review_recovery: Path | None = None,
+    annotation_journal_loss_approval: Path | None = None,
+    finalization_store: AdmissionSnapshotStore | None = None,
 ) -> dict:
     plan = PreproductionPlan.model_validate_json((run / "plan.json").read_bytes())
+    if finalization_store is not None:
+        finalization_store.snapshot().require_binding(plan, run)
     if pool.plan != effective_native_plan(plan, run):
         raise ValueError("the shared pool carries a different candidate model or query-limit plan")
     source, outcome, _ = current_source(plan, run, task_id)
@@ -188,11 +233,10 @@ def run_shared_pipeline(
         transport = load_run_transport_policy(run, fingerprint(plan))
         if transport.plan_fingerprint != fingerprint(plan):
             raise ValueError("the review transport policy belongs to another run")
-        client = azure_review_client(AzureGenerationConfig(
-            env_file=env_file, deployment=plan.model.deployment, timeout_seconds=plan.model.request_timeout_seconds,
-            max_completion_tokens=plan.model.max_completion_tokens, reasoning_effort=plan.model.reasoning_effort,
-        ), transport, (output,))
-        if configured_model_binding(client) != plan.model:
+        client = azure_review_client(task_generation_config(plan, run, task_id, env_file), transport, (output,))
+        from .preproduction import validate_task_client
+        validate_task_client(plan, run, task_id, client)
+        if configured_model_binding(client) != task_model_binding(plan, run, task_id):
             raise ValueError("shared service changed the review or student model")
         output.mkdir(parents=True, mode=0o700, exist_ok=resume)
         immutable_json(output / "shared-native-execution.json", {
@@ -207,7 +251,10 @@ def run_shared_pipeline(
             "service_sha256": pool.binding.implementation_sha256,
             "service_source": Path(__file__).with_name("snapshot_service.py").read_text(),
         })
-        native_context = (shared_native_review_context(plan, task, verifier, pool, output)
+        preflight = source / "native-source-preflight.json"
+        native_context = (shared_native_review_context(
+            plan, task, verifier, pool, output, source_preflight=preflight if preflight.exists() else None,
+        )
                           if parent_pipeline is None or robustness_feedback is not None else None)
         return run_candidate_pipeline(
             plan=plan, run=run, task_id=task_id, client=client, source=verifier, mysql=None, student=None,
@@ -226,6 +273,9 @@ def run_shared_pipeline(
             robustness_review_recovery=robustness_review_recovery,
             qualified_support_review_recovery=qualified_support_review_recovery,
             admitted_contract_revision=admitted_contract_revision,
+            canonical_scope_review_recovery=canonical_scope_review_recovery,
+            annotation_journal_loss_approval=annotation_journal_loss_approval,
+            **({"finalization_store": finalization_store} if finalization_store is not None else {}),
         )
     finally:
         if client is not None:
@@ -235,19 +285,57 @@ def run_shared_pipeline(
         engine.connection.close()
 
 
+def review_shared_source(
+    *, plan: PreproductionPlan, source: Path, serving: Path, client, pool: SnapshotServicePool,
+) -> dict:
+    def context(task: TaskRecord, verifier: EvidenceVerifier) -> dict:
+        limits = verifier.engine.limits
+        verifier.engine.limits = plan.query_limits.model_copy(
+            update={"timeout_ms": plan.grader_timeout_ms or plan.query_limits.timeout_ms})
+        try:
+            with pool.lease(verifier, source / "native-preflight-lease") as (native, _):
+                metadata = native_text_semantics(plan, task, native)
+                parity = serving_parity(task, verifier, native)
+        finally:
+            verifier.engine.limits = limits
+        metadata.update(baseline_source_native_parity=parity.model_dump(mode="json"),
+                        mutation_world_semantics_still_require_validation=True)
+        return metadata
+
+    return review_source(plan=plan, source=source, serving=serving, client=client,
+                         native_context_provider=context)
+
+
 def review_registered_checkpoint(
     *, run: Path, batch_id: str, serving: Path, graph: Path, mysql_bundle: Path, env_file: Path, workdir: Path,
+    parallel_finalization: bool = False,
 ) -> dict:
+    from .transport_amendments import PARALLEL_RUNTIME, load_parallel_finalization_runtime
+
+    if not parallel_finalization and (run / PARALLEL_RUNTIME).exists():
+        plan = PreproductionPlan.model_validate_json((run / "plan.json").read_bytes())
+        parallel_finalization = load_parallel_finalization_runtime(plan, run) is not None
     pool = registered_snapshot_pool(run)
     if pool is None:
+        if parallel_finalization:
+            raise ValueError("parallel finalization requires the registered read-only snapshot service")
         return review_checkpoint(run=run, batch_id=batch_id, serving=serving, graph=graph,
                                  mysql_bundle=mysql_bundle, env_file=env_file, workdir=workdir)
+    store = AdmissionSnapshotStore(
+        PreproductionPlan.model_validate_json((run / "plan.json").read_bytes()), run,
+    ) if parallel_finalization else None
 
     def finish(**kwargs):
-        return finish_shared_checkpoint_candidate(**kwargs, pool=pool)
+        return finish_shared_checkpoint_candidate(
+            **kwargs, pool=pool, **({"finalization_store": store} if store is not None else {}),
+        )
+
+    def source_review(**kwargs):
+        return review_shared_source(**kwargs, pool=pool)
 
     return review_checkpoint(run=run, batch_id=batch_id, serving=serving, graph=graph,
-                             mysql_bundle=mysql_bundle, env_file=env_file, workdir=workdir, pipeline_runner=finish)
+                             mysql_bundle=mysql_bundle, env_file=env_file, workdir=workdir,
+                             source_runner=source_review, pipeline_runner=finish)
 
 
 def repair_registered_checkpoint(
@@ -260,7 +348,7 @@ def repair_registered_checkpoint(
                                  mysql_bundle=mysql_bundle, env_file=env_file, workdir=workdir)
     plan = PreproductionPlan.model_validate_json((run / "plan.json").read_bytes())
     directory = batch_directory(run, batch_id)
-    policy = CheckpointBatchPolicy.model_validate_json((directory / "policy.json").read_bytes())
+    policy = load_batch_policy(directory / "policy.json")
     _check_policy(plan, run, policy)
     if not (directory / "checkpoint-report.json").exists():
         raise ValueError("repairs require a completed checkpoint review")
@@ -278,7 +366,7 @@ def repair_registered_checkpoint(
         for task_id in task_ids:
             source, _, _ = current_source(plan, run, task_id)
             feedback = json.dumps({
-                "recorded_checkpoint_review": json.loads((source / "quality/reviewer/result.json").read_bytes()),
+                **source_repair_feedback(source),
                 "instruction": "Repair the actual defect; preserve original typed goals, meaningful checkpoints and source scope.",
             })
             client = _client(plan, policy, run, env_file, run / "attempts" / task_id)
@@ -287,7 +375,8 @@ def repair_registered_checkpoint(
                     draft_candidate(plan=plan, run=run, policy=policy, item=items[task_id], serving=serving,
                                     graph_bundle=graph, client=kwargs["client"], source=kwargs["output"],
                                     previous=kwargs["revision_from"], feedback=kwargs["revision_feedback"])
-                    return review_source(plan=plan, source=kwargs["output"], serving=serving, client=kwargs["client"])
+                    return review_shared_source(plan=plan, source=kwargs["output"], serving=serving,
+                                                client=kwargs["client"], pool=pool)
 
                 outcome = run_source_revision(plan=plan, client=client, serving_bundle=serving, graph_bundle=graph,
                                               output=run, task_id=task_id, feedback=feedback, runner=runner)

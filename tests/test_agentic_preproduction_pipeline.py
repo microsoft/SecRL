@@ -17,6 +17,7 @@ from agentic_runtime_fixture import runtime_task
 import test_agentic_canonical_facts as canonical_tests
 import test_agentic_model_panel as panel_tests
 import test_agentic_preproduction_admission as admission_tests
+import test_agentic_quality as quality_tests
 import test_agentic_robustness as robustness_tests
 from test_agentic_generation import FakeClient, call
 from test_agentic_model_panel import ConfiguredFake
@@ -25,15 +26,18 @@ from secgym.qagen.agentic.contracts import PublicCitation, TaskRecord, fingerpri
 from secgym.qagen.agentic.__main__ import main
 from secgym.qagen.agentic.generation import RetryableCompletionError, RoleAbstained
 from secgym.qagen.agentic.ledger import file_sha256
-from secgym.qagen.agentic.model_panel import _native_replay
+from secgym.qagen.agentic.model_panel import _native_replay, immutable_json
 from secgym.qagen.agentic.preproduction import ModelBinding, PreproductionPlan
 from secgym.qagen.agentic.preproduction_pipeline import (
     StageResult, _continuation, _json_hashes, _validate_plan_revision, canonical_candidate, contract_proof_diagnostics,
     _executable_contract, inspected_role, native_candidate, review_contract,
     robustness_candidate, robustness_review_context, run_candidate_pipeline, run_stage,
+    CanonicalScopeReviewApproval, _canonical_scope_review_recovery,
 )
+from secgym.qagen.agentic.quality import audit_source_quality, run_quality_gate
 from secgym.qagen.agentic.preproduction_admission import (
-    FinalReview, NativeStudentImport, NATIVE_RUNTIME_FILES, native_import_artifacts, validate_native_import,
+    AdmissionSnapshotStore, FinalReview, NativeStudentImport, NATIVE_RUNTIME_FILES,
+    native_import_artifacts, validate_native_import,
 )
 from secgym.qagen.agentic.query import QueryFailure
 from secgym.qagen.agentic.robustness import CellEdit, ClaimExpectation, RobustnessCase, RobustnessPlan
@@ -189,6 +193,72 @@ class AnnotationContinuationTests(unittest.TestCase):
         self.assertEqual(second["imported_stage_paths"], first["imported_stage_paths"])
         self.assertFalse((child / "native").exists())
 
+    def test_additive_array_extent_preserves_completed_legacy_stages_only_with_exact_approval(self):
+        from secgym.qagen.agentic.preproduction_revisions import ARRAY_LENGTH_AMENDMENT
+
+        self.assert_fact_runtime_extension(ARRAY_LENGTH_AMENDMENT)
+
+    def test_nested_json_preserves_completed_legacy_stages_only_with_exact_approval(self):
+        from secgym.qagen.agentic.preproduction_revisions import NESTED_JSON_FACT_AMENDMENT
+
+        self.assert_fact_runtime_extension(NESTED_JSON_FACT_AMENDMENT)
+
+    def assert_fact_runtime_extension(self, policy):
+        from types import SimpleNamespace
+        from secgym.qagen.agentic.preproduction_revisions import RuntimeAmendment
+
+        files = {**self.old_code, "canonical_facts.py": b"old fact kinds", "fact_curation.py": b"old fact context"}
+        old = {**self.old, "implementation_sha256": {
+            name: hashlib.sha256(value).hexdigest() for name, value in files.items()
+        }}
+        current = {**old, "implementation_sha256": {
+            **old["implementation_sha256"], "canonical_facts.py": "1" * 64, "fact_curation.py": "2" * 64,
+        }}
+        archive = self.root / "array-old.zip"
+        self.write_archive(archive, files)
+        self.write(self.root / "plan.json", {})
+        plan = SimpleNamespace(implementation_sha256=old["implementation_sha256"])
+        amendment = RuntimeAmendment(
+            policy_version=policy, plan_fingerprint=old["plan_fingerprint"],
+            previous_runtime_sha256=old["implementation_sha256"],
+            current_runtime_sha256=current["implementation_sha256"], archive=archive.name,
+            archive_sha256=file_sha256(archive), current_archive="array-current.zip",
+            current_archive_sha256="3" * 64, reason="Fixture for separately AST-verified additive extent.",
+        )
+        amendments = self.root / "runtime-amendments"
+        amendments.mkdir()
+        for held in ("canonical", "difficulty"):
+            parent = self.parent.parent / ("array-" + held)
+            parent.mkdir()
+            self.write(parent / "binding.json", old)
+            names = ["grading", "native", "baseline", "robustness", "canonical"]
+            if held == "difficulty":
+                names.append("difficulty")
+            stages = {}
+            for name in names:
+                run_stage(parent / name, {"pipeline": old}, lambda path, name=name: StageResult(
+                    status="held" if name == held else "pass", reason="Legacy sealed annotation fixture.",
+                ))
+                stages[name] = file_sha256(parent / name / "stage-receipt.json")
+            self.write(parent / "pipeline-report.json", {
+                "task_fingerprint": old["task_fingerprint"], "status": "held", "stage": held,
+                "stage_receipts": stages, "artifacts_sha256": _json_hashes(parent),
+            })
+            before = _json_hashes(parent)
+            with patch(MODULE + ".PreproductionPlan.model_validate_json", return_value=plan), \
+                 patch(MODULE + ".effective_runtime", return_value=current["implementation_sha256"]):
+                (amendments / "0000.json").write_text(amendment.model_dump_json())
+                result = self.validate(parent=parent, archive=archive, binding=current)
+                self.assertEqual(set(result["imported_stage_paths"]), set(names) - {held})
+                for name in ("canonical_facts.py", "evidence.py"):
+                    changed = {**current, "implementation_sha256": {**current["implementation_sha256"], name: "f" * 64}}
+                    with self.assertRaises(ValueError):
+                        self.validate(parent=parent, archive=archive, binding=changed)
+                (amendments / "0000.json").unlink()
+                with self.assertRaisesRegex(ValueError, "protected"):
+                    self.validate(parent=parent, archive=archive, binding=current)
+            self.assertEqual(_json_hashes(parent), before)
+
     def test_canonical_hold_imports_completed_robustness_as_well_as_native(self):
         parent = self.parent.parent / "canonical-parent"
         parent.mkdir()
@@ -332,6 +402,7 @@ class CanonicalPipelineTests(unittest.TestCase):
     resolve = canonical_tests.CanonicalFactTests.resolve
     review = canonical_tests.CanonicalFactTests.review
     curation_inputs = canonical_tests.CanonicalFactTests.curation_inputs
+    batched_proposal_data = canonical_tests.CanonicalFactTests.batched_proposal_data
 
     def curate(self, client, baseline, directory):
         return canonical_candidate(self.task, self.validation, baseline, self.verifier, client, directory)
@@ -353,6 +424,25 @@ class CanonicalPipelineTests(unittest.TestCase):
         self.assertNotIn("student_grounded_success", json.dumps(client.contexts))
         binding = json.loads((output / "binding.json").read_bytes())
         self.assertIn("orchestration_sha256", binding)
+
+    def test_batched_source_references_keep_both_pipeline_inspection_gates(self):
+        baseline, _, _, query = self.curation_inputs()
+        proposal = self.batched_proposal_data()
+        review = self.review(self.resolve(proposal)).model_dump(mode="json")
+        client = ConfiguredFake([
+            call("finish", proposal), query, call("finish", proposal),
+            call("finish", review), query, call("finish", review),
+        ])
+        output = self.root / "pipeline-batched"
+        output.mkdir()
+        self.assertEqual(self.curate(client, baseline, output).status, "pass")
+        self.assertIn("inspect", json.dumps(client.contexts[1]))
+        self.assertIn("inspect", json.dumps(client.contexts[4]))
+        retained = ConfiguredFake([])
+        before = _json_hashes(output)
+        self.assertEqual(self.curate(retained, baseline, output).status, "pass")
+        self.assertEqual(retained.contexts, [])
+        self.assertEqual(_json_hashes(output), before)
 
     def test_interruption_after_curator_resumes_only_the_unstarted_reviewer(self):
         baseline, proposal, review, query = self.curation_inputs()
@@ -446,6 +536,147 @@ class CanonicalPipelineTests(unittest.TestCase):
                                             revision_from=previous, feedback="Repair the missing scope predicate without changing the task.").status, "pass")
         self.assertEqual(retained.contexts, [])
 
+    def scope_recovery_fixture(self):
+        baseline, proposal, review, query = self.curation_inputs()
+        parent = self.root / "attempts" / self.task.task_id / "pipeline/old"
+        previous = parent / "canonical"
+        hold = {**review, "recommendation": "revise", "claim_coverage_complete": False,
+                "reasons": ["Contested out-of-claim comparison demand."]}
+        run_stage(previous, {"fixture": True}, lambda folder: self.curate(
+            ConfiguredFake([query, call("finish", proposal), query, call("finish", hold)]), baseline, folder))
+        plan = PreproductionPlan(
+            batch_id="scope-fixture", serving_view_id=self.task.serving_view_id, graph_id=self.task.graph_version,
+            serving_report_sha256=file_sha256(self.serving / "serving_report.json"),
+            graph_report_sha256=file_sha256(self.graph / "graph_report.json"),
+            model=ModelBinding(deployment="gpt-6-sol", endpoint_sha256="a" * 64, api_version="fixture",
+                               request_timeout_seconds=300, max_completion_tokens=16000, reasoning_effort="medium"),
+            query_limits=self.engine.limits, checkpoint_cap=0.5, seed_questions=(self.task,),
+            implementation_sha256={"fixture.py": "b" * 64},
+        )
+        reconciliation = self.root / "scope-reconciliation"
+        reconciliation.mkdir()
+        audit = audit_source_quality(self.task, self.verifier, self.serving)
+        assessment = quality_tests.assessment(audit)
+        gate, reconciled = run_quality_gate(
+            client=ConfiguredFake([query, call("finish", assessment.model_dump(mode="json"))]),
+            task=self.task, verifier=self.verifier, serving_bundle=self.serving,
+            output=reconciliation / "quality", instructions="Independently reconcile this controlled proof scope.",
+            review_context={"scope_reconciliation": "Controlled source-bound fixture."},
+        )
+        self.assertIsNotNone(reconciled)
+        immutable_json(reconciliation / "report.json", {
+            "gate": gate, "review": assessment.review.model_dump(mode="json"), "source_and_students_unchanged": True,
+        })
+        immutable_json(reconciliation / "authorization.json", {
+            "plan_fingerprint": fingerprint(plan),
+            "evidence": {"task_fingerprint": fingerprint(self.task),
+                         "canonical_review_sha256": file_sha256(previous / "reviewer/result.json"),
+                         "canonical_bundle_sha256": file_sha256(previous / "canonical-facts.json")},
+        })
+        approval = CanonicalScopeReviewApproval(
+            plan_fingerprint=fingerprint(plan), task_fingerprint=fingerprint(self.task),
+            parent_canonical=str(previous), canonical_artifacts_sha256=_json_hashes(previous),
+            reconciliation_directory=str(reconciliation),
+            reconciliation_artifacts_sha256=_json_hashes(reconciliation),
+            reason="A separately source-reviewed scope conflict requires corrected witness context, not new facts.",
+            approved=True,
+        )
+        approval_path = self.root / "scope-approval.json"
+        immutable_json(approval_path, approval)
+        return baseline, proposal, review, query, parent, plan, reconciliation, approval_path
+
+    def test_scope_recovery_retains_selection_and_only_reruns_review_with_full_witness_context(self):
+        baseline, proposal, review, query, parent, plan, _, approval = self.scope_recovery_fixture()
+        previous = parent / "canonical"
+        before = _json_hashes(previous)
+        output = parent.parent / "recovered"
+        recovery = _canonical_scope_review_recovery(plan, self.task, self.root, parent, output, approval)
+        canonical = output / "canonical"
+        canonical.mkdir(parents=True)
+        client = ConfiguredFake([query, call("finish", review)])
+        result = canonical_candidate(
+            self.task, self.validation, baseline, self.verifier, client, canonical,
+            revision_from=previous, feedback="Reconcile scope without changing the selection.",
+            scope_review_recovery=recovery,
+        )
+        self.assertEqual(result.status, "pass")
+        self.assertEqual(len(client.contexts), 2)
+        self.assertEqual(_json_hashes(previous), before)
+        self.assertEqual(json.loads((canonical / "curator/result.json").read_bytes()), proposal)
+        self.assertFalse(list((canonical / "curator").glob("*-request.json")))
+        self.assertFalse((canonical / "curator/complete.json").exists())
+        self.assertEqual((canonical / "canonical-facts.json").read_bytes(), (previous / "canonical-facts.json").read_bytes())
+        context = json.loads(client.contexts[0][1]["content"])
+        self.assertIn("source_witness_programs", context["claims"][0])
+        self.assertIs(context["independent_scope_reconciliation"]["automatic_pass_authorized"], False)
+        retained = ConfiguredFake([])
+        self.assertEqual(canonical_candidate(
+            self.task, self.validation, baseline, self.verifier, retained, canonical,
+            revision_from=previous, feedback="Reconcile scope without changing the selection.",
+            scope_review_recovery=recovery,
+        ).status, "pass")
+        self.assertEqual(retained.contexts, [])
+
+    def test_scope_recovery_rejects_tampered_evidence_and_a_second_output(self):
+        _, _, _, _, parent, plan, reconciliation, approval = self.scope_recovery_fixture()
+        output = parent.parent / "recovered"
+        first = _canonical_scope_review_recovery(plan, self.task, self.root, parent, output, approval)
+        self.assertEqual(_canonical_scope_review_recovery(plan, self.task, self.root, parent, output, approval), first)
+        with self.assertRaises(ValueError):
+            _canonical_scope_review_recovery(plan, self.task, self.root, parent, parent.parent / "another", approval)
+        report = reconciliation / "report.json"
+        report.write_text("{}")
+        with self.assertRaisesRegex(ValueError, "exact task, held annotation or reconciliation"):
+            _canonical_scope_review_recovery(plan, self.task, self.root, parent, output, approval)
+
+    def test_scope_recovery_does_not_turn_a_rejected_fresh_review_into_a_pass(self):
+        baseline, _, review, query, parent, plan, _, approval = self.scope_recovery_fixture()
+        output = parent.parent / "recovered"
+        recovery = _canonical_scope_review_recovery(plan, self.task, self.root, parent, output, approval)
+        canonical = output / "canonical"
+        canonical.mkdir(parents=True)
+        rejected = {**review, "recommendation": "revise", "claim_coverage_complete": False,
+                    "reasons": ["A different actual source-property defect remains."]}
+        client = ConfiguredFake([query, call("finish", rejected)])
+        result = canonical_candidate(
+            self.task, self.validation, baseline, self.verifier, client, canonical,
+            revision_from=parent / "canonical", feedback="Reconcile only the recorded scope dispute.",
+            scope_review_recovery=recovery,
+        )
+        self.assertEqual(result.status, "held")
+        self.assertFalse((canonical / "canonical-footprint.json").exists())
+
+    def test_scope_recovery_requires_a_passing_reconciliation_even_with_matching_hashes(self):
+        _, _, _, _, parent, plan, reconciliation, approval_path = self.scope_recovery_fixture()
+        gate_path = reconciliation / "quality/gate.json"
+        gate = json.loads(gate_path.read_bytes())
+        gate["status"] = "needs_revision"
+        gate_path.write_text(json.dumps(gate))
+        report_path = reconciliation / "report.json"
+        report = json.loads(report_path.read_bytes())
+        report["gate"] = gate
+        report_path.write_text(json.dumps(report))
+        approval = CanonicalScopeReviewApproval.model_validate_json(approval_path.read_bytes())
+        approval_path.write_text(approval.model_copy(update={
+            "reconciliation_artifacts_sha256": _json_hashes(reconciliation),
+        }).model_dump_json())
+        with self.assertRaisesRegex(ValueError, "passing independently bound"):
+            _canonical_scope_review_recovery(plan, self.task, self.root, parent, parent.parent / "recovered", approval_path)
+
+    def test_scope_recovery_cannot_change_reconciliation_after_authorization(self):
+        baseline, _, _, _, parent, plan, reconciliation, approval = self.scope_recovery_fixture()
+        output = parent.parent / "recovered"
+        recovery = _canonical_scope_review_recovery(plan, self.task, self.root, parent, output, approval)
+        (reconciliation / "report.json").write_text("{}")
+        client = ConfiguredFake([])
+        with self.assertRaisesRegex(ValueError, "exact original validated proposal"):
+            canonical_candidate(
+                self.task, self.validation, baseline, self.verifier, client, output / "canonical",
+                revision_from=parent / "canonical", feedback="Bound reconciliation only.",
+                scope_review_recovery=recovery,
+            )
+        self.assertEqual(client.contexts, [])
+
     def test_canonical_revision_rejects_changed_previous_binding_before_inference(self):
         baseline, proposal, review, query = self.curation_inputs()
         previous = self.root / "previous"
@@ -469,6 +700,20 @@ class PipelineEntryTests(unittest.TestCase):
     setUp = admission_tests.AdmissionTests.setUp
     review = admission_tests.AdmissionTests.review
     admit = admission_tests.AdmissionTests.admit
+
+    def test_parallel_mode_cannot_enter_retained_or_revalidation_paths(self):
+        directory = self.run / "attempts" / self.case.task.task_id / "pipeline/fresh"
+        for options in ({"fresh_validation": True}, {"parent_pipeline": self.root / "parent"},
+                        {"retained_native_pipeline": self.root / "native-parent"}):
+            with self.subTest(options=options), self.assertRaisesRegex(ValueError, "fresh candidate pipelines"):
+                run_candidate_pipeline(
+                    plan=self.plan, run=self.run, task_id=self.case.task.task_id, client=ConfiguredFake([]),
+                    source=None, mysql=None, student=None, serving_bundle=self.root / "unused",
+                    mysql_bundle=self.root / "unused", graph_bundle=self.root / "unused",
+                    mysqld=self.root / "unused", workdir=self.root, output=directory,
+                    finalization_store=AdmissionSnapshotStore(self.plan, self.run), **options,
+                )
+        self.assertFalse(directory.exists())
 
     def test_existing_admission_short_circuits_without_any_role_or_engine_calls(self):
         receipt = self.admit()
@@ -894,12 +1139,12 @@ class NativePipelineTests(unittest.TestCase):
             seed_questions=(self.task,), implementation_sha256={"pipeline": "a" * 64},
         )
 
-    def run_native(self, client):
+    def run_native(self, client, *, run=None):
         output = self.root / "native"
         output.mkdir(exist_ok=True)
         with patch(MODULE + ".private_pilot_validation", return_value=self.validation):
             return native_candidate(self.plan(), self.root / "candidate", self.task, self.verifier, self.verifier,
-                                    self.engine, client, output, None, self.serving)
+                                    self.engine, client, output, None, self.serving, run=run)
 
     def responses(self, correct=False):
         answer = self.task.private_gold.final.expected.model_dump(mode="json")
@@ -908,6 +1153,51 @@ class NativePipelineTests(unittest.TestCase):
         return [call("sql", {"query": self.query}), call("finish", {
             "answer": answer, "citations": self.citations, "confidence": "supported", "explanation": "Controlled native fixture.",
         })]
+
+    def test_forward_default_first_native_records_gateway_and_never_resamples_failed_student(self):
+        from types import SimpleNamespace
+        from test_agentic_provider_defaults import authority_value
+        from secgym.qagen.agentic.azure_generation import AzureGenerationClient
+        from secgym.qagen.agentic.preproduction import runtime_hashes, task_generation_config, task_model_binding
+        from secgym.qagen.agentic.provider_defaults import AUTHORITY, recorded_native_model
+
+        plan = self.plan().model_copy(update={
+            "model": self.plan().model.model_copy(update={"reasoning_effort": "medium"}),
+            "implementation_sha256": runtime_hashes(),
+        })
+        task = self.task.model_copy(update={"task_id": plan.attempts()[0].task_id})
+        run = self.root / "forward-run"
+        output = run / "attempts" / task.task_id / "pipeline/r1/native"
+        output.mkdir(parents=True)
+        immutable_json(run / "plan.json", plan)
+        env = self.root / "gateway.env"
+        env.write_text("SECRL_GATEWAY_API_KEY=synthetic-local-test-key\n")
+        (run / AUTHORITY).parent.mkdir(parents=True)
+        immutable_json(run / AUTHORITY, authority_value(plan, env))
+        validation = self.validation.model_copy(update={"task_id": task.task_id, "task_fingerprint": fingerprint(task)})
+        responses = []
+        for response in self.responses():
+            native = {
+                "status": "completed", "model": "gpt-6-sol", "usage": {"input_tokens": 1, "output_tokens": 1},
+                "output": [{"type": "function_call", "call_id": response["id"], "id": response["id"],
+                            **response["function"]}],
+            }
+            responses.append(SimpleNamespace(model_dump=lambda mode, value=native: value))
+        with patch("openai.OpenAI") as sdk, patch(MODULE + ".private_pilot_validation", return_value=validation):
+            sdk.return_value.responses.create.side_effect = responses
+            client = AzureGenerationClient(task_generation_config(plan, run, task.task_id, env))
+            self.addCleanup(client.close)
+            for _ in range(2):
+                result = native_candidate(
+                    plan, self.root / "candidate", task, self.verifier, self.verifier,
+                    self.engine, client, output, None, self.serving, run=run,
+                )
+                self.assertEqual(result.status, "pass", result.reason)
+            self.assertEqual(sdk.return_value.responses.create.call_count, 2)
+        self.assertEqual(recorded_native_model(plan, run, task.task_id, output), task_model_binding(plan, run, task.task_id))
+        self.assertEqual(json.loads((output / "binding.json").read_bytes())["model"],
+                         task_model_binding(plan, run, task.task_id).model_dump(mode="json"))
+        self.assertFalse(json.loads((output / "evaluation_report.json").read_bytes())["student_grounded_success"])
 
     def test_failed_grading_retains_completed_unsuccessful_student_for_recovery(self):
         with patch(MODULE + "._native_replay", side_effect=RuntimeError("private grading interrupted")):
@@ -1020,6 +1310,126 @@ class NativePipelineTests(unittest.TestCase):
                 plan, run, Path(retained.parent_pipeline), archive=Path(retained.runtime_archive),
                 reason="Not eligible: completed parent must use normal retained import.",
             )
+
+    def canonical_prefix_fixture(self):
+        run, plan, task, retained = self.retained_fixture()
+        parent = Path(retained.parent_pipeline)
+        (run / "plan.json").write_text(plan.model_dump_json())
+        (parent / "pipeline-report.json").unlink()
+        binding = json.loads((parent / "binding.json").read_bytes())
+        for name in ("grading", "baseline", "robustness"):
+            run_stage(parent / name, {"pipeline": binding},
+                      lambda path: StageResult(status="pass", reason="Completed fixture stage."))
+        prior = {name: file_sha256(parent / name / "stage-receipt.json")
+                 for name in ("grading", "native", "baseline", "robustness")}
+        canonical = parent / "canonical"
+        canonical.mkdir()
+        (canonical / "stage-binding.json").write_text(json.dumps({
+            "pipeline": binding, "prior_stage_receipts": prior,
+        }))
+        (canonical / "errors").mkdir()
+        (canonical / "errors/0000.json").write_text(json.dumps({
+            "status": "operational_error", "detail": "Received incomplete fact-curator response.",
+        }))
+        (canonical / "curator").mkdir()
+        (canonical / "curator/0000-response.json").write_text('{"choices":[{"finish_reason":"incomplete"}]}')
+        return run, plan, task, retained
+
+    def test_canonical_prefix_import_retains_completed_native_and_partial_curator(self):
+        from secgym.qagen.agentic.preproduction_admission import record_native_prefix_import_authorization
+
+        run, plan, task, retained = self.canonical_prefix_fixture()
+        parent = Path(retained.parent_pipeline)
+        before = _json_hashes(parent)
+        authorization = record_native_prefix_import_authorization(
+            plan, run, parent, archive=Path(retained.runtime_archive), interrupted_stage="canonical",
+            reason="Restart only nonstudent validation after its recorded interruption.",
+        )
+        self.assertEqual(authorization.policy_version, "interrupted-canonical-native-prefix-v2")
+        self.assertEqual(authorization.interrupted_stage, "canonical")
+        refreshed = retained.model_copy(update={"source_artifacts_sha256": native_import_artifacts(
+            run, task.task_id, parent, Path(retained.recorded_task), Path(retained.runtime_archive),
+        )})
+        result, output = self.replay_retained((run, plan, task, refreshed))
+        self.assertEqual(result.status, "pass")
+        self.assertFalse((output / "student").exists())
+        self.assertFalse((parent / "pipeline-report.json").exists())
+        self.assertFalse((parent / "canonical/curator/complete.json").exists())
+        self.assertEqual({name: file_sha256(parent / name) for name in before}, before)
+
+    def test_legacy_robustness_prefix_without_stage_field_keeps_its_meaning(self):
+        from secgym.qagen.agentic.preproduction_admission import record_native_prefix_import_authorization
+
+        run, plan, task, retained = self.retained_fixture()
+        parent = Path(retained.parent_pipeline)
+        (run / "plan.json").write_text(plan.model_dump_json())
+        (parent / "pipeline-report.json").unlink()
+        errors = parent / "robustness/errors"
+        errors.mkdir(parents=True)
+        (errors / "0000.json").write_text('{"status":"operational_error","detail":"Original robustness failure."}')
+        authorization = record_native_prefix_import_authorization(
+            plan, run, parent, archive=Path(retained.runtime_archive), reason="Existing legacy authorization.",
+        ).model_dump(mode="json")
+        authorization.pop("interrupted_stage")
+        (parent / "native-prefix-import-authorization.json").write_text(json.dumps(authorization))
+        refreshed = retained.model_copy(update={"source_artifacts_sha256": native_import_artifacts(
+            run, task.task_id, parent, Path(retained.recorded_task), Path(retained.runtime_archive),
+        )})
+        result, _ = self.replay_retained((run, plan, task, refreshed))
+        self.assertEqual(result.status, "pass")
+
+    def test_canonical_prefix_requires_its_exact_passed_predecessors(self):
+        from secgym.qagen.agentic.preproduction_admission import record_native_prefix_import_authorization
+
+        run, plan, _, retained = self.canonical_prefix_fixture()
+        parent = Path(retained.parent_pipeline)
+        path = parent / "baseline/stage-receipt.json"
+        path.write_bytes(path.read_bytes() + b" ")
+        with self.assertRaisesRegex(ValueError, "exact completed pre-canonical stages"):
+            record_native_prefix_import_authorization(
+                plan, run, parent, archive=Path(retained.runtime_archive), interrupted_stage="canonical",
+                reason="A changed passed-stage receipt is not an authorized prefix.",
+            )
+        self.assertFalse((parent / "native-prefix-import-authorization.json").exists())
+
+    def test_canonical_prefix_cannot_replace_a_completed_semantic_hold(self):
+        from secgym.qagen.agentic.preproduction_admission import record_native_prefix_import_authorization
+
+        run, plan, _, retained = self.canonical_prefix_fixture()
+        parent = Path(retained.parent_pipeline)
+        (parent / "canonical/stage-receipt.json").write_text('{"result":{"status":"held"}}')
+        with self.assertRaisesRegex(ValueError, "completed pipeline or canonical result"):
+            record_native_prefix_import_authorization(
+                plan, run, parent, archive=Path(retained.runtime_archive), interrupted_stage="canonical",
+                reason="Completed canonical decisions require their ordinary held-stage continuation.",
+            )
+
+    def test_canonical_prefix_does_not_authorize_native_or_unknown_stage_restarts(self):
+        from secgym.qagen.agentic.preproduction_admission import record_native_prefix_import_authorization
+
+        run, plan, _, retained = self.canonical_prefix_fixture()
+        parent = Path(retained.parent_pipeline)
+        with self.assertRaisesRegex(ValueError, "supported nonstudent stage"):
+            record_native_prefix_import_authorization(
+                plan, run, parent, archive=Path(retained.runtime_archive), interrupted_stage="native",
+                reason="A native student interruption must not be relabeled as a downstream failure.",
+            )
+
+    def test_canonical_prefix_scope_and_original_error_cannot_be_rebound(self):
+        from secgym.qagen.agentic.preproduction_admission import record_native_prefix_import_authorization
+
+        run, plan, task, retained = self.canonical_prefix_fixture()
+        parent = Path(retained.parent_pipeline)
+        record_native_prefix_import_authorization(
+            plan, run, parent, archive=Path(retained.runtime_archive), interrupted_stage="canonical",
+            reason="Exact recorded canonical interruption.",
+        )
+        (parent / "canonical/errors/0000.json").write_text('{"status":"changed"}')
+        refreshed = retained.model_copy(update={"source_artifacts_sha256": native_import_artifacts(
+            run, task.task_id, parent, Path(retained.recorded_task), Path(retained.runtime_archive),
+        )})
+        with self.assertRaisesRegex(ValueError, "interrupted native prefix changed"):
+            self.replay_retained((run, plan, task, refreshed))
 
     def test_prefix_authorization_rejects_an_active_candidate(self):
         import fcntl
@@ -1153,6 +1563,30 @@ class NativePipelineTests(unittest.TestCase):
         self.assertTrue(report["retained_native_student"])
         self.assertTrue(report["student_grounded_success"])
         self.assertEqual(report["task_fingerprint"], fingerprint(fixture[2]))
+
+    def test_retained_native_preserves_the_resolved_batch_gateway(self):
+        from secgym.qagen.agentic.gateway import GatewayConfig
+
+        model = self.plan().model.model_copy(update={
+            "gateway": GatewayConfig(base_url="http://127.0.0.1:41417/v1", version="fixture", image_sha256="a" * 64),
+            "endpoint_sha256": "f" * 64, "api_version": "openai-responses",
+        })
+        original_run = self.run_native
+        with patch(MODULE + ".task_model_binding", return_value=model), patch.object(
+            self, "run_native", side_effect=lambda client: original_run(client, run=self.root / "run"),
+        ):
+            fixture = self.retained_fixture()
+        parent = Path(fixture[3].parent_pipeline)
+        before = _json_hashes(parent)
+        with patch(MODULE + ".task_model_binding", return_value=model), patch(
+            "secgym.qagen.agentic.preproduction.recorded_task_model_binding", return_value=model,
+        ):
+            result, output = self.replay_retained(fixture)
+        self.assertEqual(result.status, "pass")
+        self.assertEqual(json.loads((output / "binding.json").read_bytes())["model"], model.model_dump(mode="json"))
+        self.assertEqual(_json_hashes(parent), before)
+        with self.assertRaisesRegex(ValueError, "snapshot, indexes, model"):
+            validate_native_import(fixture[3], fixture[1], fixture[2], fixture[0])
 
     def test_retained_native_token_wait_is_not_a_missing_response_or_new_student(self):
         fixture = self.retained_fixture(rate_limited=True)

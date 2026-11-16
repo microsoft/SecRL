@@ -17,7 +17,9 @@ import duckdb
 import mysql.connector
 import sqlglot
 from sqlglot import exp
+from sqlglot.dialects.mysql import MySQL
 from sqlglot.optimizer.scope import traverse_scope
+from sqlglot.tokens import TokenType
 
 from .contracts import Contract, PositiveInt
 
@@ -60,11 +62,28 @@ def json_table_source(table: exp.Table, engine: Engine) -> bool:
     ) or (engine == "mysql" and isinstance(table.this, exp.JSONTable))
 
 
+class _MySQLQueryParser(MySQL.Parser):
+    def _parse_join(self, skip_join_token: bool = False, parse_bracket: bool = False) -> exp.Join | None:
+        explicit = self._curr is not None and self._curr.token_type == TokenType.JOIN
+        join = super()._parse_join(skip_join_token=skip_join_token, parse_bracket=parse_bracket)
+        if explicit and join is not None and not any(
+            join.args.get(key) for key in ("on", "using", "kind", "side", "method")
+        ):
+            # SQLGlot otherwise renders bare JOIN as a lower-precedence comma in MySQL.
+            # Record the explicit token before it is lost; genuine commas stay untouched.
+            join.set("kind", "INNER")
+        return join
+
+
 def checked_select(query: str, engine: Engine, tables: set[str], *, gold: bool = False,
                    allowed_literals: frozenset[str] = frozenset()) -> exp.Expression:
     try:
-        statements = sqlglot.parse(query, read=engine)
-    except sqlglot.errors.ParseError as error:
+        if engine == "mysql":
+            dialect = MySQL()
+            statements = _MySQLQueryParser(dialect=dialect).parse(dialect.tokenize(query), query)
+        else:
+            statements = sqlglot.parse(query, read=engine)
+    except (sqlglot.errors.ParseError, sqlglot.errors.TokenError) as error:
         raise QueryFailure("sql_parse", str(error)) from error
     if len(statements) != 1 or not isinstance(statements[0], (exp.Select, exp.SetOperation)):
         raise QueryFailure("sql_not_select", "Exactly one SELECT query is required.")

@@ -8,7 +8,9 @@ import subprocess
 import sys
 import tempfile
 import unittest
+import zipfile
 from pathlib import Path
+from unittest.mock import patch
 
 from test_agentic_adapters import reviewed_fixture
 from test_agentic_i0 import parse_task, task_data
@@ -112,6 +114,281 @@ class QuestionSplitTests(unittest.TestCase):
 
     def request(self, seed=17):
         return SplitRequest(seed=seed, counts=(BucketCounts(bucket="incident:34", train=1, test=1),))
+
+    def legacy_run(self, root, *, historical_layout=False):
+        from test_agentic_preproduction_revisions import before_array_length, before_multi_record, before_nested_json
+        from secgym.qagen.agentic.preproduction import ModelBinding, PreproductionPlan, runtime_hashes
+        from secgym.qagen.agentic.query import QueryLimits
+
+        seed = question("seed").task
+        previous = {}
+        before, after = root / "before.zip", root / "after.zip"
+        with (
+            zipfile.ZipFile(before, "x") as old,
+            zipfile.ZipFile(after, "x") as new,
+            zipfile.ZipFile(root / "before-batches.zip", "x") as intermediate,
+            zipfile.ZipFile(root / "before-nested-json.zip", "x") as before_nested,
+        ):
+            for name in runtime_hashes():
+                data = (ROOT / "secgym/qagen/agentic" / name).read_bytes()
+                new.writestr(name, data)
+                data = before_nested_json(data, name)
+                before_nested.writestr(name, data)
+                data = before_multi_record(data, name)
+                intermediate.writestr(name, data)
+                if name == "canonical_facts.py":
+                    data = before_array_length(data)
+                elif name == "fact_curation.py":
+                    data = data.replace(b"source-fact-curation-v1.3", b"source-fact-curation-v1.2")
+                previous[name] = hashlib.sha256(data).hexdigest()
+                old.writestr(name, data)
+        plan = PreproductionPlan(
+            batch_id="loader", serving_view_id=seed.serving_view_id, graph_id=seed.graph_version,
+            serving_report_sha256="a" * 64, graph_report_sha256="b" * 64,
+            model=ModelBinding(deployment="gpt-6-sol", endpoint_sha256="c" * 64, api_version="fixture",
+                               request_timeout_seconds=300, max_completion_tokens=16000, reasoning_effort=None),
+            query_limits=QueryLimits(max_rows=100, max_bytes=65536, timeout_ms=3000),
+            checkpoint_cap=0.5, seed_questions=(seed,), implementation_sha256=previous,
+        )
+        (root / "plan.json").write_text(plan.model_dump_json())
+        case = question(plan.attempts()[0].task_id, incident=5)
+        attempt = root / "attempts" / case.task.task_id
+        base = attempt / "annotations-r5" if historical_layout else attempt / "pipeline/retained"
+        manifest = write_inputs(base, (case,))
+        annotation = base / "cases" / case.task.task_id / "annotation"
+        binding = json.loads((annotation / "binding.json").read_bytes())
+        binding.update(curation_version="source-fact-curation-v1.2",
+                       implementation_sha256={name: previous[name] for name in RUNTIME_FILES})
+        (annotation / "binding.json").write_text(json.dumps(binding))
+        return plan, case, manifest, annotation, before, after
+
+    def approve_legacy_run(self, plan, root, before, after):
+        from secgym.qagen.agentic.preproduction_revisions import record_runtime_amendment
+
+        intermediate = root / "before-batches.zip"
+        with zipfile.ZipFile(intermediate) as saved:
+            hashes = {name: hashlib.sha256(saved.read(name)).hexdigest() for name in plan.implementation_sha256}
+        with patch("secgym.qagen.agentic.preproduction_revisions.runtime_hashes", return_value=hashes):
+            record_runtime_amendment(
+                plan, root, archive=before, current_archive=intermediate, array_length_facts=True,
+                reason="Exact additive array/grouping extension for a retained canonical fixture.",
+            )
+        self.approve_multi_record_and_nested(plan, root, intermediate, after)
+
+    def approve_multi_record_and_nested(self, plan, root, before, after):
+        from secgym.qagen.agentic.preproduction_revisions import record_runtime_amendment
+
+        middle = root / "before-nested-json.zip"
+        with zipfile.ZipFile(middle) as saved:
+            hashes = {name: hashlib.sha256(saved.read(name)).hexdigest() for name in plan.implementation_sha256}
+        with patch("secgym.qagen.agentic.preproduction_revisions.runtime_hashes", return_value=hashes):
+            record_runtime_amendment(
+                plan, root, archive=before, current_archive=middle, multi_record_facts=True,
+                reason="Exact lossless multi-record transport extension for retained canonical fixtures.",
+            )
+        record_runtime_amendment(
+            plan, root, archive=middle, current_archive=after, nested_json_facts=True,
+            reason="Exact repeated container decoding with unchanged retained scalar facts.",
+        )
+
+    def test_legacy_canonical_loader_requires_exact_additive_runtime_approval(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            plan, case, manifest, annotation, before, after = self.legacy_run(root)
+            with self.assertRaisesRegex(ValueError, "annotation binding/runtime"):
+                load_questions(manifest)
+            self.approve_legacy_run(plan, root, before, after)
+            original = {p: p.read_bytes() for p in annotation.rglob("*.json")}
+            loaded = load_questions(manifest)
+            self.assertEqual(loaded.questions, (case,))
+            self.assertIn(str((root / "plan.json").resolve()), loaded.source_hashes)
+            self.assertIn(str(before.resolve()), loaded.source_hashes)
+            self.assertIn(str(after.resolve()), loaded.source_hashes)
+            self.assertIn(str((root / "before-batches.zip").resolve()), loaded.source_hashes)
+            self.assertTrue(any("runtime-amendments" in name for name in loaded.source_hashes))
+            self.assertEqual({p: p.read_bytes() for p in original}, original)
+            with after.open("ab") as stream:
+                stream.write(b"changed")
+            with self.assertRaisesRegex(ValueError, "updated annotation producer"):
+                load_questions(manifest)
+
+    def test_v11_legacy_loader_requires_all_exact_ordered_extensions(self):
+        from test_agentic_preproduction_revisions import legacy_canonical_source
+        from secgym.qagen.agentic.preproduction_revisions import record_runtime_amendment
+
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            plan, case, manifest, annotation, middle, after = self.legacy_run(root)
+            before = root / "before-empty.zip"
+            previous = {}
+            with zipfile.ZipFile(middle) as intermediate, zipfile.ZipFile(before, "x") as old:
+                for name in plan.implementation_sha256:
+                    data = intermediate.read(name)
+                    if name == "canonical_facts.py":
+                        data = legacy_canonical_source(data)
+                    elif name == "fact_curation.py":
+                        data = data.replace(b"source-fact-curation-v1.2", b"source-fact-curation-v1.1")
+                    previous[name] = hashlib.sha256(data).hexdigest()
+                    old.writestr(name, data)
+            intermediate_runtime = plan.implementation_sha256
+            plan = plan.model_copy(update={"implementation_sha256": previous})
+            (root / "plan.json").write_text(plan.model_dump_json())
+            binding_path = annotation / "binding.json"
+            binding = json.loads(binding_path.read_bytes())
+            binding.update(curation_version="source-fact-curation-v1.1",
+                           implementation_sha256={name: previous[name] for name in RUNTIME_FILES})
+            binding_path.write_text(json.dumps(binding))
+            originals = {path: path.read_bytes() for path in annotation.rglob("*.json")}
+            with self.assertRaisesRegex(ValueError, "annotation binding/runtime"):
+                load_questions(manifest)
+            with patch("secgym.qagen.agentic.preproduction_revisions.runtime_hashes", return_value=intermediate_runtime):
+                record_runtime_amendment(
+                    plan, root, archive=before, current_archive=middle, empty_array_facts=True,
+                    reason="Exact first additive extension.",
+                )
+            with self.assertRaisesRegex(ValueError, "annotation binding/runtime"):
+                load_questions(manifest)
+            self.approve_legacy_run(plan, root, middle, after)
+            loaded = load_questions(manifest)
+            self.assertEqual(loaded.questions, (case,))
+            for archive in (before, middle, root / "before-batches.zip", root / "before-nested-json.zip", after):
+                self.assertIn(str(archive.resolve()), loaded.source_hashes)
+            self.assertEqual(len(list((root / "runtime-amendments").glob("*.json"))), 4)
+            self.assertEqual({path: path.read_bytes() for path in originals}, originals)
+            (root / "runtime-amendments/0000.json").unlink()
+            with self.assertRaisesRegex(ValueError, "continuous chain"):
+                load_questions(manifest)
+
+    def test_v13_loader_requires_exact_multi_record_and_nested_chain(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            plan, case, manifest, annotation, _, after = self.legacy_run(root)
+            before = root / "before-batches.zip"
+            with zipfile.ZipFile(before) as saved:
+                previous = {name: hashlib.sha256(saved.read(name)).hexdigest() for name in plan.implementation_sha256}
+            plan = plan.model_copy(update={"implementation_sha256": previous})
+            (root / "plan.json").write_text(plan.model_dump_json())
+            binding_path = annotation / "binding.json"
+            binding = json.loads(binding_path.read_bytes())
+            binding.update(curation_version="source-fact-curation-v1.3",
+                           implementation_sha256={name: previous[name] for name in RUNTIME_FILES})
+            binding_path.write_text(json.dumps(binding))
+            original = {path: path.read_bytes() for path in annotation.rglob("*.json")}
+            with self.assertRaisesRegex(ValueError, "annotation binding/runtime"):
+                load_questions(manifest)
+            self.approve_multi_record_and_nested(plan, root, before, after)
+            loaded = load_questions(manifest)
+            self.assertEqual(loaded.questions, (case,))
+            self.assertIn(str(before.resolve()), loaded.source_hashes)
+            self.assertEqual({path: path.read_bytes() for path in original}, original)
+
+    def test_v14_loader_requires_exact_nested_json_approval_without_rewriting_facts(self):
+        from secgym.qagen.agentic.preproduction_revisions import record_runtime_amendment
+
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            plan, case, manifest, annotation, _, after = self.legacy_run(root)
+            before = root / "before-nested-json.zip"
+            with zipfile.ZipFile(before) as saved:
+                previous = {name: hashlib.sha256(saved.read(name)).hexdigest() for name in plan.implementation_sha256}
+            plan = plan.model_copy(update={"implementation_sha256": previous})
+            (root / "plan.json").write_text(plan.model_dump_json())
+            binding_path = annotation / "binding.json"
+            binding = json.loads(binding_path.read_bytes())
+            binding.update(curation_version="source-fact-curation-v1.4",
+                           implementation_sha256={name: previous[name] for name in RUNTIME_FILES})
+            binding_path.write_text(json.dumps(binding))
+            original = {path: path.read_bytes() for path in annotation.rglob("*.json")}
+            with self.assertRaisesRegex(ValueError, "annotation binding/runtime"):
+                load_questions(manifest)
+            record_runtime_amendment(
+                plan, root, archive=before, current_archive=after, nested_json_facts=True,
+                reason="Exact nested container decoding; all historical scalar facts remain byte-identical.",
+            )
+            loaded = load_questions(manifest)
+            self.assertEqual(loaded.questions, (case,))
+            self.assertIn(str(before.resolve()), loaded.source_hashes)
+            self.assertEqual({path: path.read_bytes() for path in original}, original)
+
+    def test_legacy_loader_does_not_waive_version_producer_or_task_bindings(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            plan, case, manifest, annotation, before, after = self.legacy_run(root)
+            self.approve_legacy_run(plan, root, before, after)
+            path = annotation / "binding.json"
+            original = json.loads(path.read_bytes())
+            for change in (
+                {"curation_version": "source-fact-curation-v1.1"},
+                {"curation_version": CURATION_VERSION},
+                {"task_fingerprint": "f" * 64},
+                {"implementation_sha256": {**original["implementation_sha256"], "query.py": "f" * 64}},
+                {"implementation_sha256": {**original["implementation_sha256"], "canonical_facts.py": "f" * 64}},
+            ):
+                path.write_text(json.dumps({**original, **change}))
+                with self.subTest(change=change), self.assertRaisesRegex(ValueError, "annotation binding/runtime"):
+                    load_questions(manifest)
+            path.write_text(json.dumps(original))
+            report = annotation / "fact_report.json"
+            value = json.loads(report.read_bytes())
+            report.write_text(json.dumps({**value, "status": "needs_fact_revision"}))
+            with self.assertRaisesRegex(ValueError, "annotation report"):
+                load_questions(manifest)
+
+    def test_unowned_legacy_annotation_cannot_borrow_another_runs_approval(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            run = root / "run"
+            run.mkdir()
+            plan, case, manifest, annotation, before, after = self.legacy_run(run)
+            self.approve_legacy_run(plan, run, before, after)
+            standalone = write_inputs(root / "standalone", (case,))
+            standalone_annotation = root / "standalone/cases" / case.task.task_id / "annotation"
+            (standalone_annotation / "binding.json").write_bytes((annotation / "binding.json").read_bytes())
+            with self.assertRaisesRegex(ValueError, "annotation binding/runtime"):
+                load_questions(standalone)
+
+    def test_owned_historical_layout_requires_an_exact_original_admission_receipt(self):
+        from secgym.qagen.agentic.preproduction_admission import AdmissionReceipt
+        from secgym.qagen.agentic.question_splits import binding_for
+
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            plan, case, manifest, annotation, before, after = self.legacy_run(root, historical_layout=True)
+            self.approve_legacy_run(plan, root, before, after)
+            with self.assertRaisesRegex(ValueError, "annotation binding/runtime"):
+                load_questions(manifest)
+            files = ("binding.json", "canonical-facts.json", "reviewer/result.json",
+                     "fact_report.json", "canonical-footprint.json")
+            receipt = AdmissionReceipt(
+                plan_fingerprint=fingerprint(plan), task=binding_for(case), inputs_fingerprint="a" * 64,
+                bucket="incident:5", objective_comparison_fingerprint="b" * 64,
+                difficulty_status="fixture", difficulty_score=None, difficulty_band=None,
+                student_grounded_success=True, implementation_sha256="c" * 64,
+                source_artifacts_sha256={
+                    str((annotation / name).resolve()): hashlib.sha256((annotation / name).read_bytes()).hexdigest()
+                    for name in files
+                },
+            )
+            path = root / "admissions" / (case.task.task_id + ".json")
+            path.parent.mkdir()
+            original_files = {file: file.read_bytes() for file in annotation.rglob("*.json")}
+            path.write_text(receipt.model_dump_json())
+            loaded = load_questions(manifest)
+            self.assertEqual(loaded.questions, (case,))
+            self.assertIn(str(path.resolve()), loaded.source_hashes)
+            for change in (
+                {"plan_fingerprint": "f" * 64},
+                {"task": receipt.task.model_copy(update={"task_fingerprint": "f" * 64})},
+                {"source_artifacts_sha256": {**receipt.source_artifacts_sha256,
+                                             str((annotation / "binding.json").resolve()): "f" * 64}},
+                {"source_artifacts_sha256": {key: value for key, value in receipt.source_artifacts_sha256.items()
+                                             if key != str((annotation / "canonical-footprint.json").resolve())}},
+            ):
+                path.write_text(receipt.model_copy(update=change).model_dump_json())
+                with self.subTest(change=tuple(change)), self.assertRaisesRegex(ValueError, "annotation binding/runtime"):
+                    load_questions(manifest)
+            path.write_text(receipt.model_dump_json())
+            self.assertEqual({file: file.read_bytes() for file in original_files}, original_files)
 
     def test_inventory_does_not_invent_assignments_weights_or_approval(self):
         report = audit_splits(self.cases, cohort_label="fixture")

@@ -29,7 +29,7 @@ preprod-v1-incident-36-05,incident,36,True,medium,26.666666666666668,4,2,0.94152
 preprod-v1-incident-36-06,incident,36,True,hard,53.333333333333336,10,1,0.01836115361111111,complete,preprod-v1-incident-36-05,0.34562100637270887,preprod-v1-incident-36-05,0.34562100637270887,,2,1,3,0,147,10,61
 preprod-v1-incident-36-08,incident,36,True,medium,40.0,5,1,0.941522345,complete,preprod-v1-incident-36-05,0.7850711788211788,preprod-v1-incident-36-05,0.7850711788211788,,2,1,1,1,77,5,30
 preprod-v1-incident-36-09,incident,36,True,medium,46.666666666666664,4,2,0.0009348658333333333,complete,preprod-v1-incident-36-05,0.30122348448380987,preprod-v1-incident-36-05,0.30122348448380987,,1,2,2,0,56,4,32
-preprod-v1-incident-38-04,incident,38,True,hard,63.333333333333336,5,2,0.41092528222222224,complete,preprod-v1-incident-38-06,0.35466777408637873,preprod-v1-incident-38-06,0.35466777408637873,,2,2,3,0,66,5,33
+preprod-v1-incident-38-04,incident,38,True,,,5,2,0.41092528222222224,complete,preprod-v1-incident-38-06,0.35466777408637873,preprod-v1-incident-38-06,0.35466777408637873,,2,2,3,,66,5,33
 preprod-v1-incident-38-05,incident,38,True,medium,36.666666666666664,4,2,0.41092528222222224,complete,preprod-v1-incident-38-06,0.35085251491901104,preprod-v1-incident-38-06,0.35085251491901104,,1,2,1,0,51,4,21
 preprod-v1-incident-38-06,incident,38,True,,,4,2,0.41092528222222224,complete,preprod-v1-incident-38-04,0.35466777408637873,preprod-v1-incident-38-04,0.35466777408637873,,1,2,2,,48,4,21
 preprod-v1-incident-38-07,incident,38,True,hard,63.333333333333336,8,2,0.41092528222222224,complete,preprod-v1-incident-38-06,0.3141651031894934,preprod-v1-incident-38-06,0.3141651031894934,,2,2,3,0,47,8,28

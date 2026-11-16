@@ -9,6 +9,7 @@ import csv
 import hashlib
 import json
 from collections import defaultdict
+from collections.abc import Callable
 from dataclasses import dataclass
 from itertools import combinations
 from pathlib import Path
@@ -217,6 +218,90 @@ class LoadedQuestions:
     annotation_directories: tuple[Path, ...]
 
 
+def _approved_legacy_annotation(
+    directory: Path, task: TaskRecord, binding: dict, runtime: dict[str, str], read: Callable[[Path], bytes],
+) -> bool:
+    from .preproduction import PreproductionPlan, runtime_hashes
+    from .preproduction_revisions import (
+        ARRAY_LENGTH_AMENDMENT, EMPTY_ARRAY_AMENDMENT, MULTI_RECORD_FACT_AMENDMENT,
+        NESTED_JSON_FACT_AMENDMENT, RuntimeAmendment, effective_runtime,
+    )
+
+    recorded = binding.get("implementation_sha256")
+    required = {
+        ("source-fact-curation-v1.1", "source-fact-curation-v1.3"): (EMPTY_ARRAY_AMENDMENT, ARRAY_LENGTH_AMENDMENT),
+        ("source-fact-curation-v1.2", "source-fact-curation-v1.3"): (ARRAY_LENGTH_AMENDMENT,),
+        ("source-fact-curation-v1.3", "source-fact-curation-v1.4"): (MULTI_RECORD_FACT_AMENDMENT,),
+        ("source-fact-curation-v1.2", "source-fact-curation-v1.4"): (ARRAY_LENGTH_AMENDMENT, MULTI_RECORD_FACT_AMENDMENT),
+        ("source-fact-curation-v1.1", "source-fact-curation-v1.4"): (
+            EMPTY_ARRAY_AMENDMENT, ARRAY_LENGTH_AMENDMENT, MULTI_RECORD_FACT_AMENDMENT,
+        ),
+        ("source-fact-curation-v1.4", "source-fact-curation-v1.5"): (NESTED_JSON_FACT_AMENDMENT,),
+        ("source-fact-curation-v1.3", "source-fact-curation-v1.5"): (
+            MULTI_RECORD_FACT_AMENDMENT, NESTED_JSON_FACT_AMENDMENT,
+        ),
+        ("source-fact-curation-v1.2", "source-fact-curation-v1.5"): (
+            ARRAY_LENGTH_AMENDMENT, MULTI_RECORD_FACT_AMENDMENT, NESTED_JSON_FACT_AMENDMENT,
+        ),
+        ("source-fact-curation-v1.1", "source-fact-curation-v1.5"): (
+            EMPTY_ARRAY_AMENDMENT, ARRAY_LENGTH_AMENDMENT, MULTI_RECORD_FACT_AMENDMENT, NESTED_JSON_FACT_AMENDMENT,
+        ),
+    }.get((binding.get("curation_version"), CURATION_VERSION))
+    if required is None or not isinstance(recorded, dict) or recorded.keys() != runtime.keys():
+        return False
+    fact_modules = {"canonical_facts.py", "fact_curation.py"}
+    if any(recorded[name] != value for name, value in runtime.items() if name not in fact_modules):
+        return False
+    roots = [root for root in directory.resolve().parents if (root / "plan.json").is_file()
+             and directory.resolve().is_relative_to(root / "attempts" / task.task_id)]
+    if len(roots) != 1:
+        return False
+    run, = roots
+    plan = PreproductionPlan.model_validate_json(read(run / "plan.json"))
+    if (task.serving_view_id, task.graph_version) != (plan.serving_view_id, plan.graph_id) or (
+        task.task_id not in {attempt.task_id for attempt in plan.attempts()}
+    ):
+        return False
+    if not directory.resolve().is_relative_to(run / "attempts" / task.task_id / "pipeline"):
+        from .preproduction_admission import AdmissionReceipt
+
+        receipt_path = run / "admissions" / (task.task_id + ".json")
+        if not receipt_path.is_file():
+            return False
+        receipt = AdmissionReceipt.model_validate_json(read(receipt_path))
+        if receipt.plan_fingerprint != fingerprint(plan) or (
+            receipt.task.task_id != task.task_id or receipt.task.task_fingerprint != fingerprint(task)
+        ):
+            return False
+        for name in ("binding.json", "canonical-facts.json", "reviewer/result.json",
+                     "fact_report.json", "canonical-footprint.json"):
+            path = (directory / name).resolve()
+            if receipt.source_artifacts_sha256.get(str(path)) != hashlib.sha256(read(path)).hexdigest():
+                return False
+    approved = effective_runtime(plan, run)
+    if approved != runtime_hashes() or any(runtime[name] != approved.get(name) for name in fact_modules):
+        return False
+    amendments = [
+        RuntimeAmendment.model_validate_json(read(path))
+        for path in sorted((run / "runtime-amendments").glob("*.json"))
+    ]
+    state = {name: recorded[name] for name in fact_modules}
+    matches = []
+    for amendment in amendments:
+        if len(matches) < len(required) and amendment.policy_version == required[len(matches)] and all(
+            state[name] == amendment.previous_runtime_sha256.get(name) for name in fact_modules
+        ):
+            matches.append(amendment)
+            state = {name: amendment.current_runtime_sha256.get(name) for name in fact_modules}
+    if len(matches) != len(required) or state != {name: runtime[name] for name in fact_modules}:
+        return False
+    for amendment in amendments:
+        read(run / amendment.archive)
+        if amendment.current_archive is not None:
+            read(run / amendment.current_archive)
+    return True
+
+
 def load_questions(path: Path) -> LoadedQuestions:
     """Load exact native/baseline/review bindings; do not rerun or forge source reviews."""
     hashes: dict[str, str] = {}
@@ -249,9 +334,12 @@ def load_questions(path: Path) -> LoadedQuestions:
             "task_fingerprint": fingerprint(question.task),
             "validation_fingerprint": fingerprint(question.validation),
             "baseline_fingerprint": fingerprint(question.baseline),
-            "curation_version": CURATION_VERSION, "implementation_sha256": runtime,
         }
         if not isinstance(binding, dict) or any(binding.get(key) != value for key, value in expected.items()):
+            raise ValueError(f"annotation binding/runtime differs for {question.task.task_id}")
+        if (binding.get("curation_version"), binding.get("implementation_sha256")) != (CURATION_VERSION, runtime) and not (
+            _approved_legacy_annotation(directory, question.task, binding, runtime, read)
+        ):
             raise ValueError(f"annotation binding/runtime differs for {question.task.task_id}")
         report = json.loads(read(directory / "fact_report.json"))
         if (not isinstance(report, dict) or report.get("status") != "canonical_facts_reviewed"

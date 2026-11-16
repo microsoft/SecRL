@@ -5,12 +5,13 @@
 
 from __future__ import annotations
 
-from collections.abc import Callable
-from contextlib import AbstractContextManager, ExitStack
+from collections.abc import Callable, Iterator
+from contextlib import AbstractContextManager, ExitStack, contextmanager, nullcontext
 import fcntl
 import hashlib
 import json
 from pathlib import Path
+import re
 import subprocess
 import tempfile
 import time
@@ -38,16 +39,22 @@ from .ledger import file_sha256
 from .model_panel import ConfiguredClient, _native_replay, captured_actions, immutable_json
 from .pilot import BLIND_INSTRUCTIONS
 from .pilot_evaluation import private_pilot_validation
-from .preproduction import PreproductionPlan, configured_model_binding, locked_run, safe_unfinished_roles
+from .preproduction import (
+    PreproductionPlan, configured_model_binding, locked_run, safe_unfinished_roles,
+    task_generation_config, task_model_binding,
+)
 from .preproduction_admission import (
-    AdmissionFiles, FinalReview, NativeBinding, NativeStudentImport, NATIVE_RUNTIME_FILES, ObjectiveReview,
+    AdmissionFiles, AdmissionReceipt, AdmissionSnapshot, AdmissionSnapshotStore, FinalReview, InventoryAdvanced,
+    NativeBinding, NativeStudentImport, NATIVE_RUNTIME_FILES, ObjectiveInventory, ObjectiveReview,
+    ObjectiveReviewCoverage, ObjectiveReviewPart, commit_prepared_admission, prepare_admission,
     admitted_receipts, admitted_task, native_import_artifacts, objective_inventory, record_admission,
-    validate_admitted_contract_revision, validate_native_import,
+    validate_admitted_contract_revision, validate_native_import, _validate_completed_native_journal,
 )
 from .preproduction_revisions import ORCHESTRATION_MODULES, _validate_repair, current_source, effective_runtime
-from .quality import validate_quality_gate
-from .query import PublicQueryEngine
+from .quality import QualityAssessment, QualityAudit, validate_quality_gate
+from .query import PublicQueryEngine, QueryFailure, QueryResult
 from .question_splits import QuestionFiles, SplitInputs, load_questions
+from .review_transport import AUTHOR_ROLES, REVIEW_ROLES
 from .robustness import ROBUSTNESS_VERSION, RobustnessPlan, RobustnessReport, run_robustness, validate_plan_expectations
 from .secrl_adapter import Submission
 from .similarity import EvidenceFootprint
@@ -74,16 +81,286 @@ class StageReceipt(Contract):
     artifacts_sha256: dict[str, Digest]
 
 
+class CanonicalScopeReviewApproval(Contract):
+    policy_version: Literal["canonical-scope-review-recovery-v1"] = "canonical-scope-review-recovery-v1"
+    plan_fingerprint: Digest
+    task_fingerprint: Digest
+    parent_canonical: Text
+    canonical_artifacts_sha256: dict[str, Digest]
+    reconciliation_directory: Text
+    reconciliation_artifacts_sha256: dict[str, Digest]
+    reason: Text
+    approved: Literal[True]
+    curator_resampling: Literal[False] = False
+    student_resampling: Literal[False] = False
+    task_or_grading_changes: Literal[False] = False
+
+
+class AnnotationJournalLossApproval(Contract):
+    policy_version: Literal["nonstudent-journal-loss-continuation-v1"] = "nonstudent-journal-loss-continuation-v1"
+    plan_fingerprint: Digest
+    task_fingerprint: Digest
+    parent_pipeline: Text
+    output_directory: Text
+    runtime_archive: Text
+    runtime_archive_sha256: Digest
+    interruption_authorization: Text
+    interruption_authorization_sha256: Digest
+    interrupted_stage: Literal["robustness", "difficulty", "objective"]
+    interrupted_role: Text
+    parent_artifacts_sha256: dict[str, Digest]
+    source_artifacts_sha256: dict[str, Digest]
+    source_outcome_sha256: Digest
+    failure_sha256: Digest
+    reason: Text
+    approved: Literal[True]
+    maximum_interrupted_role_restarts: Literal[1] = 1
+    students_or_completed_roles_resampled: Literal[False] = False
+    original_completion_or_send_state_inferred: Literal[False] = False
+    task_or_grading_changes: Literal[False] = False
+
+
 def _json_hashes(directory: Path, *, excluded: tuple[str, ...] = ()) -> dict[str, str]:
     return {str(path.relative_to(directory)): file_sha256(path)
             for path in sorted(directory.rglob("*.json")) if str(path.relative_to(directory)) not in excluded}
 
 
+def _completed_robustness_author(stage: Path, task: TaskRecord) -> RobustnessPlan:
+    author = stage / "author"
+    complete = json.loads((author / "complete.json").read_bytes())
+    matrix = RobustnessPlan.model_validate_json((stage / "proposed-plan.json").read_bytes())
+    result = RobustnessPlan.model_validate_json((author / "result.json").read_bytes())
+    first = json.loads((author / "0000-request.json").read_bytes())
+    context = json.loads(first["messages"][1]["content"])
+    finishes = [tool["function"] for tool in first["tools"] if tool.get("function", {}).get("name") == "finish"]
+    if complete["role"] != "robustness-author" or first["role"] != complete["role"] or (
+        matrix != result or matrix.task_fingerprint != fingerprint(task)
+        or complete["result_fingerprint"] != fingerprint(matrix)
+        or context["task_fingerprint"] != fingerprint(task)
+        or TaskRecord.model_validate_json(json.dumps(context["task"])) != task
+        or len(finishes) != 1 or finishes[0]["parameters"] != RobustnessPlan.model_json_schema()
+        or any(path.stat().st_size == 0 for path in author.glob("*.json"))
+    ):
+        raise ValueError("robustness reviewer recovery requires its exact completed, source-bound original author")
+    _validate_completed_native_journal(author, complete)
+    return matrix
+
+
+def _journal_loss_continuation(parent: Path, archive: Path, binding: dict, run: Path,
+                               pipeline_root: Path, approval_path: Path, output: Path) -> dict:
+    parent, archive, approval_path, output = (path.resolve() for path in (parent, archive, approval_path, output))
+    if parent.parent != pipeline_root.resolve() or output.parent != pipeline_root.resolve() or parent == output or (
+        any(not path.is_relative_to(run.resolve()) for path in (parent, archive, approval_path, output))
+    ):
+        raise ValueError("journal-loss continuation requires distinct owned same-attempt pipelines")
+    approval = AnnotationJournalLossApproval.model_validate_json(approval_path.read_bytes())
+    task_id = pipeline_root.parent.name
+    plan = PreproductionPlan.model_validate_json((run / "plan.json").read_bytes())
+    source, outcome, sequence = current_source(plan, run, task_id)
+    if sequence or outcome is None or outcome.status != "source_ready":
+        raise ValueError("journal-loss continuation requires the exact original source-ready task")
+    task = TaskRecord.model_validate_json((source / "task.json").read_bytes())
+    if (approval.plan_fingerprint, approval.task_fingerprint, Path(approval.parent_pipeline),
+        Path(approval.output_directory), Path(approval.runtime_archive), approval.runtime_archive_sha256) != (
+        fingerprint(plan), fingerprint(task), parent, output, archive, file_sha256(archive),
+    ) or approval.parent_artifacts_sha256 != _json_hashes(parent) or (
+        approval.source_artifacts_sha256 != _json_hashes(source)
+        or approval.source_outcome_sha256 != file_sha256(source.parent / "source-outcome.json")
+        or (parent / "pipeline-report.json").exists()
+    ):
+        raise ValueError("journal-loss approval changed its exact task, source, parent or archive")
+    old_binding = json.loads((parent / "binding.json").read_bytes())
+    if old_binding.get("continuation") is not None or old_binding.get("native_import") is not None:
+        raise ValueError("journal-loss recovery supports only the original non-imported pipeline prefix")
+    for key in ("version", "task_fingerprint", "plan_fingerprint", "source_outcome_fingerprint", "grading_policy_fingerprint"):
+        if old_binding[key] != binding[key]:
+            raise ValueError("journal-loss continuation changed task, source, model plan or grading policy")
+    protected = lambda values: {name: digest for name, digest in values.items() if name != "preproduction_pipeline.py"}
+    if old_binding["implementation_sha256"].keys() != binding["implementation_sha256"].keys() or (
+        protected(old_binding["implementation_sha256"]) != protected(binding["implementation_sha256"])
+    ):
+        raise ValueError("journal-loss continuation cannot change protected source, student, grading or annotation kernels")
+    with zipfile.ZipFile(archive) as saved:
+        if any(hashlib.sha256(saved.read(name)).hexdigest() != digest
+               for name, digest in old_binding["implementation_sha256"].items()):
+            raise ValueError("journal-loss archive does not preserve the exact original producer")
+    failure_path = parent.parent.parent / "checkpoint-pipeline-result.json"
+    failure = json.loads(failure_path.read_bytes())
+    interrupted = Path(approval.interruption_authorization).resolve()
+    if not interrupted.is_relative_to((run / "checkpoint-repairs").resolve()) or (
+        file_sha256(interrupted) != approval.interruption_authorization_sha256
+        or file_sha256(failure_path) != approval.failure_sha256
+        or failure.get("status") != "operational_error" or failure.get("interrupted_role") != approval.interrupted_role
+        or failure.get("original_send_state") != "unknown"
+        or Path(failure["recovery_authorization"]).resolve() != interrupted
+        or failure["recovery_authorization_sha256"] != approval.interruption_authorization_sha256
+        or any(failure.get(name) is not False for name in ("student_rerolls", "admitted", "question_invalid", "exclusion_certified"))
+    ):
+        raise ValueError("journal-loss continuation lacks its exact previously recorded operational boundary")
+    boundary = json.loads(interrupted.read_bytes())
+    prior = boundary["state"]["interrupted"][task_id]
+    if boundary.get("status") != "disconnect_boundary_preserved_not_replayed" or (
+        boundary.get("plan_fingerprint") != fingerprint(plan) or boundary.get("send_state") != "unknown"
+        or boundary.get("empty_files_are_not_unsent_certificates") is not True
+        or boundary.get("completed_or_interrupted_students_replay_authorized") is not False
+        or prior["task_fingerprint"] != fingerprint(task)
+        or prior["pipeline_sha256"] != approval.parent_artifacts_sha256
+        or prior["source_sha256"] != approval.source_artifacts_sha256
+        or boundary["state"]["source_outcomes"][str(source.parent / "source-outcome.json")] != approval.source_outcome_sha256
+    ):
+        raise ValueError("the original disconnect inventory does not bind this preserved annotation prefix")
+    roles = {"robustness": "robustness/reviewer", "difficulty": "difficulty/curation/curator"}
+    if approval.interrupted_stage == "objective":
+        if re.fullmatch(r"objective-[0-9a-f]{16}/reviewer", approval.interrupted_role) is None:
+            raise ValueError("objective loss recovery requires the exact original objective reviewer")
+    elif approval.interrupted_role != roles[approval.interrupted_stage]:
+        raise ValueError("journal-loss recovery cannot replace another annotation role")
+    role = parent / approval.interrupted_role
+    stage = parent / Path(approval.interrupted_role).parts[0]
+    if (stage / "stage-receipt.json").exists() or any((role / name).exists() for name in (
+        "complete.json", "result.json", "abstention.json",
+    )):
+        raise ValueError("a completed annotation role or stage cannot be restarted as journal loss")
+    losses = [item for item in boundary["malformed_original_artifacts"] if item["task_id"] == task_id]
+    if not losses or losses != failure["malformed_artifacts"] or len({item["path"] for item in losses}) != len(losses):
+        raise ValueError("the failed role does not match its exact original persistence-loss inventory")
+    for item in losses:
+        path = Path(item["path"])
+        if path.parent != role or re.fullmatch(r"\d{4}-(request|response|tool-results|error)\.json", path.name) is None or (
+            item["bytes"] != 0 or path.stat().st_size != 0 or file_sha256(path) != item["sha256"]
+        ):
+            raise ValueError("a lost annotation artifact changed or escaped its exact original role")
+    if {str(path) for path in parent.rglob("*.json") if path.stat().st_size == 0} != {item["path"] for item in losses}:
+        raise ValueError("additional unknown journal damage cannot be hidden behind this approval")
+    prefixes = {
+        "robustness": ("grading", "native", "baseline"),
+        "difficulty": ("grading", "native", "baseline", "robustness", "canonical"),
+        "objective": ("grading", "native", "baseline", "robustness", "canonical", "difficulty"),
+    }
+    completed, paths = {}, {}
+    for name in prefixes[approval.interrupted_stage]:
+        directory = parent / name
+        receipt_path = directory / "stage-receipt.json"
+        receipt = StageReceipt.model_validate_json(receipt_path.read_bytes())
+        stage_binding = json.loads((directory / "stage-binding.json").read_bytes())
+        if receipt.result.status != "pass" or receipt.artifacts_sha256 != _json_hashes(directory, excluded=("stage-receipt.json",)) or (
+            stage_binding != {"pipeline": old_binding, "prior_stage_receipts": completed}
+        ):
+            raise ValueError("journal-loss continuation requires every exact passed predecessor stage")
+        completed[name] = file_sha256(receipt_path)
+        paths[name] = str(directory)
+    if json.loads((stage / "stage-binding.json").read_bytes()) != {
+        "pipeline": old_binding, "prior_stage_receipts": completed,
+    }:
+        raise ValueError("the interrupted stage does not follow the exact verified completed prefix")
+    author_plan = None
+    if approval.interrupted_stage == "robustness":
+        _completed_robustness_author(stage, task)
+        author_plan = str(stage / "proposed-plan.json")
+    result = {
+        "policy_version": approval.policy_version, "parent_pipeline": str(parent),
+        "parent_artifacts_sha256": approval.parent_artifacts_sha256,
+        "runtime_archive": str(archive), "runtime_archive_sha256": file_sha256(archive),
+        "authorization": str(approval_path), "authorization_sha256": file_sha256(approval_path),
+        "output_directory": str(output), "interrupted_stage": approval.interrupted_stage,
+        "interrupted_role": approval.interrupted_role, "imported_stage_paths": paths,
+        "completed_author_plan": author_plan, "original_send_and_completion_state": "unknown",
+        "students_or_completed_roles_resampled": False,
+    }
+    key = _context_fingerprint({
+        "parent_pipeline": str(parent), "interrupted_role": approval.interrupted_role,
+        "original_boundary_sha256": approval.interruption_authorization_sha256,
+    })
+    usage = run / "annotation-journal-loss-recoveries" / (key + ".json")
+    result["usage_path"] = str(usage.resolve())
+    if usage.exists():
+        if json.loads(usage.read_bytes()) != result:
+            raise ValueError("the interrupted nonstudent role already belongs to another bounded continuation")
+    elif (output / "binding.json").exists():
+        raise ValueError("an existing journal-loss child lost its one-use continuation binding")
+    return result
+
+
+def _canonical_scope_review_recovery(plan: PreproductionPlan, task: TaskRecord, run: Path,
+                                     parent: Path, output: Path, approval_path: Path) -> dict:
+    root = run.resolve()
+    parent, output, approval_path = parent.resolve(), output.resolve(), approval_path.resolve()
+    if not all(path.is_relative_to(root) for path in (parent, output, approval_path)):
+        raise ValueError("canonical scope recovery must belong to its owning run")
+    approval = CanonicalScopeReviewApproval.model_validate_json(approval_path.read_bytes())
+    canonical = parent / "canonical"
+    reconciliation = Path(approval.reconciliation_directory).resolve()
+    if not reconciliation.is_relative_to(root) or (
+        approval.plan_fingerprint != fingerprint(plan) or approval.task_fingerprint != fingerprint(task)
+        or Path(approval.parent_canonical).resolve() != canonical
+        or approval.canonical_artifacts_sha256 != _json_hashes(canonical)
+        or approval.reconciliation_artifacts_sha256 != _json_hashes(reconciliation)
+        or (canonical / "retained-curator.json").exists()
+    ):
+        raise ValueError("canonical scope recovery changed its exact task, held annotation or reconciliation")
+    required = {"binding.json", "canonical-facts.json", "curator/result.json", "curator/complete.json",
+                "reviewer/result.json", "fact_report.json", "stage-receipt.json"}
+    if not required <= approval.canonical_artifacts_sha256.keys():
+        raise ValueError("canonical scope recovery requires a complete held selection and original curator")
+    prior = StageReceipt.model_validate_json((canonical / "stage-receipt.json").read_bytes())
+    proposal = SourceFactProposal.model_validate_json((canonical / "curator/result.json").read_bytes())
+    previous = json.loads((canonical / "fact_report.json").read_bytes())
+    if prior.result.status != "held" or prior.artifacts_sha256 != _json_hashes(canonical, excluded=("stage-receipt.json",)) or (
+        previous["status"] != "needs_fact_revision"
+        or json.loads((canonical / "binding.json").read_bytes())["task_fingerprint"] != fingerprint(task)
+        or json.loads((canonical / "curator/complete.json").read_bytes())["result_fingerprint"] != fingerprint(proposal)
+    ):
+        raise ValueError("canonical scope recovery requires its unchanged completed curator and actual held review")
+    reconciled = json.loads((reconciliation / "report.json").read_bytes())
+    assessment = QualityAssessment.model_validate_json((reconciliation / "quality/reviewer/result.json").read_bytes())
+    gate = json.loads((reconciliation / "quality/gate.json").read_bytes())
+    audit = QualityAudit.model_validate_json((reconciliation / "quality/audit.json").read_bytes())
+    authorization = json.loads((reconciliation / "authorization.json").read_bytes())
+    evidence = authorization["evidence"]
+    if (assessment.task_fingerprint, assessment.review.recommendation, assessment.whole_claim_proofs_supported,
+        assessment.json_semantics_supported, gate["status"], gate["assessment_fingerprint"]) != (
+        fingerprint(task), "pass", True, True, "pass", fingerprint(assessment),
+    ) or reconciled["gate"] != gate or reconciled["review"] != assessment.review.model_dump(mode="json") or (
+        reconciled.get("source_and_students_unchanged") is not True
+        or authorization["plan_fingerprint"] != fingerprint(plan)
+        or evidence["task_fingerprint"] != fingerprint(task)
+        or evidence["canonical_review_sha256"] != file_sha256(canonical / "reviewer/result.json")
+        or evidence["canonical_bundle_sha256"] != file_sha256(canonical / "canonical-facts.json")
+        or gate["task_fingerprint"] != fingerprint(task)
+        or audit.task_fingerprint != fingerprint(task)
+        or gate["audit_fingerprint"] != fingerprint(audit)
+        or assessment.audit_fingerprint != fingerprint(audit)
+        or gate["review_artifacts_sha256"] != _json_hashes(reconciliation / "quality/reviewer")
+    ):
+        raise ValueError("canonical scope recovery lacks a passing independently bound source-contract reconciliation")
+    recovery = {
+        "policy_version": approval.policy_version, "approval_sha256": file_sha256(approval_path),
+        "task_fingerprint": fingerprint(task), "parent_canonical": str(canonical), "output": str(output),
+        "canonical_artifacts_sha256": approval.canonical_artifacts_sha256,
+        "reconciliation_directory": str(reconciliation),
+        "reconciliation_artifacts_sha256": approval.reconciliation_artifacts_sha256,
+        "proposal_fingerprint": fingerprint(proposal), "source_scope_review": assessment.review.model_dump(mode="json"),
+        "reason": approval.reason, "curator_calls": 0, "student_calls": 0, "automatic_pass": False,
+    }
+    with locked_run(run, wait=True):
+        registry = run / "canonical-scope-review-recoveries"
+        registry.mkdir(mode=0o700, exist_ok=True)
+        immutable_json(registry / (file_sha256(canonical / "reviewer/result.json") + ".json"), recovery)
+    return recovery
+
+
 def _continuation(parent: Path, archive: Path, binding: dict, run: Path, pipeline_root: Path,
-                  seen: frozenset[Path] = frozenset()) -> dict:
+                  seen: frozenset[Path] = frozenset(), *,
+                  interruption_approval: Path | None = None, output: Path | None = None) -> dict:
     parent, archive = parent.resolve(), archive.resolve()
     if parent.parent != pipeline_root.resolve() or parent in seen or not archive.is_relative_to(run.resolve()):
         raise ValueError("annotation continuation must use an acyclic, same-attempt parent and an owned runtime archive")
+    if interruption_approval is not None:
+        if output is None:
+            raise ValueError("journal-loss continuation requires its exact separately owned output")
+        return _journal_loss_continuation(parent, archive, binding, run, pipeline_root, interruption_approval, output)
+    if output is not None:
+        raise ValueError("an interrupted output cannot be supplied without explicit journal-loss approval")
     report = json.loads((parent / "pipeline-report.json").read_bytes())
     old_binding = json.loads((parent / "binding.json").read_bytes())
     if report["artifacts_sha256"] != _json_hashes(parent, excluded=("pipeline-report.json",)):
@@ -118,15 +395,21 @@ def _continuation(parent: Path, archive: Path, binding: dict, run: Path, pipelin
         if len(native_index_history(plan, run)) > 1:
             replaceable.add("preproduction_admission.py")
     if any((run / "runtime-amendments").glob("*.json")):
-        from .preproduction_revisions import EMPTY_ARRAY_AMENDMENT, RuntimeAmendment
+        from .preproduction_revisions import (
+            ARRAY_LENGTH_AMENDMENT, DIFFICULTY_IDENTITY_AMENDMENT, EMPTY_ARRAY_AMENDMENT,
+            MULTI_RECORD_FACT_AMENDMENT, NESTED_JSON_FACT_AMENDMENT, RuntimeAmendment,
+        )
         amendments = [RuntimeAmendment.model_validate_json(p.read_bytes())
                       for p in sorted((run / "runtime-amendments").glob("*.json"))]
         policies = {amendment.policy_version for amendment in amendments}
-        if policies & {"preproduction-annotation-context-amendment-v2", EMPTY_ARRAY_AMENDMENT}:
+        if policies & {"preproduction-annotation-context-amendment-v2", EMPTY_ARRAY_AMENDMENT,
+                       ARRAY_LENGTH_AMENDMENT, MULTI_RECORD_FACT_AMENDMENT, NESTED_JSON_FACT_AMENDMENT}:
             plan = PreproductionPlan.model_validate_json((run / "plan.json").read_bytes())
             approved = effective_runtime(plan, run)
             replaceable.update(("quality.py", "preproduction_admission.py"))
-            if held_stage in ("robustness", "canonical") and EMPTY_ARRAY_AMENDMENT in policies:
+            if (held_stage in ("robustness", "canonical") and EMPTY_ARRAY_AMENDMENT in policies
+                or ARRAY_LENGTH_AMENDMENT in policies or MULTI_RECORD_FACT_AMENDMENT in policies
+                or NESTED_JSON_FACT_AMENDMENT in policies):
                 states = [plan.implementation_sha256, *(a.current_runtime_sha256 for a in amendments)]
                 fact_modules = ("canonical_facts.py", "fact_curation.py")
                 if any(binding["implementation_sha256"].get(name) != approved.get(name) for name in fact_modules) or not any(
@@ -135,6 +418,15 @@ def _continuation(parent: Path, archive: Path, binding: dict, run: Path, pipelin
                 ):
                     raise ValueError("canonical continuation requires exact approved old and current producers")
                 replaceable.update(("canonical_facts.py", "fact_curation.py"))
+        if DIFFICULTY_IDENTITY_AMENDMENT in policies:
+            plan = PreproductionPlan.model_validate_json((run / "plan.json").read_bytes())
+            approved = effective_runtime(plan, run)
+            states = [plan.implementation_sha256, *(a.current_runtime_sha256 for a in amendments)]
+            if binding["implementation_sha256"].get("difficulty.py") != approved.get("difficulty.py") or not any(
+                old_binding["implementation_sha256"].get("difficulty.py") == state.get("difficulty.py") for state in states
+            ):
+                raise ValueError("difficulty continuation requires exact approved old and current identity producers")
+            replaceable.add("difficulty.py")
     protected = lambda values: {name: digest for name, digest in values.items() if name not in replaceable}
     if (old_binding["implementation_sha256"].keys() != binding["implementation_sha256"].keys()
         or protected(old_binding["implementation_sha256"]) != protected(binding["implementation_sha256"])):
@@ -145,8 +437,11 @@ def _continuation(parent: Path, archive: Path, binding: dict, run: Path, pipelin
                 raise ValueError("parent runtime archive does not preserve its exact producer")
     previous = old_binding.get("continuation")
     if previous is not None:
+        recovery = ({"interruption_approval": Path(previous["authorization"]),
+                     "output": Path(previous["output_directory"])}
+                    if previous.get("policy_version") == "nonstudent-journal-loss-continuation-v1" else {})
         restored = _continuation(Path(previous["parent_pipeline"]), Path(previous["runtime_archive"]), binding,
-                                 run, pipeline_root, seen | {parent})
+                                 run, pipeline_root, seen | {parent}, **recovery)
         if restored != previous:
             raise ValueError("earlier annotation continuation provenance changed")
         paths = {name: restored["imported_stage_paths"].get(name, str(parent / name)) for name in prefixes[held_stage]}
@@ -388,15 +683,42 @@ def run_stage(directory: Path, binding: dict, action: Callable[[Path], StageResu
     return result
 
 
+class _NonStudentSourceQueryEngine(PublicQueryEngine):
+    def __init__(self, original: PublicQueryEngine):
+        super().__init__(original.connection, original.engine, set(original.tables),
+                         original.limits, original.serving_view_id)
+
+    def execute(self, query: str, *, gold: bool = False,
+                allowed_literals: frozenset[str] = frozenset()) -> QueryResult:
+        try:
+            return super().execute(query, gold=gold, allowed_literals=allowed_literals)
+        except sqlglot.errors.TokenError as error:
+            if gold:
+                raise
+            raise QueryFailure("sql_parse", str(error)) from error
+
+
+@contextmanager
+def _nonstudent_source_queries(verifier: EvidenceVerifier) -> Iterator[None]:
+    original = verifier.engine
+    verifier.engine = _NonStudentSourceQueryEngine(original)
+    try:
+        yield
+    finally:
+        verifier.engine = original
+
+
 def inspected_role(client: ConfiguredClient, verifier: EvidenceVerifier, directory: Path, role: str,
                    instructions: str, context: dict, response_type: type[T],
                    validate: Callable[[T, FactInspectionTools], None]) -> T:
-    tools = FactInspectionTools(SourceFactResolver(verifier))
-    if directory.exists():
-        safe_unfinished_roles(directory)
-        _restore_inspections(tools, directory)
-    return run_role(client, tools, role, instructions, context, response_type, directory,
-                    resume=directory.exists(), validate_result=lambda value: validate(value, tools))
+    guard = _nonstudent_source_queries(verifier) if role in AUTHOR_ROLES.keys() | REVIEW_ROLES.keys() else nullcontext()
+    with guard:
+        tools = FactInspectionTools(SourceFactResolver(verifier))
+        if directory.exists():
+            safe_unfinished_roles(directory)
+            _restore_inspections(tools, directory)
+        return run_role(client, tools, role, instructions, context, response_type, directory,
+                        resume=directory.exists(), validate_result=lambda value: validate(value, tools))
 
 
 def _citations(task: TaskRecord) -> frozenset[PublicCitation]:
@@ -587,6 +909,9 @@ def native_candidate(plan: PreproductionPlan, candidate: Path, task: TaskRecord,
     if plan.native_snapshot_sha256 is None or plan.native_indexes_sha256 is None:
         raise ValueError("native validation requires explicit snapshot and index bindings")
     from .preproduction_revisions import effective_native_plan
+    from .preproduction import validate_task_client
+    if run is not None and retained_student is None:
+        validate_task_client(plan, run, task.task_id, client)
     execution_plan = effective_native_plan(plan, run) if run is not None else plan
     if retained_student is not None:
         if run is None or policy_directory is not None:
@@ -602,7 +927,13 @@ def native_candidate(plan: PreproductionPlan, candidate: Path, task: TaskRecord,
     immutable_json(output / "binding.json", NativeBinding(
         task_fingerprint=fingerprint(task), plan_fingerprint=fingerprint(plan), serving_view_id=task.serving_view_id,
         native_snapshot_sha256=plan.native_snapshot_sha256, native_indexes_sha256=execution_plan.native_indexes_sha256,
-        model=plan.model, student_query_limits=student.limits, grader_query_limits=mysql.engine.limits,
+        model=(
+            NativeBinding.model_validate_json(
+                (Path(retained_student.parent_pipeline) / "native/binding.json").read_bytes()
+            ).model if retained_student is not None else
+            task_model_binding(plan, run, task.task_id) if run is not None else plan.model
+        ),
+        student_query_limits=student.limits, grader_query_limits=mysql.engine.limits,
         implementation_sha256={name: file_sha256(Path(__file__).with_name(name)) for name in NATIVE_RUNTIME_FILES},
     ))
     recorded_native = Path(retained_student.parent_pipeline) / "native" if retained_student is not None else output
@@ -685,7 +1016,8 @@ def robustness_candidate(task: TaskRecord, source: EvidenceVerifier, client: Con
                          control_repairs: dict[str, str] | None = None,
                          review_recovery: bool = False, run: Path | None = None,
                          qualified_support_recovery: Path | None = None,
-                         native_context: dict | None = None) -> StageResult:
+                         native_context: dict | None = None,
+                         completed_author_stage: Path | None = None) -> StageResult:
     _validate_native_text_context(task, native_context)
     if native_context is not None:
         immutable_json(output / "native-text-semantics.json", native_context)
@@ -696,6 +1028,13 @@ def robustness_candidate(task: TaskRecord, source: EvidenceVerifier, client: Con
         run is None or revision_from is None or prepared_plan is None or recorded_task is not None or control_repairs
     ):
         raise ValueError("review-only recovery requires an exact held parent and prepared unchanged plan")
+    if completed_author_stage is not None and (
+        run is None or not completed_author_stage.resolve().is_relative_to(run.resolve())
+        or revision_from is not None or prepared_plan is None
+        or prepared_plan.resolve() != (completed_author_stage / "proposed-plan.json").resolve()
+        or recovering_review or recorded_task is not None or control_repairs
+    ):
+        raise ValueError("completed-author import requires its exact original plan and a separate first reviewer")
     proofs = source.preflight(task)
     references = _citations(task) | frozenset(c for groups in proofs.values() for group in groups for c in group)
     context = {
@@ -782,7 +1121,7 @@ def robustness_candidate(task: TaskRecord, source: EvidenceVerifier, client: Con
                                             "but none removed. Independently inspect all added records. The reviewer "
                                             "must assess whether corrected controls preserve their intended coverage.",
             )
-    elif prepared_plan is not None:
+    elif prepared_plan is not None and completed_author_stage is None:
         raise ValueError("prepared robustness annotations require an explicit held-plan revision")
 
     def validate_structure(value: RobustnessPlan):
@@ -827,6 +1166,16 @@ def robustness_candidate(task: TaskRecord, source: EvidenceVerifier, client: Con
 
     if prepared_plan is not None:
         matrix = RobustnessPlan.model_validate_json(prepared_plan.read_bytes())
+        if completed_author_stage is not None:
+            if _completed_robustness_author(completed_author_stage, task) != matrix:
+                raise ValueError("completed-author recovery changed its original proposal")
+            restored = FactInspectionTools(SourceFactResolver(source))
+            _restore_inspections(restored, completed_author_stage / "author")
+            validate_plan(matrix, restored)
+            immutable_json(output / "completed-author-import.json", {
+                "source": str(completed_author_stage.resolve()), "artifacts_sha256": _json_hashes(completed_author_stage / "author"),
+                "plan_fingerprint": fingerprint(matrix), "author_model_calls": 0, "fresh_independent_review_required": True,
+            })
         validate_structure(matrix)
         for citation in references | frozenset(matrix.extra_source_records):
             source.record_values(citation)
@@ -896,7 +1245,9 @@ def robustness_candidate(task: TaskRecord, source: EvidenceVerifier, client: Con
 
 def _canonical_abstention_extension(revision_from: Path, previous_binding: dict, output: Path) -> dict:
     from .preproduction import runtime_hashes
-    from .preproduction_revisions import EMPTY_ARRAY_AMENDMENT, RuntimeAmendment
+    from .preproduction_revisions import (
+        ARRAY_LENGTH_AMENDMENT, EMPTY_ARRAY_AMENDMENT, MULTI_RECORD_FACT_AMENDMENT, RuntimeAmendment,
+    )
 
     parent = revision_from.parent
     report = json.loads((parent / "pipeline-report.json").read_bytes())
@@ -909,10 +1260,18 @@ def _canonical_abstention_extension(revision_from: Path, previous_binding: dict,
     ):
         raise ValueError("canonical capability recovery requires an unchanged sealed canonical hold")
     abstention = json.loads((revision_from / "curator/abstention.json").read_bytes())
-    if abstention.get("status") != "no_supported_result" or (revision_from / "curator/result.json").exists() or (
-        previous_binding["curation_version"], CURATION_VERSION
-    ) != ("source-fact-curation-v1.1", "source-fact-curation-v1.2"):
-        raise ValueError("canonical capability recovery requires the original unsupported v1.1 annotation")
+    required = {
+        ("source-fact-curation-v1.1", "source-fact-curation-v1.2"): (EMPTY_ARRAY_AMENDMENT,),
+        ("source-fact-curation-v1.2", "source-fact-curation-v1.3"): (ARRAY_LENGTH_AMENDMENT,),
+        ("source-fact-curation-v1.1", "source-fact-curation-v1.3"): (EMPTY_ARRAY_AMENDMENT, ARRAY_LENGTH_AMENDMENT),
+        ("source-fact-curation-v1.3", "source-fact-curation-v1.4"): (MULTI_RECORD_FACT_AMENDMENT,),
+        ("source-fact-curation-v1.2", "source-fact-curation-v1.4"): (ARRAY_LENGTH_AMENDMENT, MULTI_RECORD_FACT_AMENDMENT),
+        ("source-fact-curation-v1.1", "source-fact-curation-v1.4"): (
+            EMPTY_ARRAY_AMENDMENT, ARRAY_LENGTH_AMENDMENT, MULTI_RECORD_FACT_AMENDMENT,
+        ),
+    }.get((previous_binding["curation_version"], CURATION_VERSION))
+    if abstention.get("status") != "no_supported_result" or (revision_from / "curator/result.json").exists() or required is None:
+        raise ValueError("canonical capability recovery requires the original unsupported annotation and its versioned extension")
     roots = [root for root in parent.resolve().parents if (root / "plan.json").is_file() and (root / "attempts").is_dir()]
     if len(roots) != 1:
         raise ValueError("canonical capability recovery requires its exact owning run")
@@ -923,12 +1282,16 @@ def _canonical_abstention_extension(revision_from: Path, previous_binding: dict,
         raise ValueError("canonical capability recovery requires the approved current producer")
     amendments = [RuntimeAmendment.model_validate_json(p.read_bytes())
                   for p in sorted((run / "runtime-amendments").glob("*.json"))]
-    matches = [a for a in amendments if a.policy_version == EMPTY_ARRAY_AMENDMENT and all(
-        previous_binding["implementation_sha256"].get(name) == a.previous_runtime_sha256.get(name)
-        and approved.get(name) == a.current_runtime_sha256.get(name)
-        for name in ("canonical_facts.py", "fact_curation.py")
-    )]
-    if len(matches) != 1:
+    fact_modules = ("canonical_facts.py", "fact_curation.py")
+    state = {name: previous_binding["implementation_sha256"].get(name) for name in fact_modules}
+    matches = []
+    for amendment in amendments:
+        if len(matches) < len(required) and amendment.policy_version == required[len(matches)] and all(
+            state[name] == amendment.previous_runtime_sha256.get(name) for name in fact_modules
+        ):
+            matches.append(amendment)
+            state = {name: amendment.current_runtime_sha256.get(name) for name in fact_modules}
+    if len(matches) != len(required) or state != {name: approved.get(name) for name in fact_modules}:
         raise ValueError("canonical capability recovery lacks its exact additive producer amendment")
     certificate = {
         "parent": str(revision_from.resolve()), "output": str(output.resolve()),
@@ -936,6 +1299,8 @@ def _canonical_abstention_extension(revision_from: Path, previous_binding: dict,
         "abstention_sha256": file_sha256(revision_from / "curator/abstention.json"),
         "runtime_amendment_fingerprint": fingerprint(matches[0]),
     }
+    if len(matches) > 1:
+        certificate["runtime_amendment_fingerprints"] = [fingerprint(amendment) for amendment in matches]
     with locked_run(run, wait=True):
         registry = run / "canonical-extension-recoveries"
         registry.mkdir(mode=0o700, exist_ok=True)
@@ -943,15 +1308,16 @@ def _canonical_abstention_extension(revision_from: Path, previous_binding: dict,
         immutable_json(registry / (key + ".json"), certificate)
     return {
         "previous_abstention": abstention,
-        "approved_annotation_extension": matches[0].policy_version,
-        "revision_instructions": "Reinspect the source under the explicitly approved empty-array observation extension. "
+        "approved_annotation_extension": matches[-1].policy_version,
+        "revision_instructions": "Reinspect the source under the explicitly approved array-structure observation extension. "
                                  "Preserve every claim and material comparison. Do not invent counts or select whole containers.",
     }
 
 
 def canonical_candidate(task: TaskRecord, validation: ValidationReport, baseline: EvidenceFootprint,
                         source: EvidenceVerifier, client: ConfiguredClient, output: Path, *,
-                        revision_from: Path | None = None, feedback: str | None = None) -> StageResult:
+                        revision_from: Path | None = None, feedback: str | None = None,
+                        scope_review_recovery: dict | None = None) -> StageResult:
     """Reuse pinned fact semantics while adding exact-role resume at the orchestration layer."""
     resolver = SourceFactResolver(source)
     if validation.pilot_blockers(task) or baseline.task_fingerprint != fingerprint(task):
@@ -996,8 +1362,19 @@ def canonical_candidate(task: TaskRecord, validation: ValidationReport, baseline
             revision_hashes = {name: file_sha256(revision_from / name) for name in (
                "binding.json", "fact_report.json", "curator/result.json", "reviewer/result.json", "canonical-facts.json",
             )}
-    elif feedback is not None:
+    elif feedback is not None or scope_review_recovery is not None:
         raise ValueError("canonical feedback requires a bound prior annotation")
+    if scope_review_recovery is not None and (
+        previous_proposal is None or revision_from is None
+        or scope_review_recovery["task_fingerprint"] != fingerprint(task)
+        or Path(scope_review_recovery["parent_canonical"]).resolve() != revision_from.resolve()
+        or Path(scope_review_recovery["output"]).resolve() != output.parent.resolve()
+        or scope_review_recovery["canonical_artifacts_sha256"] != _json_hashes(revision_from)
+        or scope_review_recovery["reconciliation_artifacts_sha256"] != _json_hashes(
+            Path(scope_review_recovery["reconciliation_directory"]))
+        or scope_review_recovery["proposal_fingerprint"] != fingerprint(previous_proposal)
+    ):
+        raise ValueError("canonical scope review must retain the exact original validated proposal")
     immutable_json(output / "binding.json", {
         "task_fingerprint": fingerprint(task), "validation_fingerprint": fingerprint(validation),
         "baseline_fingerprint": fingerprint(baseline), "curation_version": CURATION_VERSION,
@@ -1006,6 +1383,7 @@ def canonical_candidate(task: TaskRecord, validation: ValidationReport, baseline
         "implementation_sha256": {name: file_sha256(Path(__file__).with_name(name)) for name in FACT_RUNTIME_FILES},
         "orchestration_version": VERSION, "orchestration_sha256": file_sha256(Path(__file__)),
         "grading_changed": False, "release_approved": False,
+        **({"scope_review_recovery": scope_review_recovery} if scope_review_recovery is not None else {}),
     })
     claims = [("final", task.question, task.private_gold.final),
               *((c.checkpoint_id, c.objective, c.claim) for c in task.private_gold.checkpoints)]
@@ -1013,35 +1391,60 @@ def canonical_candidate(task: TaskRecord, validation: ValidationReport, baseline
         "public_task": task.public_task().model_dump(mode="json"),
         "claims": [{"claim_id": name, "objective": goal, "expected": claim.expected.model_dump(mode="json"),
                     "evidence_sets": [group.model_dump(mode="json") for group in claim.evidence_sets],
-                    "source_programs": [p.model_dump(mode="json") for p in claim.programs if p.engine == "duckdb"]}
+                    "source_programs": [p.model_dump(mode="json") for p in claim.programs if p.engine == "duckdb"],
+                    "source_witness_programs": [p.model_dump(mode="json") for p in claim.witness_programs if p.engine == "duckdb"]}
                    for name, goal, claim in claims],
         "evidence": [ref.model_dump(mode="json") for ref in task.evidence],
+        "annotation_scope_policy": "Select facts within each validated claim's evidence bindings. Inspect "
+        "source-wide alternatives when checking completeness, but distinguish excluded candidate rows "
+        "from omitted answer members and the actual required comparison catalog. A complete comparison "
+        "catalog may be contained in one recorded JSON source row. Do not request out-of-claim citations "
+        "or silently redesign the witness contract; explain a genuine source-contract conflict explicitly.",
     }
 
     def validate_proposal(value: SourceFactProposal, tools: FactInspectionTools):
         resolver.resolve(task, validation, value)
         if previous_proposal is not None:
-            selected = lambda proposal: {claim.claim_id: {fingerprint(ref) for ref in claim.references}
+            selected = lambda proposal: {claim.claim_id: {fingerprint(ref) for ref in claim.expanded_references}
                                          for claim in proposal.claims}
             if selected(value) == selected(previous_proposal):
                 raise ValueError("a held canonical selection needs a material reference change, not prose-only resampling")
-        if {ref.citation for claim in value.claims for ref in claim.references} - tools.observed:
+        if {ref.citation for claim in value.claims for ref in claim.expanded_references} - tools.observed:
             raise ValueError("canonical curator must inspect every selected source record")
 
-    proposal = inspected_role(client, source, output / "curator", "fact-curator", CURATOR_INSTRUCTIONS,
-                              {**context, **revision_context}, SourceFactProposal, validate_proposal)
+    if scope_review_recovery is None:
+        proposal = inspected_role(client, source, output / "curator", "fact-curator", CURATOR_INSTRUCTIONS,
+                                  {**context, **revision_context}, SourceFactProposal, validate_proposal)
+    else:
+        if previous_proposal is None or any((output / "curator").glob("*-request.json")):
+            raise ValueError("canonical review-only recovery cannot replace or resample a curator")
+        proposal = previous_proposal
+        (output / "curator").mkdir(mode=0o700, exist_ok=True)
+        immutable_json(output / "curator/result.json", proposal)
+        immutable_json(output / "retained-curator.json", scope_review_recovery)
     bundle = resolver.resolve(task, validation, proposal)
     immutable_json(output / "canonical-facts.json", bundle)
 
     def validate_review(value: CanonicalFactReview, tools: FactInspectionTools):
         if value.bundle_fingerprint != fingerprint(bundle):
             raise ValueError("canonical review binds another fact bundle")
-        if value.recommendation == "pass" and {ref.citation for claim in proposal.claims for ref in claim.references} - tools.observed:
+        if value.recommendation == "pass" and {
+            ref.citation for claim in proposal.claims for ref in claim.expanded_references
+        } - tools.observed:
             raise ValueError("canonical reviewer must independently inspect all selected source records")
 
+    review_context = {**context, "proposal": proposal.model_dump(mode="json"), "facts": bundle.model_dump(mode="json"),
+                      "bundle_fingerprint": fingerprint(bundle)}
+    if scope_review_recovery is not None:
+        review_context["independent_scope_reconciliation"] = {
+            "source_review": scope_review_recovery["source_scope_review"],
+            "reason": scope_review_recovery["reason"], "automatic_pass_authorized": False,
+            "instruction": "Independently inspect the selected source records and the complete witness "
+            "programs. Resolve the recorded scope conflict without altering the original proposal, task "
+            "or grading. The reconciliation is evidence to evaluate, not permission to pass.",
+        }
     review = inspected_role(client, source, output / "reviewer", "fact-reviewer", REVIEWER_INSTRUCTIONS,
-                            {**context, "proposal": proposal.model_dump(mode="json"), "facts": bundle.model_dump(mode="json"),
-                             "bundle_fingerprint": fingerprint(bundle)}, CanonicalFactReview, validate_review)
+                            review_context, CanonicalFactReview, validate_review)
     passed = review.recommendation == "pass" and all((
         review.source_properties_relevant, review.subjects_roles_times_preserved,
         review.claim_coverage_complete, review.no_value_only_merging,
@@ -1066,6 +1469,12 @@ def objective_candidate(plan: PreproductionPlan, run: Path, task: TaskRecord, so
     for receipt in admitted_receipts(plan, run):
         if receipt.task.task_id != task.task_id:
             tasks.append(admitted_task(run, receipt))
+    return _objective_comparison(task, source, client, output, inventory, tuple(tasks))
+
+
+def _objective_comparison(task: TaskRecord, source: EvidenceVerifier, client: ConfiguredClient,
+                          output: Path, inventory: ObjectiveInventory,
+                          tasks: tuple[TaskRecord, ...]) -> StageResult:
     if {(t.task_id, fingerprint(t)) for t in tasks} != set(inventory.questions):
         raise ValueError("objective descriptors do not match the current admitted comparison inventory")
 
@@ -1092,6 +1501,109 @@ def objective_candidate(plan: PreproductionPlan, run: Path, task: TaskRecord, so
     )
     immutable_json(output / "review.json", review)
     return StageResult(status="pass" if review.recommendation == "pass" else "held", reason="; ".join(review.reasons))
+
+
+def _objective_tasks(plan: PreproductionPlan, run: Path, snapshot: AdmissionSnapshot,
+                     inventory: ObjectiveInventory) -> tuple[TaskRecord, ...]:
+    needed = dict(inventory.questions)
+    tasks = {task.task_id: task for task in plan.seed_questions if task.task_id in needed}
+    for receipt in snapshot.receipts:
+        if receipt.task.task_id in needed:
+            tasks[receipt.task.task_id] = admitted_task(run, receipt)
+    if {(task_id, fingerprint(task)) for task_id, task in tasks.items()} != set(inventory.questions):
+        raise ValueError("objective delta descriptors do not match their verified inventory")
+    return tuple(tasks[task_id] for task_id in sorted(tasks))
+
+
+def _publish_parallel_admission(output: Path, receipt: AdmissionReceipt,
+                                completed: dict[str, str] | None = None) -> dict:
+    inputs = output / ("admission-inputs-" + receipt.inputs_fingerprint + ".json")
+    if receipt.source_artifacts_sha256.get(str(inputs.resolve())) != file_sha256(inputs):
+        raise ValueError("committed admission lost its exact versioned inputs")
+    files = AdmissionFiles.model_validate_json(inputs.read_bytes())
+    if fingerprint(files) != receipt.inputs_fingerprint:
+        raise ValueError("committed admission inputs differ from their receipt")
+    verified = {}
+    for path in output.glob("*/stage-receipt.json"):
+        stage = StageReceipt.model_validate_json(path.read_bytes())
+        if stage.result.status != "pass" or stage.artifacts_sha256 != _json_hashes(path.parent, excluded=("stage-receipt.json",)):
+            raise ValueError("committed admission has a changed or unpassed pipeline stage")
+        verified[path.parent.name] = file_sha256(path)
+    if not {"grading", "native", "baseline", "robustness", "canonical", "difficulty"} <= verified.keys() or (
+        completed is not None and completed != verified
+    ):
+        raise ValueError("parallel admission lacks its exact completed candidate stages")
+    immutable_json(output / "admission-files.json", files)
+    report = {
+        "task_id": receipt.task.task_id, "task_fingerprint": receipt.task.task_fingerprint,
+        "status": "admitted", "admission_fingerprint": fingerprint(receipt), "stage_receipts": verified,
+        "release_approved": False, "artifacts_sha256": _json_hashes(output, excluded=("pipeline-report.json",)),
+    }
+    immutable_json(output / "pipeline-report.json", report)
+    return report
+
+
+def parallel_finalize(
+    *, plan: PreproductionPlan, run: Path, task: TaskRecord, source: EvidenceVerifier, client: ConfiguredClient,
+    output: Path, files: AdmissionFiles, store: AdmissionSnapshotStore, completed: dict[str, str],
+    stage: Callable[[str, Callable[[Path], StageResult]], dict | None],
+) -> dict:
+    snapshot = store.snapshot()
+    prepared = prepare_admission(plan, run, files, snapshot)
+    directory = output / "objective-comparisons"
+    directory.mkdir(exist_ok=True)
+    manifests = sorted(directory.glob("*.json"))
+    parts: list[ObjectiveReviewPart] = []
+    covered: dict[str, str] = {}
+
+    def compare(inventory: ObjectiveInventory, index: int, snapshot: AdmissionSnapshot) -> dict | None:
+        name = f"objective-part-{index:04d}-{fingerprint(inventory)[:16]}"
+        current = dict(snapshot.inventory(plan, excluding=task.task_id).questions)
+        if any(task_id in covered or current.get(task_id) != task_fp for task_id, task_fp in inventory.questions):
+            raise ValueError("an objective part overlaps or differs from the verified current inventory")
+        manifest = {"task_fingerprint": fingerprint(task), "inventory": inventory.model_dump(mode="json"), "stage": name}
+        immutable_json(directory / f"{index:04d}.json", manifest)
+        comparisons = _objective_tasks(plan, run, snapshot, inventory)
+        held = stage(name, lambda folder: _objective_comparison(task, source, client, folder, inventory, comparisons))
+        if held:
+            return held
+        review = output / name / "review.json"
+        parts.append(ObjectiveReviewPart(inventory=inventory, review=str(review.relative_to(output)),
+                                         review_sha256=file_sha256(review)))
+        covered.update(inventory.questions)
+        return None
+
+    for index, path in enumerate(manifests):
+        if path.name != f"{index:04d}.json":
+            raise ValueError("objective comparison manifests must form a contiguous immutable sequence")
+        recorded = json.loads(path.read_bytes())
+        if recorded.get("task_fingerprint") != fingerprint(task):
+            raise ValueError("objective comparison manifest belongs to another task")
+        inventory = ObjectiveInventory.model_validate_json(json.dumps(recorded["inventory"]))
+        held = compare(inventory, index, snapshot)
+        if held:
+            return held
+    while True:
+        snapshot = store.snapshot()
+        inventory = snapshot.inventory(plan, excluding=task.task_id)
+        current = dict(inventory.questions)
+        if any(current.get(task_id) != task_fp for task_id, task_fp in covered.items()):
+            raise ValueError("previously reviewed objective comparisons changed")
+        delta = ObjectiveInventory(questions=tuple(pair for pair in inventory.questions if pair[0] not in covered))
+        if delta.questions:
+            held = compare(delta, len(parts), snapshot)
+            if held:
+                return held
+        coverage = ObjectiveReviewCoverage(task_fingerprint=fingerprint(task), inventory=inventory, parts=tuple(parts))
+        path = output / ("objective-coverage-" + fingerprint(inventory)[:16] + ".json")
+        immutable_json(path, coverage)
+        try:
+            receipt = commit_prepared_admission(
+                plan, run, prepared, snapshot, path, admission_inputs_directory=output,
+            )
+        except InventoryAdvanced:
+            continue
+        return _publish_parallel_admission(output, receipt, completed)
 
 
 def _resume_finalization(output: Path, run: Path, current: dict, archive: Path) -> dict:
@@ -1159,7 +1671,10 @@ def run_candidate_pipeline(
     robustness_review_recovery: bool = False,
     qualified_support_review_recovery: Path | None = None,
     admitted_contract_revision: Path | None = None,
+    canonical_scope_review_recovery: Path | None = None,
     native_review_context: dict | None = None,
+    annotation_journal_loss_approval: Path | None = None,
+    finalization_store: AdmissionSnapshotStore | None = None,
 ) -> dict:
     """Caller owns read-only engines on the plan's verified native snapshot; no student rerolls."""
     from .preproduction import runtime_hashes
@@ -1167,12 +1682,25 @@ def run_candidate_pipeline(
     from .difficulty_curation import _runtime_hashes as difficulty_hashes
     from .robustness import RUNTIME_FILES as robustness_files
 
-    if effective_runtime(plan, run) != runtime_hashes() or configured_model_binding(client) != plan.model:
+    from .preproduction import validate_task_client
+    validate_task_client(plan, run, task_id, client)
+    if finalization_store is not None and (
+        parent_pipeline is not None or retained_native_pipeline is not None or fresh_validation
+        or admitted_contract_revision is not None or finalization_runtime_archive is not None
+    ):
+        raise ValueError("parallel finalization is opt-in for fresh candidate pipelines, not retained/revalidation recovery")
+    if effective_runtime(plan, run) != runtime_hashes() or configured_model_binding(client) != task_model_binding(plan, run, task_id):
         raise ValueError("pipeline source plan/runtime/model changed")
     if finalization_runtime_archive is not None and not resume:
         raise ValueError("completed-prefix finalization recovery requires explicit resume")
     if admitted_contract_revision is not None and not fresh_validation:
         raise ValueError("an admitted contract revision requires explicit fresh validation")
+    if canonical_scope_review_recovery is not None and (
+        parent_pipeline is None or canonical_feedback is None or robustness_feedback is not None
+        or difficulty_feedback is not None or prepared_robustness_plan is not None
+        or robustness_review_recovery or qualified_support_review_recovery is not None
+    ):
+        raise ValueError("canonical scope review recovery requires its explicit canonical-only continuation")
     if robustness_review_recovery and qualified_support_review_recovery is not None:
         raise ValueError("one robustness review cannot use two recovery authorizations")
     if (robustness_review_recovery or qualified_support_review_recovery is not None) and (
@@ -1183,6 +1711,15 @@ def run_candidate_pipeline(
     feedbacks = [value for value in (robustness_feedback, canonical_feedback, difficulty_feedback) if value is not None]
     native_inputs = (retained_native_pipeline, retained_native_task, retained_native_runtime_archive)
     native_import_requested = any(value is not None for value in native_inputs)
+    if annotation_journal_loss_approval is not None and (
+        parent_pipeline is None or parent_runtime_archive is None or not fresh_validation
+        or native_import_requested or feedbacks or prepared_robustness_plan is not None
+        or grading_policy_directory is not None or robustness_control_repairs is not None
+        or robustness_review_recovery or qualified_support_review_recovery is not None
+        or canonical_scope_review_recovery is not None or admitted_contract_revision is not None
+        or finalization_runtime_archive is not None
+    ):
+        raise ValueError("journal-loss continuation requires only its exact parent/archive/approval and fresh missing annotations")
     if native_import_requested and (
         not all(value is not None for value in native_inputs) or parent_pipeline is not None
         or parent_runtime_archive is not None or grading_policy_directory is not None
@@ -1192,7 +1729,8 @@ def run_candidate_pipeline(
         raise ValueError("retained native import requires exact parent/task/archive and prepared robustness feedback, without annotation or policy overrides")
     if (parent_pipeline is None) != (parent_runtime_archive is None) or (
         parent_pipeline is None and not native_import_requested and (prepared_robustness_plan is not None or feedbacks)
-    ) or (parent_pipeline is not None and (len(feedbacks) != 1 or not feedbacks[0].strip())) or (
+    ) or (parent_pipeline is not None and annotation_journal_loss_approval is None
+          and (len(feedbacks) != 1 or not feedbacks[0].strip())) or (
         prepared_robustness_plan is not None and robustness_feedback is None
     ):
         raise ValueError("annotation continuation requires its parent, exact runtime archive and explicit feedback")
@@ -1219,15 +1757,22 @@ def run_candidate_pipeline(
             raise ValueError("completed pipeline belongs to another revision")
         saved_binding = json.loads((output / "binding.json").read_bytes())
         saved_parent = saved_binding.get("continuation")
+        saved_recovery = ({"interruption_approval": Path(saved_parent["authorization"]),
+                           "output": Path(saved_parent["output_directory"])}
+                          if saved_parent is not None and saved_parent.get("policy_version") ==
+                          "nonstudent-journal-loss-continuation-v1" else {})
         if saved_parent is not None and _continuation(
             Path(saved_parent["parent_pipeline"]), Path(saved_parent["runtime_archive"]), saved_binding,
-            run, output.parent,
+            run, output.parent, **saved_recovery,
         ) != saved_parent:
             raise ValueError("completed pipeline's retained-stage provenance changed")
         if saved_binding.get("native_import") is not None:
             validate_native_import(NativeStudentImport.model_validate(saved_binding["native_import"]), plan, task, run)
     previously_admitted = False
-    for receipt in admitted_receipts(plan, run):
+    history = finalization_store.snapshot() if finalization_store is not None else None
+    if history is not None:
+        history.require_binding(plan, run)
+    for receipt in admitted_receipts(plan, run) if history is None else history.receipts:
         if receipt.task.task_id == task_id:
             if receipt.task.task_fingerprint != fingerprint(task):
                 if admitted_contract_revision is None:
@@ -1235,6 +1780,11 @@ def run_candidate_pipeline(
                 validate_admitted_contract_revision(plan, run, task, admitted_contract_revision)
             previously_admitted = True
             if not fresh_validation:
+                if finalization_store is not None and (output / "binding.json").exists() and (
+                    json.loads((output / "binding.json").read_bytes()).get("parallel_finalization") ==
+                    "incremental-objective-review-v1"
+                ):
+                    return _publish_parallel_admission(output, receipt)
                 return {"task_id": task_id, "status": "already_admitted", "new_model_calls": 0, "release_approved": False}
     if admitted_contract_revision is not None and not previously_admitted:
         raise ValueError("an admitted contract authorization cannot certify an unadmitted task")
@@ -1309,6 +1859,8 @@ def run_candidate_pipeline(
     binding = {"version": VERSION, "task_fingerprint": fingerprint(task), "plan_fingerprint": fingerprint(plan),
                "source_outcome_fingerprint": fingerprint(outcome), "implementation_sha256": implementation,
                "grading_policy_fingerprint": fingerprint(policy) if policy is not None else None}
+    if finalization_store is not None:
+        binding["parallel_finalization"] = "incremental-objective-review-v1"
     if native_review_context is not None:
         if (native_review_context.get("plan_fingerprint"), native_review_context.get("task_fingerprint"),
             native_review_context.get("native_snapshot_sha256")) != (
@@ -1343,11 +1895,16 @@ def run_candidate_pipeline(
             "prepared_plan_sha256": file_sha256(prepared_robustness_plan) if prepared_robustness_plan is not None else None,
         }
     imported: dict[str, str] = {}
+    canonical_review_recovery = None
+    interrupted_continuation = None
     if parent_pipeline is not None and parent_runtime_archive is not None:
-        continuation = _continuation(parent_pipeline, parent_runtime_archive, binding, run, output.parent)
+        recovery = ({"interruption_approval": annotation_journal_loss_approval, "output": output}
+                    if annotation_journal_loss_approval is not None else {})
+        continuation = _continuation(parent_pipeline, parent_runtime_archive, binding, run, output.parent, **recovery)
         imported = continuation["imported_stage_paths"]
-        if ("canonical" in imported) != (difficulty_feedback is not None) or (
-            ("robustness" in imported and "canonical" not in imported) != (canonical_feedback is not None)
+        if annotation_journal_loss_approval is None and (
+            ("canonical" in imported) != (difficulty_feedback is not None)
+            or ("robustness" in imported and "canonical" not in imported) != (canonical_feedback is not None)
         ):
             raise ValueError("annotation feedback does not match the parent's held stage")
         allowed_students = {(output / "native/student").resolve()} | _native_student_roots(
@@ -1356,10 +1913,23 @@ def run_candidate_pipeline(
         if any(path.parent.resolve() not in allowed_students for path in native_requests):
             raise ValueError("annotation continuation encountered an unrelated native student recording")
         binding["continuation"] = continuation
-        if difficulty_feedback is not None:
+        if annotation_journal_loss_approval is not None:
+            interrupted_continuation = continuation
+            binding["annotation_journal_loss_approval"] = {
+                "path": str(annotation_journal_loss_approval.resolve()),
+                "sha256": file_sha256(annotation_journal_loss_approval),
+                "original_send_and_completion_state": "unknown",
+                "students_or_completed_roles_resampled": False,
+            }
+        elif difficulty_feedback is not None:
             binding["difficulty_revision"] = {"feedback": difficulty_feedback}
         elif canonical_feedback is not None:
             binding["canonical_revision"] = {"feedback": canonical_feedback}
+            if canonical_scope_review_recovery is not None:
+                canonical_review_recovery = _canonical_scope_review_recovery(
+                    plan, task, run, parent_pipeline, output, canonical_scope_review_recovery,
+                )
+                binding["canonical_revision"]["scope_review_recovery"] = canonical_review_recovery
         else:
             binding["robustness_revision"] = {
                 "feedback": robustness_feedback,
@@ -1376,6 +1946,11 @@ def run_candidate_pipeline(
         output.mkdir(parents=True, mode=0o700, exist_ok=resume)
         if finalization_runtime_archive is not None:
             binding = _resume_finalization(output, run, binding, finalization_runtime_archive)
+        if interrupted_continuation is not None:
+            with locked_run(run, wait=True):
+                usage = Path(interrupted_continuation["usage_path"])
+                usage.parent.mkdir(mode=0o700, exist_ok=True)
+                immutable_json(usage, interrupted_continuation)
         immutable_json(output / "binding.json", binding)
         if terminal_report.exists():
             return retained
@@ -1436,14 +2011,21 @@ def run_candidate_pipeline(
             robustness_native_context = json.loads(text_metadata.read_bytes())
         held = stage("robustness", lambda folder: robustness_candidate(
             task, source, client, folder, mysqld, workdir,
-            revision_from=(parent_pipeline / "robustness" if parent_pipeline is not None else
+            revision_from=(None if interrupted_continuation is not None else
+                           parent_pipeline / "robustness" if parent_pipeline is not None else
                            Path(native_import.parent_pipeline) / "robustness" if native_import is not None else None),
-            prepared_plan=prepared_robustness_plan, feedback=robustness_feedback,
+            prepared_plan=(Path(interrupted_continuation["completed_author_plan"])
+                           if interrupted_continuation is not None and interrupted_continuation["completed_author_plan"] is not None
+                           else prepared_robustness_plan),
+            feedback=robustness_feedback,
             recorded_task=recorded_native_task,
             control_repairs=robustness_control_repairs,
             review_recovery=robustness_review_recovery, run=run,
             qualified_support_recovery=qualified_support_review_recovery,
             native_context=robustness_native_context,
+            completed_author_stage=(parent_pipeline / "robustness"
+                                    if interrupted_continuation is not None
+                                    and interrupted_continuation["completed_author_plan"] is not None else None),
         ))
         if held:
             return held
@@ -1451,6 +2033,7 @@ def run_candidate_pipeline(
             task, validation, baseline, source, client, folder,
             revision_from=parent_pipeline / "canonical" if parent_pipeline is not None and canonical_feedback is not None else None,
             feedback=canonical_feedback,
+            scope_review_recovery=canonical_review_recovery,
         ))
         if held:
             return held
@@ -1466,17 +2049,37 @@ def run_candidate_pipeline(
             directory = folder / "curation"
             if directory.exists():
                 safe_unfinished_roles(directory)
-            report = curate_difficulty(
-                client=client, question=question, verifier=source, output=directory, resume=directory.exists(),
-                revision_from=parent_pipeline / "difficulty/curation"
-                if parent_pipeline is not None and difficulty_feedback is not None else None,
-            )
+            with _nonstudent_source_queries(source):
+                report = curate_difficulty(
+                    client=client, question=question, verifier=source, output=directory, resume=directory.exists(),
+                    revision_from=parent_pipeline / "difficulty/curation"
+                    if parent_pipeline is not None and difficulty_feedback is not None else None,
+                )
             passed = report["status"] in ("difficulty_reviewed", "measurement_incomplete") and not report["task_defect_reasons"]
             return StageResult(status="pass" if passed else "held", reason="Difficulty curation: " + report["status"])
 
         held = stage("difficulty", difficulty)
         if held:
             return held
+        if finalization_store is not None:
+            robust_directory = output / "robustness"
+            selection = json.loads((robust_directory / "selected-measurement.json").read_bytes())
+            files = AdmissionFiles(
+                question_inputs=str((output / "inputs.json").resolve()), native_directory=str(native.resolve()),
+                native_binding=str((native / "binding.json").resolve()),
+                robustness_directory=str((robust_directory / "measurements" / selection["directory"]).resolve()),
+                robustness_review=str((robust_directory / "review.json").resolve()),
+                objective_review=str((output / "pending-objective-review.json").resolve()),
+                difficulty_directory=str((output / "difficulty/curation").resolve()),
+                grading_review=str((output / "grading/review.json").resolve()),
+                grading_policy_directory=str(grading_policy_directory.resolve()) if grading_policy_directory is not None else None,
+            )
+            if any(file_sha256(Path(__file__).with_name(name)) != digest for name, digest in implementation.items()):
+                raise ValueError("pipeline implementation changed during execution")
+            return parallel_finalize(
+                plan=plan, run=run, task=task, source=source, client=client, output=output, files=files,
+                store=finalization_store, completed=completed, stage=stage,
+            )
         with (run / "admission-finalization.lock").open("a+") as finalization:
             fcntl.flock(finalization, fcntl.LOCK_EX)
             inventory = objective_inventory(plan, run, excluding=task_id)
@@ -1492,7 +2095,8 @@ def run_candidate_pipeline(
                 robustness_directory=str((robust_directory / "measurements" / selection["directory"]).resolve()),
                 robustness_review=str((robust_directory / "review.json").resolve()),
                 objective_review=str((output / objective_name / "review.json").resolve()),
-                difficulty_directory=str((output / "difficulty/curation").resolve()),
+                difficulty_directory=str(((Path(imported["difficulty"]) if "difficulty" in imported
+                                           else output / "difficulty") / "curation").resolve()),
                 grading_review=str(((Path(imported["grading"]) if "grading" in imported else output / "grading") / "review.json").resolve()),
                 grading_policy_directory=str(grading_policy_directory.resolve()) if grading_policy_directory is not None else None,
             )
@@ -1526,9 +2130,11 @@ def run_owned_candidate_pipeline(
     robustness_review_recovery: bool = False,
     qualified_support_review_recovery: Path | None = None,
     admitted_contract_revision: Path | None = None,
+    canonical_scope_review_recovery: Path | None = None,
+    annotation_journal_loss_approval: Path | None = None,
 ) -> dict:
     """Own only this verified snapshot's server; never connect to an arbitrary existing service."""
-    from .azure_generation import AzureGenerationClient, AzureGenerationConfig
+    from .azure_generation import AzureGenerationClient
     from .mysql_serving import open_duckdb_engine, open_mysql_engine
 
     plan = PreproductionPlan.model_validate_json((run / "plan.json").read_bytes())
@@ -1583,10 +2189,7 @@ def run_owned_candidate_pipeline(
                 student_engine = open_mysql_engine(serving_bundle, limits=plan.query_limits, unix_socket=str(socket), **credentials)
                 source = EvidenceVerifier(serving_bundle, source_engine, literals)
                 mysql = EvidenceVerifier(serving_bundle, native_engine, literals)
-                client = AzureGenerationClient(AzureGenerationConfig(
-                    env_file=env_file, deployment=plan.model.deployment, timeout_seconds=plan.model.request_timeout_seconds,
-                    max_completion_tokens=plan.model.max_completion_tokens, reasoning_effort=plan.model.reasoning_effort,
-                ))
+                client = AzureGenerationClient(task_generation_config(plan, run, task_id, env_file))
                 return run_candidate_pipeline(
                     plan=plan, run=run, task_id=task_id, client=client, source=source, mysql=mysql, student=student_engine,
                     serving_bundle=serving_bundle, mysql_bundle=mysql_bundle, graph_bundle=graph_bundle,
@@ -1602,6 +2205,8 @@ def run_owned_candidate_pipeline(
                     robustness_review_recovery=robustness_review_recovery,
                     qualified_support_review_recovery=qualified_support_review_recovery,
                     admitted_contract_revision=admitted_contract_revision,
+                    canonical_scope_review_recovery=canonical_scope_review_recovery,
+                    annotation_journal_loss_approval=annotation_journal_loss_approval,
                 )
             finally:
                 try:

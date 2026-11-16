@@ -2804,6 +2804,23 @@ Feature eligibility is versioned as unit-canonical-source-facts-v2.1 so old
 container-admitting footprints cannot silently mix with corrected ones.
 All 306 tests pass with native MySQL and ACE enabled.
 
+Repeated serialization layers must also be traversable without treating an
+encoded container as an atomic fact. `source-fact-curation-v1.5` repeatedly
+decodes strings only while locating a container for an existing path or
+structural kind. Literal scalar columns and selected scalar leaves retain their
+original quoting, types and precision; no fact identity or unit-weight rule
+changes. Missing ancestors, duplicate keys and invalid structural observations
+still fail explicitly.
+
+The separate `preproduction-nested-json-facts-amendment-v1` binds exact old/new
+producer archives and permits only the four container-decoder changes and their
+versioned guidance. Historical annotations require the full applicable
+amendment chain, not a version-only exemption. A failed nested-path annotation
+must receive fresh source inspection and independent review; replacing its
+required identity/policy properties with timestamps alone is not a repair.
+Questions, answer programs, proof contracts, SQL allowlists, scoring and
+completed student histories remain unchanged.
+
 Revalidation covers the explicit current inventory: 47 development tasks,
 seven original calibration controls and 15 expanded controls, using the new
 native-validated seed revisions. Unaffected bundles retain their exact fact
@@ -5494,6 +5511,12 @@ Astra configuration per request. Deterministic source/collection/literal checks
 run immediately; independent semantic review and students wait for the filled
 checkpoint. Failed generation attempts remain counted and separately visible.
 
+The opt-in `remaining-admission-quotas-v1` allocation (`--quota-aware`) also
+supports partially filled scopes and final quota tails. It records fixed
+per-scope targets within remaining admission/attempt capacity and preserves
+legacy balanced-policy fingerprints. It does not add difficulty or overlap
+quotas, reset attempts, or equate drafts with admissions.
+
 Checkpoint source reviews and downstream candidate pipelines are independent
 jobs. A failed item is recorded in the repair queue rather than aborting the
 remaining batch. A native-stage lease limits exclusive full-snapshot MySQL
@@ -5506,6 +5529,13 @@ Selected pre-blind review failures have a reusable same-attempt Astra
 repair/review command. Completed students and admitted questions are never
 automatically regenerated. Old source-wave runners cannot adopt checkpoint-owned
 attempts or accidentally resume Astra context using Sol.
+
+Registered-source review now obtains actual native parity, binary/NO-PAD
+metadata and grouped proof diagnostics before source model calls. Native SQL
+failures remain explicit pre-blind repair holds; no source student is sampled
+against a known nonportable contract. This short deterministic lease ends
+before semantic review, and both ordinary review and pre-blind repair use the
+same native-context path.
 
 Ninety-one focused checkpoint/source/pipeline/admission/revision tests pass,
 including exact 100-candidate allocation, deferred reviews, parallel source work,
@@ -5783,6 +5813,13 @@ completed native episode after a recorded robustness operational error, without
 fabricating a terminal pipeline report or rerunning the student. The normal
 native capture, producer, model, snapshot and bound checks remain mandatory.
 
+The separately versioned canonical-prefix authorization extends this to a
+recorded canonical operational interruption only after the exact grading,
+native, baseline and robustness stages passed. It binds that real stage and
+its preserved errors; it does not fabricate a robustness failure, terminal
+success, or a recovered incomplete model response. Existing robustness-prefix
+authorizations retain their prior semantics.
+
 The interrupted native-prefix case subsequently passed all admission gates
 without another student episode. A ten-case annotation continuation then
 produced three admissions, one fresh historical-admission certificate, four
@@ -5881,9 +5918,228 @@ explicit exact-input, empty-stage recovery; no source/model history was erased.
 The final report retains all exclusion reviews, current certificates, producer
 archives and unique student-role inventory. Later generation remains blocked.
 
+### Additive nonempty-array extent and bounded fact transport
+
+A later checkpoint exposed a second canonical representation gap: an exact
+array-derived count needs all relevant scalar members **and** the source array's
+extent. `json_array_length_v1` records the positive number of positions in an
+existing nonempty source array, including duplicates and null members. It does
+not replace scalar members, summarize distinct values or establish real-world
+coverage. Empty arrays retain `json_array_empty_v1`; legacy fact identities and
+unit weights do not change.
+
+Complete source selections can exceed the curator's output budget when every
+property repeats a long record ID. A grouped citation with explicit property
+selectors losslessly expands to ordinary references. Scope, duplicate, path,
+inspection and completeness checks still apply, and a transport-only rewrite
+cannot authorize another canonical attempt.
+
+`source-fact-curation-v1.3` requires an explicit dual-archive, AST-verified
+array-length amendment before old source audits are retained. Previously sealed
+legacy canonical stages remain reusable under this additive extension; failed
+annotations require fresh independent curation and review. Older unsupported
+annotations require their exact applicable amendment chain. No student, grading,
+SQL guard or source record is changed by the extension.
+
 This document specifies the proposed implementation. The comparison document
 remains the evidence appendix; neither document certifies the entire tenant as
 fully observed or the 111 alert candidates as benign/false positives.
+
+### Exact credential boundaries and reconciled canonical review scope
+
+Pre-dispatch Azure credential failures are recorded per outstanding request.
+Only a specifically observed `ClientAuthenticationError` can receive one
+same-context credential retry; it is not a model-request reroll. Exhaustion is
+an explicit operational error. Existing unanswered requests lacking this
+evidence remain unknown. No student, model, token or SQL limit changes.
+
+Canonical candidate review now sees the full source witness programs.
+An explicitly approved, hash-bound scope-reconciliation recovery can retain a
+completed curator's exact selection and rerun only its independent reviewer.
+It requires a separately passing source-contract reconciliation, unchanged
+task/annotation/student inputs, and one recovery output per original review.
+Normal canonical revisions still require material reference changes. Excluded
+candidate observations must not be confused with omitted answer members or
+with a complete exclusion catalog already carried by a required source row;
+genuine source-contract conflicts remain explicit holds, not automatic passes.
+
+### Required analysis at every batch endpoint
+
+Before advancing to the next batch, analyze the complete fixed cohort and every
+consumed drafting attempt, including failures that were subsequently repaired.
+Inventory source/contract, student-evidence/answer, grading/native, robustness,
+canonical, difficulty, objective-duplicate and operational failures. Include
+in-role validation/tool errors and credential/provider interruptions; do not
+confuse repeated trace artifacts with independent student samples.
+
+Group the failures by evidence-backed root cause. Distinguish genuine student
+failures, duplicates and unsupported measurements from workflow/pipeline defects.
+Fix demonstrated pipeline defects, add or run the relevant regression checks,
+and freshly validate the affected questions and stages. Preserve original
+questions, completed students, failed traces, producer bindings and admission
+gates; do not substitute easier questions, reroll students or relax a gate.
+
+Checkpoint advancement requires an explicit analysis record covering every
+recorded failure, with hashed diagnostic evidence, recorded fixes where needed,
+fresh validation evidence and no unresolved holds. A clean final admission count
+alone is insufficient. The analysis is bound to the exact current failure
+inventory and disposition; additional failures or changed evidence invalidate
+that approval. The next batch records this analysis as a prerequisite, and the
+same gate applies before declaring the 1,000-question target complete.
+Queued annotation corrections wait for the original checkpoint's terminal
+report before acquiring the workflow lock. An intermediate unlock between
+drafting and review is not an endpoint. The waiting owner pins the original
+worker record and stops explicitly if that worker exits without the report;
+checkpoint-level orchestration failures are included in the endpoint analysis.
+Standalone source-audit/recovery role journals receive the same negative-review,
+tool-error, transport, abstention and empty-journal accounting as candidate
+pipelines. Earlier preparation-summary schemas require an explicit adoption
+record naming every original document and hash; the summaries remain unchanged
+and enter as forensic context, not inferred student failures or automatic
+clearance. The collection implementation is itself fingerprinted into the
+inventory, so changes to event coverage require a new bound analysis.
+
+At a completed checkpoint boundary, source-feature guidance may be clarified
+through the existing instruction-only runtime amendment. Difficulty curation
+v0.6 makes the anchor/identity, scalar/comparison, tied/singleton ranking,
+conditional group/pair-unit, material-terminal and actual-domain distinctions
+explicit for both roles. Required comparison evidence is not automatically an
+ambiguity candidate, and private support windows do not override public
+predicates. The amendment changes only static role instructions and their version;
+contexts, source/query/scoring kernels, feature definitions and weights remain
+unchanged. Exact predecessor/successor archives and retained-question binding
+checks are required, followed by a fresh endpoint-inventory binding before
+advancing the campaign. Completed students are never rerolled for this change.
+
+#### Prospective Copilot gateway transport
+
+The user approved replacing Azure OpenAI with the authenticated, local
+`copilot-api` Responses gateway for the next checkpoint batch and subsequent
+new QA generation and validation runs. This supersedes the Azure endpoint
+choice prospectively, not the model identities or provenance of existing
+attempts. Astra remains `gpt-6-astra` for authors/repairs; reviewers and students
+remain `gpt-6-sol`. A separately requested model panel may also use `gpt-6-luna`;
+this transport approval does not start another panel.
+
+Fresh synthetic checks against the pinned gateway verified all three exact IDs,
+two-turn tool-result replay, and matching requested/reported model names.
+Medium reasoning, 16,000 maximum output tokens, 300-second student HTTP limits,
+900-second nonstudent HTTP limits, SQL limits and scoring remain unchanged.
+These simple probes returned no encrypted reasoning items; offline preservation
+tests and the earlier Codex replay probe are separate evidence, not proof that
+the three new probes exercised opaque-reasoning replay.
+
+The gateway is an explicitly different provider, not an Azure endpoint alias
+or a model substitution. New batch policies bind its protocol, loopback URL,
+version, image digest and credential-variable name. Subsequent source reviews,
+repairs, native students and admission checks resolve that same task allocation.
+Credentials stay outside source/configuration artifacts. Missing credentials,
+models or provider readiness stop dispatch; there is no automatic Azure fallback.
+Repository-wide legacy defaults and omitted-field serialization remain Azure.
+
+The implementation was initially staged separately. After the explicit
+all-forward-work approval below, the exact archived transport cutover was
+installed under exclusive workflow ownership with no QA model owner active.
+The original plan and all seven batch policies remain byte-exact; a separate
+transport amendment binds the reviewed before/after runtime and an
+implementation-only nonstudent-policy amendment. Batch seven validates under
+the new runtime. The six older batches retain their exact pre-cutover execution
+refusals rather than being silently reopened.
+Provider approval does not clear the checkpoint failure audit or authorize
+editing an existing batch policy, replaying completed students, converting
+unfinished Azure journals, changing grades, resetting budgets or releasing
+questions. Historical records retain the provider that actually produced them.
+The unofficial gateway remains subject to account/organization authorization,
+usage limits and billing; synthetic compatibility is not unlimited capacity.
+
+The user subsequently extended this choice to **all new live model work**,
+including the remaining batch-seven validations, and explicitly authorized
+tenant 355's never-answered reviewer to move from Azure to Copilot. Copilot is
+the campaign's forward execution default, not merely a batch-eight option;
+there is no automatic Azure fallback. Historical Azure provider bindings,
+failed attempts and completed episodes remain unchanged. An unfinished role
+still needs a task-bound, tested provider-transition record; this instruction
+does not authorize discarding its history or resampling a completed verdict.
+Role model IDs, HTTP/output/SQL limits, scoring and admission gates are unchanged.
+New execution resolves `task_generation_config` / `task_model_binding`; retained
+episodes resolve their recorded provider separately. Per-role and per-dispatch
+receipts pin the active authority. Removing or changing that authority fails
+closed, including after activation. The transport cutover does not authorize
+historical native imports with changed protected hashes or a public-contract
+retention exception.
+
+#### Audited workflow deferrals without question admission
+
+The user's instruction to continue generation around decisions reserved for
+later review is implemented by a separate, opt-in checkpoint-controller and
+endpoint-auditor version. The original controller and auditor remain unchanged.
+A hash-bound registry identifies exact held tasks, preserves their complete
+existing attempt artifacts, and distinguishes pending contract decisions from
+pending retained-episode implementation. Neither category is an admission,
+invalid-question exclusion, inferred student failure, or authorization to run
+another episode.
+
+The original `holds` remain visible. A separate `blocking_holds` list excludes
+only the explicitly registered deferrals; quota calculations still count every
+original attempt and only actual admissions. The registry cannot itself advance
+a checkpoint. Version-two endpoint analysis must cover every failure exactly
+once, explicitly retain deferred question-failure IDs, and reject any attempt
+to waive an unresolved pipeline defect. Unknown holds still block advancement.
+The same 1,000-admission target, per-scope attempt ceilings, 2,000-attempt total
+ceiling, and release hold remain in force.
+
+The versioned collector also handles array-valued private SQL-probe reports:
+their complete bytes remain bound, and each recorded error receives its own
+artifact-event identity. Such arrays are not silently skipped or counted as
+student samples. An unrecognized report shape stops collection explicitly.
+New checkpoints select the approved Copilot gateway explicitly, while all
+historical provider records, completed students and semantic verdicts remain
+unchanged. Resuming a deferred question still requires its own justified
+continuation and every applicable publication/admission gate.
+
+#### Explicit eight-model-worker scheduling
+
+The user approved eight model workers while retaining four native SQL slots.
+Activation is limited to a fresh checkpoint after the running checkpoint and
+its endpoint audit finish; no active batch policy or in-flight episode changes.
+
+A separate, hash-bound `qa-explicit-model-worker-execution-v1` authority records
+the **effective** eight-worker schedule and its original four-worker base policy.
+The base policy remains immutable for compatibility and is not reported as the
+effective concurrency. The versioned runner reuses the original allocation,
+draft compilation, model routing, source/student validation and admission
+operations. Review changes only executor concurrency. The ordinary native
+service must still expose exactly four slots, with no unregistered-server
+fallback.
+
+Each task receives the complete scheduling authority and producer source before
+its first model request. Those JSON records enter ordinary generation, source
+and admission artifact hashes. Existing started drafts cannot be adopted or
+resampled by changing scheduling. This execution-layer approach leaves all core
+Python files and existing admission dependencies unchanged; the legacy CLI's
+four-worker limit is not silently edited. Models, HTTP/output/SQL limits,
+attempt ceilings, scores, source snapshots and release status remain unchanged.
+
+#### Explicit nonblank-identifier context clarification
+
+Tenant question 261 has an explicitly approved, task-bound clarification:
+eligible `KeyStoreId` values must be nonblank JSON strings under the exact
+whitespace set stated in its public context. Eligible strings remain unchanged,
+including surrounding whitespace; this is eligibility, not trimming or answer
+normalization. Numeric credential types are checked before coercion. The answer
+formatter, SQL allowlist, reward, original joint two-record witness and checkpoint
+remain unchanged.
+
+The separate `fixed-source-student-nonblank-credentials261-v1` retention policy
+binds the exact original/revised task fingerprints, explicit approval, completed
+source-student artifact inventory and new source outcome. It does not claim
+public equivalence or reuse the earlier process-creation-field clarification.
+Publication requires no prior native request, renewed two-engine controls and a
+fresh source-quality review. Subsequent consumers may verify that same retained
+source episode after the first native evaluation starts; they cannot authorize
+another episode or another public-contract change. Historical negative reviews
+and outcomes remain immutable, and ordinary downstream admission and checkpoint
+endpoint gates still apply.
 
 [alert-negative-candidates]: ../../.copilot/session-state/8eb9a4db-66e9-4a79-9209-5bcb11ed058a/files/alert-negative-screen/alert_negative_candidates.csv
 [alert-negative-evidence]: ../../.copilot/session-state/8eb9a4db-66e9-4a79-9209-5bcb11ed058a/files/alert-negative-screen/alert_negative_screen.json

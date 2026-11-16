@@ -16,7 +16,7 @@ from .query import QueryResult
 from .similarity import EvidenceFootprint
 
 
-CURATION_VERSION = "source-fact-curation-v1.2"
+CURATION_VERSION = "source-fact-curation-v1.5"
 
 CURATOR_INSTRUCTIONS = """Identify canonical source facts for the already validated task, not new QA or grading rules.
 The SQL tool is DuckDB. Inspect actual public source fields and the supplied complete evidence.
@@ -40,6 +40,20 @@ Use original public column names. json_path=null selects the column's literal sc
 array selects a scalar JSON leaf using exact object-key strings and zero-based integer array positions;
 encoded JSON is decoded when traversing it. These positions locate an immutable source record's field,
 not a selection rule for a question or an assumption that unrelated records have the same array order.
+Repeated JSON-string serialization layers are decoded when locating a container for traversal or a
+structural fact. Keep the same source path and exact keys; no extra path component denotes decoding.
+Literal scalar columns and selected scalar leaves retain their original quoting, types and precision.
+To avoid repeating a source ID for every property, a references entry may instead contain one
+citation and a properties array of {column, json_path, kind} selectors. Each selector expands to
+the exact same ordinary source reference and must pass the same path, inspection and relevance
+checks. List every required scalar path explicitly; grouping is lossless transport, not sampling,
+a wildcard, a whole-container fact or permission to omit array members. Flat references remain valid.
+For multiple inspected records from one table requiring the same selectors, use one table value,
+an explicit record_ids array and one properties array. This expands to every record/selector pair
+with the same public citation, checks and fact IDs.
+Prefer this lossless batch representation for large complete comparison cohorts rather than repeating
+identical selectors, dropping required observations or relying on a longer completion limit. Different
+property sets need separate batches. Every citation must still belong to the claim and be inspected.
 Do not select whole JSON containers, opaque _record_id values, private columns, or unused counterevidence.
 This also excludes containers stored as JSON strings: selecting an entire AlertIds array with
 json_path=null is not an atomic fact. Select each materially relevant member, not the serialized array.
@@ -55,6 +69,13 @@ For a material recorded empty JSON array, use kind=json_array_empty_v1 and the e
 (an empty path [] for the column's JSON root). This derives the atomic observation true only from an
 existing array with no elements. Missing paths, nulls, objects and nonempty arrays are rejected.
 It is not a synthetic count, a whole-container fact, or evidence that no real-world activity occurred.
+For the material extent of a NONEMPTY recorded JSON array, use kind=json_array_length_v1 and the
+exact array path. This derives its positive integer number of positions, including duplicates and
+null elements; it is not a distinct-value count or a count of real-world events. Empty arrays must
+continue to use json_array_empty_v1, never an alternative length-zero identity.
+An extent fact does not replace the relevant element leaves. To establish an exact array-derived
+count or absence of further qualifying values, select all necessary scalar members AND their array
+extent for the complete required source cohort. Do not select unrelated fields or whole containers.
 Keep numerical tokens, case, whitespace and timestamp precision unchanged. Missing/ambiguous paths must
 be corrected, not guessed. Explain each claim's property choices and any genuine limitations.
 The fact extraction is for private overlap diagnostics only. Do not change questions, answers, checkpoints,
@@ -76,6 +97,14 @@ json_member_presence is an exact observation about an existing source JSON objec
 read at a missing path and not a claim that an activity or real-world attribute is absent.
 json_array_empty_v1 is a verified structural observation that the exact source array is empty.
 It does not select a whole container or summarize a nonempty one; inspect its materiality and exact path.
+json_array_length_v1 is the exact positive number of positions in a recorded nonempty source array,
+not a derived distinct count, real-world completeness assertion or substitute for relevant elements.
+For array-derived upper bounds, verify the selected scalar leaves and extent cover the required
+source arrays. Reject extent-only claims and partial member samples. Empty arrays retain their
+existing json_array_empty_v1 identity rather than acquiring a duplicate length-zero fact.
+A grouped citation/properties entry or table/record_ids/properties batch expands to ordinary
+per-property references. Review every selected property of every named record, with the same complete
+resolved facts and source-record coverage regardless of this transport representation.
 Distinguish source-observation facts from claims about the world, successful actions or missing data.
 Event-bound subject IDs and exact source property paths must preserve actor/target and parent/child roles
 and time/context distinctions. Shared answer strings alone cannot justify merging facts. Different
@@ -188,7 +217,7 @@ def curate_source_facts(
 
     def validate_proposal(value: SourceFactProposal) -> None:
         resolver.resolve(task, validation, value)
-        selected = {ref.citation for claim in value.claims for ref in claim.references}
+        selected = {ref.citation for claim in value.claims for ref in claim.expanded_references}
         if selected - curator_tools.observed:
             raise ValueError("curator must inspect all selected source records with returned source _record_id")
 
@@ -205,7 +234,7 @@ def curate_source_facts(
         if value.bundle_fingerprint != fingerprint(bundle):
             raise ValueError("fact reviewer returned an unbound bundle fingerprint")
         if value.recommendation == "pass":
-            selected = {ref.citation for claim in proposal.claims for ref in claim.references}
+            selected = {ref.citation for claim in proposal.claims for ref in claim.expanded_references}
             if selected - reviewer_tools.observed:
                 raise ValueError("reviewer must independently inspect all selected source records with returned source _record_id")
 

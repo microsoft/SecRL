@@ -1,7 +1,7 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-"""Explicit Azure/Entra client; no API-key or global dotenv configuration mutation."""
+"""Responses client with Azure/Entra defaults and an explicitly bound local gateway."""
 
 from pathlib import Path
 import os
@@ -10,15 +10,28 @@ from email.utils import parsedate_to_datetime
 from datetime import datetime, timezone
 from typing import Literal
 
-from .contracts import Contract, Identifier, PositiveInt
+from pydantic import model_serializer
+
+from .contracts import Identifier, PositiveInt
+from .gateway import GatewayOptIn, gateway_key
+from .provider_defaults import ForwardDefault, bind_forward_request, validate_forward_config
 
 
-class AzureGenerationConfig(Contract):
+class AzureGenerationConfig(GatewayOptIn):
     env_file: Path
     deployment: Identifier
     timeout_seconds: PositiveInt
     max_completion_tokens: PositiveInt
     reasoning_effort: Literal["low", "medium", "high"] | None = None
+    forward_default: ForwardDefault | None = None
+
+    @model_serializer(mode="wrap")
+    def omit_legacy_transport(self, handler):
+        data = handler(self)
+        for name in ("gateway", "forward_default"):
+            if getattr(self, name) is None:
+                data.pop(name, None)
+        return data
 
 
 def replay_output(items: list[dict]) -> list[dict]:
@@ -37,17 +50,30 @@ def replay_output(items: list[dict]) -> list[dict]:
 
 class AzureGenerationClient:
     def __init__(self, config: AzureGenerationConfig):
-        from azure.identity import AzureCliCredential, get_bearer_token_provider
         from dotenv import dotenv_values
-        from openai import AzureOpenAI
 
         config = AzureGenerationConfig.model_validate(config)
+        self.config = config
+        self.credential = None
+        self.preexisting_requests = set()
+        if config.forward_default is not None:
+            validate_forward_config(config)
+            root = config.forward_default.run / "attempts" / config.forward_default.task_id
+            self.preexisting_requests = {path.resolve() for path in root.rglob("*-request.json")}
+        if config.gateway is not None:
+            from openai import OpenAI
+
+            self.client = OpenAI(base_url=config.gateway.base_url, api_key=gateway_key(config.gateway, config.env_file),
+                                 timeout=config.timeout_seconds, max_retries=0)
+            return
+        from azure.identity import AzureCliCredential, get_bearer_token_provider
+        from openai import AzureOpenAI
+
         values = dotenv_values(config.env_file)
         endpoint = values.get("AZUREAI_OPENAI_BASE_URL")
         version = values.get("AZUREAI_OPENAI_API_VERSION")
         if not endpoint or not version or urlsplit(endpoint).scheme != "https":
             raise ValueError("explicit HTTPS Azure endpoint and API version are required")
-        self.config = config
         self.credential = AzureCliCredential(process_timeout=30)
         provider = get_bearer_token_provider(self.credential, "https://cognitiveservices.azure.com/.default")
         if os.environ.get("AZURE_OPENAI_API_KEY") or os.environ.get("AZURE_OPENAI_AD_TOKEN"):
@@ -60,6 +86,9 @@ class AzureGenerationClient:
         from openai import APIError, RateLimitError
         from .generation import RetryableCompletionError
 
+        config = self.config
+        if config.forward_default is not None:
+            config = bind_forward_request(config, messages, tools, self.preexisting_requests)
         inputs = []
         for message in messages:
             if "responses_output" in message:
@@ -71,11 +100,12 @@ class AzureGenerationClient:
         declarations = [{"type": "function", **tool["function"], "strict": False} for tool in tools]
         try:
             response = self.client.responses.create(
-                model=self.config.deployment, input=inputs, tools=declarations,
-                max_output_tokens=self.config.max_completion_tokens, store=False,
+                model=config.deployment, input=inputs, tools=declarations,
+                max_output_tokens=config.max_completion_tokens, store=False,
                 include=["reasoning.encrypted_content"], parallel_tool_calls=False,
-                extra_body=({"reasoning": {"effort": self.config.reasoning_effort}}
-                            if self.config.reasoning_effort is not None else {}),
+                extra_body=({"reasoning": {"effort": config.reasoning_effort}}
+                            if config.reasoning_effort is not None else {}),
+                **({"timeout": config.timeout_seconds} if config.forward_default is not None else {}),
             ).model_dump(mode="json")
         except RateLimitError as error:
             raw = error.response.headers.get("retry-after")
@@ -85,22 +115,31 @@ class AzureGenerationClient:
                     delay = float(raw)
                 except ValueError:
                     delay = (parsedate_to_datetime(raw) - datetime.now(timezone.utc)).total_seconds()
-            raise RetryableCompletionError("Azure token-rate limit; retrying the same retained role context.",
+            provider = "Copilot gateway" if self.config.gateway is not None else "Azure"
+            raise RetryableCompletionError(f"{provider} token-rate limit; retrying the same retained role context.",
                                            max(5.0, delay)) from error
         except APIError as error:
-            raise RuntimeError(f"Azure completion failed: {type(error).__name__}; status={getattr(error, 'status_code', None)}") from error
+            provider = "Copilot gateway" if self.config.gateway is not None else "Azure"
+            raise RuntimeError(f"{provider} completion failed: {type(error).__name__}; status={getattr(error, 'status_code', None)}") from error
         calls = [{"id": item["call_id"], "type": "function", "function": {"name": item["name"], "arguments": item["arguments"]}}
                  for item in response["output"] if item["type"] == "function_call"]
         reason = "tool_calls" if calls else "stop"
         if response["status"] != "completed":
             reason = "incomplete"
-        return {
+        result = {
             "choices": [{"finish_reason": reason, "message": {
                 "role": "assistant", "tool_calls": calls, "responses_output": response["output"],
             }}],
             "usage": response.get("usage"), "azure_responses": response,
         }
+        if self.config.gateway is not None:
+            result["gateway_transport"] = {
+                **self.config.gateway.model_dump(mode="json"), "requested_model": config.deployment,
+                "reported_model": response.get("model"),
+            }
+        return result
 
     def close(self):
         self.client.close()
-        self.credential.close()
+        if self.credential is not None:
+            self.credential.close()

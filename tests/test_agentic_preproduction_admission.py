@@ -14,7 +14,7 @@ from test_agentic_adapters import reviewed_fixture
 from test_agentic_difficulty import plan_for, review_for
 from test_agentic_question_splits import question, write_inputs
 from secgym.qagen.agentic.__main__ import main
-from secgym.qagen.agentic.contracts import PublicCitation, ScoreComponent, TaskRecord, fingerprint
+from secgym.qagen.agentic.contracts import AnswerProgram, PublicCitation, ScoreComponent, TaskRecord, fingerprint
 from secgym.qagen.agentic.difficulty import measure_difficulty
 from secgym.qagen.agentic.difficulty_curation import DifficultyAssessment, DifficultyProposal, _runtime_hashes as difficulty_hashes
 from secgym.qagen.agentic.evidence import VERIFIER_VERSION
@@ -23,6 +23,7 @@ from secgym.qagen.agentic.preproduction import ModelBinding, PreproductionPlan, 
 from secgym.qagen.agentic.preproduction_admission import (
     AdmissionFiles, FinalReview, NativeBinding, NativeStudentImport, NATIVE_RUNTIME_FILES, ObjectiveReview,
     admission_progress, admitted_receipts, objective_inventory, record_admission,
+    _retained_annotation_only_grading,
 )
 from secgym.qagen.agentic.preproduction_revisions import record_runtime_amendment
 from secgym.qagen.agentic.query import QueryLimits
@@ -189,6 +190,122 @@ class AdmissionTests(unittest.TestCase):
 
     def admit(self):
         return record_admission(self.plan, self.run, self.files)
+
+    def install_fixture_grading_policy(self):
+        from test_agentic_grading_review import passing_review
+        from secgym.qagen.agentic.grading_review import (
+            POLICY_VERSION, GradingAmendment, ReviewedGradingAmendment, SupportingEvidenceRule,
+            runtime_hashes as grading_hashes,
+        )
+        task = self.case.task
+        ref = task.evidence[0]
+        policy = GradingAmendment(
+            task_fingerprint=fingerprint(task), revision_id="fixture-policy",
+            supporting_evidence=(SupportingEvidenceRule(
+                rule_id="fixture-context", claim_id="final", table=ref.table,
+                rationale="Controlled admission metadata fixture, not a production source approval.",
+                programs=tuple(AnswerProgram(
+                    program_id="context-" + engine, engine=engine,
+                    query="SELECT _record_id,DeviceName FROM DeviceProcessEvents",
+                ) for engine in ("duckdb", "mysql")),
+                review_examples=(PublicCitation(table=ref.table, record_id=ref.public_record_id),),
+            ),), rationale="Retain the complete mandatory proof in this metadata fixture.",
+        )
+        reviewed = ReviewedGradingAmendment(
+            policy=policy, reviewer=passing_review(policy), reflection=passing_review(policy),
+            implementation_sha256=grading_hashes(),
+        )
+        directory = self.root / "grading-policy"
+        save(directory / "policy.json", policy)
+        save(directory / "reviewed-policy.json", reviewed)
+        save(directory / "binding.json", {
+            "task_fingerprint": fingerprint(task), "policy_fingerprint": fingerprint(policy),
+            "implementation_sha256": reviewed.implementation_sha256,
+        })
+        for role, result in (("reviewer", reviewed.reviewer), ("reflection", reviewed.reflection)):
+            save(directory / role / "result.json", result)
+            save(directory / role / "complete.json", {"result_fingerprint": fingerprint(result)})
+        save(directory / "review-report.json", {
+            "status": "reviewed", "task_fingerprint": fingerprint(task), "policy_fingerprint": fingerprint(policy),
+            "review_artifacts_sha256": {
+                str(path.relative_to(directory)): file_sha256(path)
+                for role in ("reviewer", "reflection") for path in (directory / role).glob("*.json")
+            },
+        })
+        for backend in ("secrl", "acesevals"):
+            path = self.native / (backend + ".json")
+            data = json.loads(path.read_bytes())
+            evaluation = data["current_episode"]["evaluation"]
+            for component in (evaluation["answer_correctness"], evaluation["final_evidence"], *evaluation["checkpoints"]):
+                component["evaluator_version"] = POLICY_VERSION + ":" + fingerprint(reviewed)
+            save(path, data)
+        save(self.root / "grading-review.json", self.review(fingerprint(reviewed)))
+        self.files = self.files.model_copy(update={"grading_policy_directory": str(directory)})
+        return reviewed, directory
+
+    def test_feature_only_revalidation_preserves_exact_original_grading_identity(self):
+        reviewed, directory = self.install_fixture_grading_policy()
+        admitted = self.admit()
+        original_files = self.files
+        original = self.run / "admissions" / (admitted.task.task_id + ".json")
+        original_bytes = original.read_bytes()
+        changed = {name: marker * 64 for name, marker in (
+            ("canonical_facts.py", "a"), ("fact_curation.py", "b"), ("difficulty_curation.py", "c"),
+        )}
+        current_source = {**runtime_hashes(), **changed}
+        current_grading = {**reviewed.implementation_sha256, **changed}
+        destination = self.run / "revalidations" / admitted.task.task_id / "features01.json"
+        with patch("secgym.qagen.agentic.grading_review.runtime_hashes", return_value=current_grading), \
+             patch("secgym.qagen.agentic.preproduction.runtime_hashes", return_value=current_source), \
+             patch("secgym.qagen.agentic.preproduction_revisions.effective_runtime", return_value=current_source):
+            with self.assertRaisesRegex(ValueError, "grading policy producer changed"):
+                record_admission(self.plan, self.run, self.files, revalidation_receipt=destination)
+            refreshed = record_admission(self.plan, self.run, self.files, revalidation_receipt=destination,
+                                         original_admission_files=original_files)
+            self.assertEqual(refreshed.task, admitted.task)
+            self.assertEqual(refreshed.student_grounded_success, admitted.student_grounded_success)
+            self.assertEqual(refreshed.source_artifacts_sha256[str(directory / "reviewed-policy.json")],
+                             file_sha256(directory / "reviewed-policy.json"))
+        self.assertEqual(original.read_bytes(), original_bytes)
+        self.assertEqual(len(admitted_receipts(self.plan, self.run)), 1)
+
+    def test_feature_only_retention_rejects_changed_inputs_or_unowned_originals(self):
+        self.admit()
+        destination = self.run / "revalidations" / self.case.task.task_id / "features01.json"
+        with self.assertRaisesRegex(ValueError, "separate revalidation"):
+            record_admission(self.plan, self.run, self.files, original_admission_files=self.files)
+        for change in ({"native_directory": str(self.root / "other-native")},
+                       {"grading_policy_directory": str(self.root / "other-policy")},
+                       {"question_inputs": str(self.root / "other-inputs.json")}):
+            altered = self.files.model_copy(update=change)
+            with self.subTest(change=change), self.assertRaisesRegex(ValueError, "feature-only revalidation changed"):
+                record_admission(self.plan, self.run, self.files, revalidation_receipt=destination,
+                                 original_admission_files=altered)
+
+    def test_retained_grading_requires_exact_historical_annotations_and_unchanged_kernels(self):
+        reviewed, directory = self.install_fixture_grading_policy()
+        admitted = self.admit()
+        changed = {"difficulty_curation.py": "a" * 64}
+        current_source = {**runtime_hashes(), **changed}
+        current_grading = {**reviewed.implementation_sha256, **changed}
+        with patch("secgym.qagen.agentic.preproduction.runtime_hashes", return_value=current_source), \
+             patch("secgym.qagen.agentic.preproduction_revisions.effective_runtime", return_value=current_source):
+            for name in ("grading_review.py", "evidence.py", "scoring.py", "query.py"):
+                with self.subTest(kernel=name), \
+                     patch("secgym.qagen.agentic.grading_review.runtime_hashes",
+                           return_value={**current_grading, name: "f" * 64}), \
+                     self.assertRaisesRegex(ValueError, "cannot change grading"):
+                    _retained_annotation_only_grading(self.plan, self.run, directory, admitted, reviewed, Path.read_bytes)
+            with patch("secgym.qagen.agentic.grading_review.runtime_hashes", return_value=current_grading):
+                wrong = self.plan.model_copy(update={"implementation_sha256": {
+                    **self.plan.implementation_sha256, "canonical_facts.py": "f" * 64,
+                }})
+                with self.assertRaisesRegex(ValueError, "exact approved historical"):
+                    _retained_annotation_only_grading(wrong, self.run, directory, admitted, reviewed, Path.read_bytes)
+                path = directory / "policy.json"
+                path.write_bytes(path.read_bytes() + b" ")
+                with self.assertRaisesRegex(ValueError, "policy artifact changed"):
+                    _retained_annotation_only_grading(self.plan, self.run, directory, admitted, reviewed, Path.read_bytes)
 
     def test_all_gates_can_admit_a_question_even_when_the_student_failed(self):
         receipt = self.admit()

@@ -30,7 +30,7 @@ from .sources import quote_identifier
 
 QUALITY_VERSION = "source-quality-v1"
 RUNTIME_FILES = (
-    "quality.py", "pilot.py", "generation.py", "azure_generation.py", "discovery_context.py",
+    "quality.py", "pilot.py", "generation.py", "azure_generation.py", "gateway.py", "discovery_context.py",
     "contracts.py", "evidence.py", "qualified_witnesses.py", "query.py", "scoring.py",
     "canonical_facts.py", "fact_curation.py", "difficulty.py", "difficulty_curation.py",
     "serving.py", "mysql_serving.py", "ledger.py", "sources.py",

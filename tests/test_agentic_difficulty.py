@@ -380,6 +380,24 @@ class SourceDifficultyTests(unittest.TestCase):
         self.assertEqual(result.routes[0].probes[0].error_code, "incomplete_candidate_identity")
         self.assertIsNone(result.score)
 
+    def test_projected_alias_cannot_impersonate_a_raw_identity_field(self):
+        for projection in ("ProcessId + 1 AS ProcessId", "CAST(ProcessId AS VARCHAR) AS ProcessId",
+                           "'not-the-source-tenant' AS TenantId"):
+            with self.subTest(projection=projection):
+                result = self.measured(self.probe(
+                    "SELECT _record_id,FileName," + projection + " FROM DeviceProcessEvents"))
+                measurement = result.routes[0].probes[0]
+                self.assertEqual(measurement.status, "error")
+                self.assertEqual(measurement.error_code, "projected_candidate_identity")
+                self.assertIsNone(measurement.candidate_count)
+                self.assertIsNone(result.score)
+
+    def test_raw_identity_aliases_preserve_counts(self):
+        result = self.measured(self.probe(
+            "SELECT _record_id,FileName,ProcessId AS ProcessId,TenantId AS TenantId FROM DeviceProcessEvents"))
+        self.assertEqual(result.routes[0].probes[0].status, "complete")
+        self.assertEqual(result.routes[0].probes[0].candidate_count, 2)
+
     def test_probe_engine_and_snapshot_must_match(self):
         probe = self.probe("SELECT _record_id,ProcessId FROM DeviceProcessEvents")
         plan = plan_for(self.case, probes=(probe,))

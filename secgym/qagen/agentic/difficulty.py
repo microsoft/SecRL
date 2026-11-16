@@ -517,6 +517,12 @@ def _probe(probe: AmbiguityProbe, verifier: EvidenceVerifier) -> PartitionedProb
                     _, source = verifier.record_values(citation)
                     if any(column not in source or source[column] is None for column in probe.identity_columns):
                         return failed("incomplete_candidate_identity", "A qualified candidate identity has a missing source field.")
+                    if any(column in result.columns and (
+                        type(row[result.columns.index(column)]) is not type(source[column])
+                        or row[result.columns.index(column)] != source[column]
+                    ) for column in probe.identity_columns):
+                        return failed("projected_candidate_identity",
+                                      "A projected identity alias differs from its declared raw source field.")
                     keys.add(tuple((type(source[column]).__name__, source[column]) for column in probe.identity_columns))
         if not rows:
             return failed("empty_candidate_scope", "No candidates were observed; repair the probe rather than assign an easy score.")

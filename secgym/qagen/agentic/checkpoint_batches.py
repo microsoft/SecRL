@@ -15,28 +15,30 @@ from pathlib import Path
 import re
 import subprocess
 import time
-from typing import Literal
+from typing import Callable, Literal
 
 import duckdb
 from dotenv import dotenv_values
-from pydantic import Field
+from pydantic import Field, model_validator
 import sqlglot
 from sqlglot import exp
+from sqlglot.errors import ParseError, TokenError
 
 from .azure_generation import AzureGenerationClient, AzureGenerationConfig
 from .batch import DevelopmentAttempt
-from .contracts import Contract, Digest, Identifier, QualifiedWitnessProgram, SELECTED_INCIDENTS, TaskRecord, fingerprint
+from .contracts import Contract, Digest, GateResult, Identifier, QualifiedWitnessProgram, SELECTED_INCIDENTS, TaskRecord, Text, fingerprint
 from .discovery_context import GraphDiscovery, scope_context
 from .evidence import EvidenceVerifier, Finding
 from .generation import BlindSolution, DiscoveryTools, RoleAbstained, TaskDraft, compile_draft, observed_role_citations, run_role
+from .gateway import GatewayConfig, GatewayOptIn
 from .json_result_recovery import JsonResultRecoveryPolicy, recover_json_result
 from .ledger import file_sha256
 from .model_panel import immutable_json
 from .mysql_serving import open_duckdb_engine
 from .pilot import AUTHOR_INSTRUCTIONS, BLIND_INSTRUCTIONS, REFUTER_INSTRUCTIONS
 from .preproduction import PreproductionPlan, SourceOutcome, _artifacts, _bucket, configured_model_binding, locked_run, source_progress
-from .preproduction_admission import admission_progress
-from .preproduction_pipeline import run_candidate_pipeline
+from .preproduction_admission import ArtifactVerification, admission_progress
+from .preproduction_pipeline import contract_proof_diagnostics, run_candidate_pipeline
 from .preproduction_revisions import current_source, effective_runtime, run_source_revision
 from .quality import (
     AUTHOR_QUALITY_INSTRUCTIONS, QUALITY_VERSION, QualityAudit, audit_source_quality, run_quality_gate,
@@ -47,7 +49,7 @@ from .review_transport import NonStudentTransportPolicy, _digest, azure_review_c
 from .scoring import compare_typed_answers
 
 
-class CheckpointBatchPolicy(Contract):
+class CheckpointBatchPolicy(GatewayOptIn):
     policy_version: Literal["checkpoint-generation-v1"] = "checkpoint-generation-v1"
     plan_fingerprint: Digest
     batch_id: Identifier
@@ -62,6 +64,43 @@ class CheckpointBatchPolicy(Contract):
     release_approved: Literal[False] = False
 
 
+class QuotaCheckpointBatchPolicy(CheckpointBatchPolicy):
+    allocation_policy: Literal["remaining-admission-quotas-v1"] = "remaining-admission-quotas-v1"
+    requested_checkpoint_size: int = Field(ge=1, le=100)
+    scope_targets: dict[str, int]
+
+    @model_validator(mode="after")
+    def bounded_scope_allocation(self):
+        scopes = {f"incident:{incident}" for incident in SELECTED_INCIDENTS} | {"tenant"}
+        if set(self.scope_targets) != scopes or any(value < 0 for value in self.scope_targets.values()):
+            raise ValueError("quota allocation requires every supported scope and nonnegative targets")
+        if sum(self.scope_targets.values()) != self.checkpoint_size or self.checkpoint_size > self.requested_checkpoint_size:
+            raise ValueError("quota allocation must match its bounded actual checkpoint size")
+        return self
+
+
+class CheckpointProducerAmendment(Contract):
+    policy_version: Literal["checkpoint-producer-amendment-v1"] = "checkpoint-producer-amendment-v1"
+    batch_policy_fingerprint: Digest
+    previous_sha256: Digest
+    current_sha256: Digest
+    previous_source: Text
+    current_source: Text
+    source_runtime_sha256: dict[str, Digest]
+    reason: Text
+    completed_drafts_or_students_changed: Literal[False] = False
+
+
+def load_batch_policy(path: Path) -> CheckpointBatchPolicy:
+    data = path.read_bytes()
+    allocation = json.loads(data).get("allocation_policy")
+    if allocation is None:
+        return CheckpointBatchPolicy.model_validate_json(data)
+    if allocation != "remaining-admission-quotas-v1":
+        raise ValueError("unknown checkpoint allocation policy")
+    return QuotaCheckpointBatchPolicy.model_validate_json(data)
+
+
 DRAFT_INSTRUCTIONS = AUTHOR_INSTRUCTIONS.replace(
     "Investigate a scouted lead and draft", "Explore the supplied source scope, choose a novel factual investigation, and draft",
 ) + AUTHOR_QUALITY_INSTRUCTIONS + """
@@ -73,6 +112,24 @@ MySQL JSON_TABLE text columns do not inherit public-table binary collation. Use 
 comparisons for exact named roles/values; preserve intentionally case-insensitive public semantics.
 The verified public MySQL text columns already use binary, NO PAD collation. Preserve indexed
 physical-column access; do not add index-defeating BINARY casts there merely to repeat those semantics.
+Check the lookup value too: BINARY on a JSON-derived right-hand operand can defeat indexed access even
+when the physical column is untouched. Where verified physical-column metadata establishes the exact
+binary, NO PAD semantics, decode that lookup value with CAST(... AS CHAR) and compare to the uncast
+indexed column. Keep explicit binary comparisons between JSON-derived values where needed; never
+trade case sensitivity, trailing-space distinctions or complete matches for an index shortcut.
+For exact binary grouping, group/select the same binary expression inside a CTE or subquery, then
+decode the grouped result with CAST(... AS CHAR) in an outer SELECT. Do not select a differently
+decoded expression beside GROUP BY BINARY and assume ONLY_FULL_GROUP_BY will accept it.
+Binary comparisons are not binary answer values. Return native strings as CHAR, including after
+binary DISTINCT, and native numeric results as supported integer/DOUBLE scalars, not raw bytes or Decimal.
+Preserve exact comparisons and full timestamp dates/microseconds when correcting result transport.
+For exact string collections of UTC timestamps, semantic_kind does not normalize collection members.
+State the required lexical output format in the public question, matching the actual answer-program
+results: date/time separator, timezone suffix (+00:00 versus Z), and presence and exact fractional
+precision. Preserve all source precision. UTC-equivalent spellings are not equal under the frozen
+exact-set comparator. Specify the format without disclosing any actual answer or intermediate value.
+This guidance applies to new authorship only; never rewrite completed questions or student answers,
+change the frozen comparator, or manufacture a different expected spelling to fit a retained student.
 Public-anchor literals must actually appear in the public question/context or its supplied incident ID.
 State exact title/action/command-pattern/time-window selectors when the query requires them.
 Do not disclose private answers or intermediate IOCs to justify a selector; derive those from sources.
@@ -106,31 +163,114 @@ def batch_directory(run: Path, batch_id: str) -> Path:
     return path
 
 
+def checkpoint_producer(run: Path, policy: CheckpointBatchPolicy) -> str:
+    directory = batch_directory(run, policy.batch_id)
+    if load_batch_policy(directory / "policy.json") != policy:
+        raise ValueError("checkpoint producer amendments require the unchanged original batch policy")
+    expected = policy.implementation_sha256
+    for sequence, path in enumerate(sorted((directory / "producer-amendments").glob("*.json"))):
+        if path.name != f"{sequence:04d}.json":
+            raise ValueError("checkpoint producer amendments must form a contiguous chain")
+        amendment = CheckpointProducerAmendment.model_validate_json(path.read_bytes())
+        if amendment.batch_policy_fingerprint != fingerprint(policy) or amendment.previous_sha256 != expected or (
+            amendment.current_sha256 == expected
+            or amendment.source_runtime_sha256 != policy.source_generation_runtime_sha256
+        ):
+            raise ValueError("checkpoint producer amendment changed its policy, source runtime or previous producer")
+        for name, digest in ((amendment.previous_source, expected), (amendment.current_source, amendment.current_sha256)):
+            source = (directory / name).resolve()
+            if not source.is_relative_to(directory.resolve()) or file_sha256(source) != digest:
+                raise ValueError("checkpoint producer archive changed or escaped its batch")
+        expected = amendment.current_sha256
+    from .transport_amendments import transport_checkpoint_producer
+    plan = PreproductionPlan.model_validate_json((run / "plan.json").read_bytes())
+    return transport_checkpoint_producer(plan, run, expected)
+
+
+def record_checkpoint_producer_amendment(run: Path, batch_id: str, *, previous_source: Path,
+                                        current_source: Path, reason: str) -> CheckpointProducerAmendment:
+    from .preproduction import runtime_hashes
+
+    directory = batch_directory(run, batch_id)
+    policy = load_batch_policy(directory / "policy.json")
+    plan = PreproductionPlan.model_validate_json((run / "plan.json").read_bytes())
+    with locked_run(run, wait=True):
+        previous = checkpoint_producer(run, policy)
+        current = file_sha256(Path(__file__))
+        if policy.plan_fingerprint != fingerprint(plan) or policy.source_generation_runtime_sha256 != runtime_hashes() or (
+            effective_runtime(plan, run) != runtime_hashes() or current == previous
+        ):
+            raise ValueError("checkpoint producer amendment cannot change the approved source runtime or be a no-op")
+        sources = []
+        for source, digest in ((previous_source, previous), (current_source, current)):
+            source = source.resolve()
+            if not source.is_relative_to(directory.resolve()) or file_sha256(source) != digest:
+                raise ValueError("checkpoint producer amendment requires both exact owned producer sources")
+            sources.append(str(source.relative_to(directory.resolve())))
+        amendment = CheckpointProducerAmendment(
+            batch_policy_fingerprint=fingerprint(policy), previous_sha256=previous, current_sha256=current,
+            previous_source=sources[0], current_source=sources[1],
+            source_runtime_sha256=runtime_hashes(), reason=reason,
+        )
+        folder = directory / "producer-amendments"
+        folder.mkdir(mode=0o700, exist_ok=True)
+        immutable_json(folder / f"{len(list(folder.glob('*.json'))):04d}.json", amendment)
+        return amendment
+
+
 def _check_policy(plan: PreproductionPlan, run: Path, policy: CheckpointBatchPolicy) -> None:
     from .preproduction import runtime_hashes
 
-    if policy.plan_fingerprint != fingerprint(plan) or policy.implementation_sha256 != file_sha256(Path(__file__)):
+    if policy.plan_fingerprint != fingerprint(plan) or checkpoint_producer(run, policy) != file_sha256(Path(__file__)):
         raise ValueError("generation policy does not bind this run and producer")
-    if policy.source_generation_runtime_sha256 != runtime_hashes() or effective_runtime(plan, run) != runtime_hashes():
+    from .transport_amendments import transport_runtime_matches
+    if effective_runtime(plan, run) != runtime_hashes() or (
+        policy.source_generation_runtime_sha256 != runtime_hashes()
+        and not transport_runtime_matches(plan, run, policy.source_generation_runtime_sha256, runtime_hashes())
+    ):
         raise ValueError("checkpoint generation requires the explicitly pinned source runtime")
 
 
-def create_batch(run: Path, batch_id: str, *, checkpoint_size: int = 100, workers: int = 4) -> CheckpointBatchPolicy:
+def create_batch(run: Path, batch_id: str, *, checkpoint_size: int = 100, workers: int = 4,
+                 quota_aware: bool = False, gateway: GatewayConfig | None = None) -> CheckpointBatchPolicy:
     from .preproduction import runtime_hashes
 
     plan = PreproductionPlan.model_validate_json((run / "plan.json").read_bytes())
-    policy = CheckpointBatchPolicy(
-        plan_fingerprint=fingerprint(plan), batch_id=batch_id, checkpoint_size=checkpoint_size, workers=workers,
-        source_generation_runtime_sha256=runtime_hashes(), implementation_sha256=file_sha256(Path(__file__)),
-        user_authorization="astra_generation_checkpoint_reviews",
-    )
-    _check_policy(plan, run, policy)
     directory = batch_directory(run, batch_id)
+    if (directory / "policy.json").exists():
+        policy = load_batch_policy(directory / "policy.json")
+        requested = policy.requested_checkpoint_size if isinstance(policy, QuotaCheckpointBatchPolicy) else policy.checkpoint_size
+        if (requested, policy.workers, isinstance(policy, QuotaCheckpointBatchPolicy), policy.gateway) != (
+            checkpoint_size, workers, quota_aware, gateway,
+        ):
+            raise ValueError("an existing checkpoint allocation or worker configuration cannot change")
+        _check_policy(plan, run, policy)
+        return policy
+    if effective_runtime(plan, run) != runtime_hashes():
+        raise ValueError("checkpoint generation requires the explicitly pinned source runtime")
+    if quota_aware:
+        targets = quota_targets(admission_progress(plan, run), checkpoint_size)
+        policy = QuotaCheckpointBatchPolicy(
+            plan_fingerprint=fingerprint(plan), batch_id=batch_id, workers=workers,
+            source_generation_runtime_sha256=runtime_hashes(), implementation_sha256=file_sha256(Path(__file__)),
+            user_authorization="astra_generation_checkpoint_reviews",
+            checkpoint_size=sum(targets.values()), requested_checkpoint_size=checkpoint_size,
+            scope_targets=targets,
+            gateway=gateway,
+        )
+    else:
+        policy = CheckpointBatchPolicy(
+            plan_fingerprint=fingerprint(plan), batch_id=batch_id, workers=workers,
+            source_generation_runtime_sha256=runtime_hashes(), implementation_sha256=file_sha256(Path(__file__)),
+            user_authorization="astra_generation_checkpoint_reviews", checkpoint_size=checkpoint_size,
+            gateway=gateway,
+        )
     directory.mkdir(parents=True, mode=0o700, exist_ok=True)
     immutable_json(directory / "policy.json", policy)
     immutable_json(directory / "producer.json", {
         "module": Path(__file__).name, "sha256": policy.implementation_sha256, "source": Path(__file__).read_text(),
     })
+    _check_policy(plan, run, policy)
     return policy
 
 
@@ -148,17 +288,29 @@ class CheckpointClient:
     """Route only fresh draft/repair roles to Astra; retain the original Sol validation client."""
 
     def __init__(self, plan: PreproductionPlan, policy: CheckpointBatchPolicy,
-                 transport: NonStudentTransportPolicy, env_file: Path, root: Path):
-        values = dotenv_values(env_file)
-        endpoint = values.get("AZUREAI_OPENAI_BASE_URL")
-        if not endpoint or hashlib.sha256(endpoint.encode()).hexdigest() != plan.model.endpoint_sha256 or (
-            values.get("AZUREAI_OPENAI_API_VERSION") != plan.model.api_version
-        ):
-            raise ValueError("Astra must use the original approved endpoint and API version")
+                 transport: NonStudentTransportPolicy, env_file: Path, root: Path, *,
+                 execution_producer_sha256: str | None = None, run: Path | None = None):
+        from .preproduction import task_generation_config
+
+        config = None
+        if run is not None:
+            relative = root.resolve().relative_to((run / "attempts").resolve())
+            config = task_generation_config(plan, run, relative.parts[0], env_file)
+        if (config.gateway if config is not None else policy.gateway) is None:
+            values = dotenv_values(env_file)
+            endpoint = values.get("AZUREAI_OPENAI_BASE_URL")
+            if not endpoint or hashlib.sha256(endpoint.encode()).hexdigest() != plan.model.endpoint_sha256 or (
+                values.get("AZUREAI_OPENAI_API_VERSION") != plan.model.api_version
+            ):
+                raise ValueError("Astra must use the original approved endpoint and API version")
         self.policy, self.root = policy, root.resolve()
-        self.config = AzureGenerationConfig(
+        self.execution_producer_sha256 = (
+            policy.implementation_sha256 if execution_producer_sha256 is None else execution_producer_sha256
+        )
+        self.config = config if config is not None else AzureGenerationConfig(
             env_file=env_file, deployment=plan.model.deployment, timeout_seconds=plan.model.request_timeout_seconds,
             max_completion_tokens=plan.model.max_completion_tokens, reasoning_effort=plan.model.reasoning_effort,
+            gateway=policy.gateway,
         )
         self.base = azure_review_client(self.config, transport, (self.root,))
         try:
@@ -183,7 +335,7 @@ class CheckpointClient:
         path, request = matches[0]
         if request["role"] not in ("author", "repair"):
             return self.base.complete(messages, tools)
-        if self.policy.implementation_sha256 != file_sha256(Path(__file__)):
+        if self.execution_producer_sha256 != file_sha256(Path(__file__)):
             raise ValueError("the generation implementation changed during inference")
         finish = [tool["function"] for tool in tools if tool.get("function", {}).get("name") == "finish"]
         if len(finish) != 1 or finish[0]["parameters"] != TaskDraft.model_json_schema():
@@ -207,12 +359,14 @@ class CheckpointClient:
         receipt = path.with_name(path.name.replace("-request.json", "-generation-model.json"))
         immutable_json(receipt, {
             "policy_fingerprint": fingerprint(self.policy), "request_sha256": file_sha256(path),
+            "execution_producer_sha256": self.execution_producer_sha256,
             "actual_config": self.author.config.model_dump(mode="json", exclude={"env_file"}),
             "review_student_default": self.config.model_dump(mode="json", exclude={"env_file"}),
         })
-        response = self.author.complete(messages, tools)
+        response = self.base.complete_with_credentials(self.author, messages, tools)
         return {**response, "generation_model": {
             "policy_fingerprint": fingerprint(self.policy), "receipt_sha256": file_sha256(receipt),
+            "execution_producer_sha256": self.execution_producer_sha256,
             "deployment": self.policy.generation_deployment,
         }}
 
@@ -229,6 +383,38 @@ def _targets(size: int) -> dict[str, int]:
     for incident in SELECTED_INCIDENTS[:incident_count % len(SELECTED_INCIDENTS)]:
         result[f"incident:{incident}"] += 1
     return {**result, "tenant": size - incident_count}
+
+
+def quota_targets(progress: dict, maximum: int = 100) -> dict[str, int]:
+    if type(maximum) is not int or not 1 <= maximum <= 100:
+        raise ValueError("quota-aware checkpoint size must be between one and one hundred")
+    scopes = _targets(maximum)
+    capacity = {}
+    for name in scopes:
+        remaining = progress["buckets"][name]["validated_shortfall"]
+        attempts = progress["buckets"][name]["remaining_logical_attempts"]
+        if any(type(value) is not int or value < 0 for value in (remaining, attempts)):
+            raise ValueError("remaining scope quotas and attempt capacity must be nonnegative integers")
+        capacity[name] = min(remaining, attempts)
+    size = min(maximum, sum(capacity.values()))
+    if not size:
+        raise ValueError("no remaining admission quota with available logical attempts")
+    incident_capacity = sum(value for name, value in capacity.items() if name != "tenant")
+    incident_count = min((size + 1) // 2, incident_capacity)
+    tenant_count = min(size - incident_count, capacity["tenant"])
+    incident_count += size - incident_count - tenant_count
+    targets = {name: 0 for name in scopes}
+    targets["tenant"] = tenant_count
+    incidents = [name for name in scopes if name != "tenant"]
+    for _ in range(incident_count):
+        available = [name for name in incidents if targets[name] < capacity[name]]
+        selected = min(available, key=lambda name: targets[name])
+        targets[selected] += 1
+    return targets
+
+
+def batch_targets(policy: CheckpointBatchPolicy) -> dict[str, int]:
+    return dict(policy.scope_targets) if isinstance(policy, QuotaCheckpointBatchPolicy) else _targets(policy.checkpoint_size)
 
 
 def _items(directory: Path) -> list[dict]:
@@ -277,9 +463,15 @@ def reserve_drafts(plan: PreproductionPlan, run: Path, policy: CheckpointBatchPo
                    questions: dict[str, list[str]]) -> list[dict]:
     directory = batch_directory(run, policy.batch_id)
     with locked_run(run, wait=True):
+        progress = admission_progress(plan, run) if isinstance(policy, QuotaCheckpointBatchPolicy) else None
         existing = _items(directory)
         for item in existing:
             _materialize_reservation(plan, run, policy, item)
+        targets = batch_targets(policy)
+        if progress is not None and any(
+            target > progress["buckets"][name]["validated_shortfall"] for name, target in targets.items()
+        ):
+            raise ValueError("admission quotas changed after this checkpoint allocation; do not generate surplus scope drafts")
         pending = [item for item in existing if _item_state(run, item, "draft-result.json") is None]
         if pending:
             return pending[:count]
@@ -288,7 +480,6 @@ def reserve_drafts(plan: PreproductionPlan, run: Path, policy: CheckpointBatchPo
             result = _item_state(run, item, "draft-result.json")
             if result is not None and result["status"] == "draft_ready":
                 done[item["bucket"]] += 1
-        targets = _targets(policy.checkpoint_size)
         selected = []
         available = [attempt for attempt in plan.attempts() if not (run / "attempts" / attempt.task_id).exists()]
         while len(selected) < count:
@@ -317,7 +508,13 @@ def _verify_generation_files(folder: Path, result: dict) -> None:
 
 
 def cast_mysql_json_inputs(query: str) -> str:
-    tree = sqlglot.parse_one(query, read="mysql")
+    try:
+        tree = sqlglot.parse_one(query, read="mysql")
+    except (ParseError, TokenError) as error:
+        raise ValueError(
+            "MySQL program is unsupported by the pinned SQL parser. Use supported syntax; "
+            "JSON_TABLE may omit explicit NULL ON EMPTY/NULL ON ERROR defaults. " + str(error)
+        ) from error
     changed = False
     for node in tree.find_all(exp.JSONTable):
         target = node.this.args.get("to") if isinstance(node.this, exp.Cast) else None
@@ -329,6 +526,21 @@ def cast_mysql_json_inputs(query: str) -> str:
 
 def selector_issue_identifiers(audit: QualityAudit) -> list[dict]:
     return [{"issue_fingerprint": fingerprint(issue), "issue": issue.model_dump(mode="json")} for issue in audit.issues]
+
+
+def current_json_recovery_policy(run: Path, plan_fingerprint: str) -> JsonResultRecoveryPolicy | None:
+    policies = sorted(run.glob("json-result-recovery-policy*.json"))
+    if not policies:
+        return None
+    implementation = file_sha256(Path(__file__).with_name("json_result_recovery.py"))
+    matches = {}
+    for path in policies:
+        policy = JsonResultRecoveryPolicy.model_validate_json(path.read_bytes())
+        if policy.plan_fingerprint == plan_fingerprint and policy.implementation_sha256 == implementation:
+            matches[fingerprint(policy)] = policy
+    if len(matches) != 1:
+        raise ValueError("JSON result recovery requires one approved policy for this plan and current producer")
+    return next(iter(matches.values()))
 
 
 def _compile(draft: TaskDraft, verifier: EvidenceVerifier, attempt: DevelopmentAttempt, revision: str,
@@ -411,12 +623,12 @@ def draft_candidate(*, plan: PreproductionPlan, run: Path, policy: CheckpointBat
         except ValueError as error:
             if str(error) != "role stopped without an explicit structured finish result":
                 raise
-            recovery_path = run / "json-result-recovery-policy01.json"
-            if not recovery_path.exists():
+            recovery_policy = current_json_recovery_policy(run, fingerprint(plan))
+            if recovery_policy is None:
                 raise
             draft = recover_json_result(
                 directory=source / role, root=source,
-                policy=JsonResultRecoveryPolicy.model_validate_json(recovery_path.read_bytes()),
+                policy=recovery_policy,
                 transport_policy=load_run_transport_policy(run, fingerprint(plan)),
                 response_type=TaskDraft, tools=DiscoveryTools(engine, initial.tables, graph.neighbors),
                 validate_result=lambda value, _tools: validate(value),
@@ -435,7 +647,10 @@ def draft_candidate(*, plan: PreproductionPlan, run: Path, policy: CheckpointBat
         engine.connection.close()
 
 
-def review_source(*, plan: PreproductionPlan, source: Path, serving: Path, client) -> dict:
+def review_source(
+    *, plan: PreproductionPlan, source: Path, serving: Path, client,
+    native_context_provider: Callable[[TaskRecord, EvidenceVerifier], dict] | None = None,
+) -> dict:
     task = TaskRecord.model_validate_json((source / "task.json").read_bytes())
     draft = TaskDraft.model_validate_json((source / "draft.json").read_bytes())
     engine = open_duckdb_engine(serving, plan.query_limits)
@@ -445,13 +660,43 @@ def review_source(*, plan: PreproductionPlan, source: Path, serving: Path, clien
         audit = QualityAudit.model_validate_json((source / "draft-quality-audit.json").read_bytes())
         if audit.task_fingerprint != fingerprint(task) or audit.implementation_sha256 != quality_hashes():
             raise ValueError("draft quality audit differs from the current task or source-quality runtime")
+        native_context = None
+        if native_context_provider is not None:
+            native_context = native_context_provider(task, verifier)
+            if (native_context.get("task_fingerprint"), native_context.get("plan_fingerprint"),
+                native_context.get("native_snapshot_sha256")) != (
+                fingerprint(task), fingerprint(plan), plan.native_snapshot_sha256,
+            ):
+                raise ValueError("source review native context belongs to different task or snapshot inputs")
+            parity = GateResult.model_validate_json(json.dumps(native_context["baseline_source_native_parity"]))
+            if parity.gate != "serving_parity":
+                raise ValueError("source review requires actual source/native parity, not a substitute gate")
+            immutable_json(source / "native-source-preflight.json", native_context)
+            if parity.status != "pass":
+                report = {
+                    "status": "needs_revision", "task_fingerprint": fingerprint(task),
+                    "source_quality": {"status": "not_run", "reason": "native_preflight_failed"},
+                    "native_preflight": parity.model_dump(mode="json"), "blind_started": False,
+                    "mysql_validated": False, "release_approved": False,
+                    "reason": "Native contract preflight failed before source review or student sampling: " + parity.reason,
+                }
+                immutable_json(source / "pilot_report.json", report)
+                return report
+        review_context = {
+            "draft": draft.model_dump(mode="json"), "selector_issue_identifiers": selector_issue_identifiers(audit),
+            "selector_identifier_instruction": "Copy each supplied issue_fingerprint exactly; query_sha256 is not the issue identifier.",
+        }
+        if native_context is not None:
+            review_context.update(
+                verified_native_semantics=native_context,
+                actual_verifier_diagnostics=contract_proof_diagnostics(task, verifier),
+                behavior_flag_semantics="A required behavior witness may contain behavior OR security_control lineage.",
+                student_outcomes_supplied=False,
+            )
         gate, review = run_quality_gate(
             client=client, task=task, verifier=verifier, serving_bundle=serving, output=source / "quality",
             instructions=REFUTER_INSTRUCTIONS,
-            review_context={
-                "draft": draft.model_dump(mode="json"), "selector_issue_identifiers": selector_issue_identifiers(audit),
-                "selector_identifier_instruction": "Copy each supplied issue_fingerprint exactly; query_sha256 is not the issue identifier.",
-            },
+            review_context=review_context,
         )
         report = {"status": "needs_revision", "task_fingerprint": fingerprint(task), "source_quality": gate,
                   "blind_started": False, "mysql_validated": False, "release_approved": False}
@@ -484,6 +729,21 @@ def review_source(*, plan: PreproductionPlan, source: Path, serving: Path, clien
         engine.connection.close()
 
 
+def source_repair_feedback(source: Path) -> dict:
+    review = source / "quality/reviewer/result.json"
+    if review.exists():
+        return {"recorded_checkpoint_review": json.loads(review.read_bytes())}
+    preflight = source / "native-source-preflight.json"
+    if preflight.exists():
+        context = json.loads(preflight.read_bytes())
+        parity = GateResult.model_validate_json(json.dumps(context["baseline_source_native_parity"]))
+        task = TaskRecord.model_validate_json((source / "task.json").read_bytes())
+        if context["task_fingerprint"] != fingerprint(task) or parity.gate != "serving_parity" or parity.status == "pass":
+            raise ValueError("source repair lacks a matching failed native preflight")
+        return {"recorded_native_preflight": context}
+    raise ValueError("source repair requires a recorded semantic review or native contract failure")
+
+
 def _outcome(plan, run, item, status, task_fp, reason):
     folder = run / "attempts" / item["attempt"]["task_id"]
     immutable_json(folder / "source-outcome.json", SourceOutcome(
@@ -493,10 +753,19 @@ def _outcome(plan, run, item, status, task_fp, reason):
     ))
 
 
-def checkpoint_progress(run: Path, batch_id: str) -> dict:
+def checkpoint_progress(run: Path, batch_id: str, *, verification: ArtifactVerification | None = None) -> dict:
+    return checkpoint_progress_with_campaign(run, batch_id, verification=verification)[0]
+
+
+def checkpoint_progress_with_campaign(
+    run: Path, batch_id: str, *, verification: ArtifactVerification | None = None,
+) -> tuple[dict, dict]:
+    """Return the existing checkpoint summary and its single current campaign calculation."""
     directory = batch_directory(run, batch_id)
-    policy = CheckpointBatchPolicy.model_validate_json((directory / "policy.json").read_bytes())
-    campaign = admission_progress(PreproductionPlan.model_validate_json((run / "plan.json").read_bytes()), run)
+    policy = load_batch_policy(directory / "policy.json")
+    plan = PreproductionPlan.model_validate_json((run / "plan.json").read_bytes())
+    campaign = (admission_progress(plan, run) if verification is None
+                else admission_progress(plan, run, verification=verification))
     items = _items(directory)
     drafts, reviews, gates = Counter(), Counter(), Counter()
     repairs = []
@@ -520,11 +789,12 @@ def checkpoint_progress(run: Path, batch_id: str) -> dict:
                 repairs.append({"task_id": item["attempt"]["task_id"], "stage": stage, **value})
     return {
         "batch_id": batch_id, "policy_fingerprint": fingerprint(policy), "checkpoint_size": policy.checkpoint_size,
+        "scope_targets": batch_targets(policy),
         "logical_attempts_in_batch": len(items), "drafts": dict(drafts), "source_reviews": dict(reviews),
         "admission_pipelines": dict(gates), "ready_for_checkpoint": drafts["draft_ready"] >= policy.checkpoint_size,
         "repair_queue": repairs, "source_ready_is_not_admission": True, "release_approved": False,
         "campaign": {key: campaign[key] for key in ("logical_attempts_started", "source_ready", "validated_new_questions")},
-    }
+    }, campaign
 
 
 def _parallel(items, workers, operation):
@@ -543,7 +813,8 @@ def _client(plan, policy, run, env_file, source):
     transport = load_run_transport_policy(run, fingerprint(plan))
     if transport.plan_fingerprint != fingerprint(plan):
         raise ValueError("the validation model policy belongs to another run")
-    return CheckpointClient(plan, policy, transport, env_file, source)
+    return CheckpointClient(plan, policy, transport, env_file, source,
+                            execution_producer_sha256=checkpoint_producer(run, policy), run=run)
 
 
 def generate_checkpoint(*, run: Path, batch_id: str, serving: Path, graph: Path, env_file: Path,
@@ -551,7 +822,7 @@ def generate_checkpoint(*, run: Path, batch_id: str, serving: Path, graph: Path,
     if (run / "checkpoint-revalidation-required.json").exists():
         raise ValueError("checkpoint revalidation is pending; further question generation is blocked")
     plan = PreproductionPlan.model_validate_json((run / "plan.json").read_bytes())
-    policy = CheckpointBatchPolicy.model_validate_json((batch_directory(run, batch_id) / "policy.json").read_bytes())
+    policy = load_batch_policy(batch_directory(run, batch_id) / "policy.json")
     _check_policy(plan, run, policy)
     if max_new_attempts is not None and max_new_attempts <= 0:
         raise ValueError("the explicit smoke-run attempt limit must be positive")
@@ -576,7 +847,8 @@ def generate_checkpoint(*, run: Path, batch_id: str, serving: Path, graph: Path,
                 task = runner(plan=plan, run=run, policy=policy, item=item, serving=serving, graph_bundle=graph, client=client)
                 task_fp = fingerprint(task)
                 result = {"status": "draft_ready", "task_fingerprint": task_fp,
-                          "generation_artifacts_sha256": _artifacts(source), "semantic_review_deferred": True}
+                          "generation_artifacts_sha256": _artifacts(source), "semantic_review_deferred": True,
+                          "execution_producer_sha256": file_sha256(Path(__file__))}
             except RoleAbstained as error:
                 result = {"status": "no_supported_candidate", "reason": str(error)}
                 _outcome(plan, run, item, result["status"], task_fp, result["reason"])
@@ -623,7 +895,7 @@ def review_checkpoint(*, run: Path, batch_id: str, serving: Path, graph: Path, m
                       env_file: Path, workdir: Path, source_runner=review_source, pipeline_runner=None) -> dict:
     plan = PreproductionPlan.model_validate_json((run / "plan.json").read_bytes())
     directory = batch_directory(run, batch_id)
-    policy = CheckpointBatchPolicy.model_validate_json((directory / "policy.json").read_bytes())
+    policy = load_batch_policy(directory / "policy.json")
     _check_policy(plan, run, policy)
     with _workflow_lock(run):
         progress = checkpoint_progress(run, batch_id)
@@ -660,7 +932,11 @@ def review_checkpoint(*, run: Path, batch_id: str, serving: Path, graph: Path, m
                 if report["status"] == "candidate_for_mysql_validation":
                     validate_quality_gate(source, task)
                 status = "source_ready" if report["status"] == "candidate_for_mysql_validation" else "needs_revision"
-                reason = "Checkpoint source review and original student completed; final admission remains separate."
+                reason = report.get("reason") or (
+                    "Checkpoint source review and original student completed; final admission remains separate."
+                    if report.get("blind_started") else
+                    "Checkpoint source review needs revision; no source student was sampled."
+                )
             except RoleAbstained as error:
                 status, reason = "needs_revision", str(error)
             except ITEM_ERRORS as error:
@@ -716,7 +992,9 @@ def finish_checkpoint_candidate(*, plan, run, policy, task_id, serving, graph, m
     try:
         verifier = EvidenceVerifier(serving, engine, literals)
         client = _client(plan, policy, run, env_file, output)
-        if configured_model_binding(client) != plan.model:
+        from .preproduction import task_model_binding, validate_task_client
+        validate_task_client(plan, run, task_id, client)
+        if configured_model_binding(client) != task_model_binding(plan, run, task_id):
             raise ValueError("the review/student model settings changed")
         metadata = json.loads((mysql_bundle / "mysql_report.json").read_bytes())
 
@@ -745,7 +1023,7 @@ def repair_checkpoint(*, run: Path, batch_id: str, task_ids: tuple[str, ...], se
                       mysql_bundle: Path, env_file: Path, workdir: Path) -> dict:
     plan = PreproductionPlan.model_validate_json((run / "plan.json").read_bytes())
     directory = batch_directory(run, batch_id)
-    policy = CheckpointBatchPolicy.model_validate_json((directory / "policy.json").read_bytes())
+    policy = load_batch_policy(directory / "policy.json")
     _check_policy(plan, run, policy)
     if not (directory / "checkpoint-report.json").exists():
         raise ValueError("repairs require a completed checkpoint review")
@@ -762,8 +1040,7 @@ def repair_checkpoint(*, run: Path, batch_id: str, task_ids: tuple[str, ...], se
         results = []
         for task_id in task_ids:
             source, _, _ = current_source(plan, run, task_id)
-            assessment = json.loads((source / "quality/reviewer/result.json").read_bytes())
-            feedback = json.dumps({"recorded_checkpoint_review": assessment,
+            feedback = json.dumps({**source_repair_feedback(source),
                                    "instruction": "Repair the actual defect; preserve original typed goals, meaningful checkpoints and source scope."})
             client = _client(plan, policy, run, env_file, run / "attempts" / task_id)
             try:

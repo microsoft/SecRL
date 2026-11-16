@@ -29,7 +29,7 @@ from .secrl_adapter import SecRLV1Env, Submission
 
 PANEL_VERSION = "matched-model-panel-v1"
 RUNTIME_FILES = (
-    "model_panel.py", "azure_generation.py", "generation.py", "pilot.py", "contracts.py",
+    "model_panel.py", "azure_generation.py", "gateway.py", "generation.py", "pilot.py", "contracts.py",
     "query.py", "evidence.py", "qualified_witnesses.py", "scoring.py", "mysql_serving.py",
     "secrl_adapter.py", "acesevals_adapter.py",
 )
@@ -113,11 +113,10 @@ def response_usage(directory: Path) -> dict:
 class BoundedClient:
     def __init__(self, client: ConfiguredClient, profile: PanelProfile, directory: Path):
         self.client, self.profile, self.directory = client, profile, directory
-        client.config = AzureGenerationConfig(
-            env_file=client.config.env_file, deployment=client.config.deployment,
-            timeout_seconds=profile.request_timeout_seconds, max_completion_tokens=profile.response_output_tokens,
-            reasoning_effort=profile.reasoning_effort,
-        )
+        client.config = client.config.model_copy(update={
+            "timeout_seconds": profile.request_timeout_seconds,
+            "max_completion_tokens": profile.response_output_tokens, "reasoning_effort": profile.reasoning_effort,
+        })
 
     def complete(self, messages: list[dict], tools: list[dict]) -> dict:
         usage = response_usage(self.directory)
@@ -305,6 +304,8 @@ def _run_episode(
     }
     if grading_verifier is not None:
         binding["grading_query_limits"] = grader.engine.limits.model_dump(mode="json")
+    if client.config.gateway is not None:
+        binding["gateway"] = client.config.gateway.model_dump(mode="json")
     if recorded_from is not None:
         if recorded_from.resolve() == output.resolve():
             raise ValueError("a retained recording must remain separate from its new grading output")
@@ -338,6 +339,8 @@ def _run_episode(
                     "serving_view_id", "allowed_literals"):
             if prior[key] != binding[key]:
                 raise ValueError("retained student belongs to a different task, model or student profile")
+        if prior.get("gateway") != binding.get("gateway"):
+            raise ValueError("retained student belongs to a different gateway transport")
         original_terminal = json.loads((recorded_from / "termination.json").read_bytes())
         complete = json.loads((role / "complete.json").read_bytes())
         solved = BlindSolution.model_validate_json((role / "result.json").read_bytes())

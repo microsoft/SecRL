@@ -24,7 +24,7 @@ from .sources import TIME_COLUMNS, digest
 FACT_VERSION = "canonical-source-facts-v2"
 FEATURE_VERSION = "unit-canonical-source-facts-v2.1"
 PathStep: TypeAlias = StrictStr | Annotated[StrictInt, Field(ge=0)]
-FactKind: TypeAlias = Literal["property_value", "json_member_presence", "json_array_empty_v1"]
+FactKind: TypeAlias = Literal["property_value", "json_member_presence", "json_array_empty_v1", "json_array_length_v1"]
 
 
 class SourceFactReference(Contract):
@@ -35,6 +35,8 @@ class SourceFactReference(Contract):
 
     @model_validator(mode="after")
     def presence_path(self):
+        if self.kind == "json_array_length_v1" and self.json_path is None:
+            raise ValueError("array-length facts require an explicit JSON path, including [] for the root")
         if self.kind == "json_array_empty_v1" and self.json_path is None:
             raise ValueError("empty-array facts require an explicit JSON path, including [] for the root")
         if self.kind == "json_member_presence" and (
@@ -44,14 +46,56 @@ class SourceFactReference(Contract):
         return self
 
 
+class SourcePropertySelection(Contract):
+    column: Text
+    json_path: tuple[PathStep, ...] | None = None
+    kind: FactKind = "property_value"
+
+
+class SourceFactReferenceGroup(Contract):
+    citation: PublicCitation
+    properties: Annotated[tuple[SourcePropertySelection, ...], Field(min_length=1)]
+
+
+class SourceFactReferenceBatch(Contract):
+    table: Identifier
+    record_ids: Annotated[tuple[Identifier, ...], Field(min_length=1)]
+    properties: Annotated[tuple[SourcePropertySelection, ...], Field(min_length=1)]
+
+    @property
+    def citations(self) -> tuple[PublicCitation, ...]:
+        return tuple(PublicCitation(table=self.table, record_id=record_id) for record_id in self.record_ids)
+
+    @model_validator(mode="after")
+    def unique_record_ids(self):
+        require_unique(self.record_ids, "batch fact record IDs")
+        return self
+
+
 class ClaimFactSelection(Contract):
     claim_id: Identifier
-    references: Annotated[tuple[SourceFactReference, ...], Field(min_length=1)]
+    references: Annotated[
+        tuple[SourceFactReference | SourceFactReferenceGroup | SourceFactReferenceBatch, ...], Field(min_length=1)
+    ]
     rationale: Text
+
+    @property
+    def expanded_references(self) -> tuple[SourceFactReference, ...]:
+        expanded: list[SourceFactReference] = []
+        for reference in self.references:
+            if isinstance(reference, SourceFactReference):
+                expanded.append(reference)
+            else:
+                citations = (reference.citation,) if isinstance(reference, SourceFactReferenceGroup) else reference.citations
+                expanded.extend(SourceFactReference(
+                    citation=citation, column=selection.column,
+                    json_path=selection.json_path, kind=selection.kind,
+                ) for citation in citations for selection in reference.properties)
+        return tuple(expanded)
 
     @model_validator(mode="after")
     def unique_references(self):
-        require_unique(tuple(fingerprint(ref) for ref in self.references), "claim fact references")
+        require_unique(tuple(fingerprint(ref) for ref in self.expanded_references), "claim fact references")
         return self
 
 
@@ -86,6 +130,11 @@ class CanonicalSourceFact(Contract):
     @model_validator(mode="after")
     def atomic_value(self):
         value = parse_json(self.value_json)
+        if self.kind == "json_array_length_v1" and (
+            self.json_path is None or not isinstance(value, JsonNumber)
+            or not value.text.isascii() or not value.text.isdecimal() or int(value.text) <= 0
+        ):
+            raise ValueError("array-length facts require a positive integer and an explicit JSON path")
         if self.kind == "json_array_empty_v1" and (value is not True or self.json_path is None):
             raise ValueError("empty-array facts require a verified true observation and an explicit JSON path")
         if isinstance(value, (dict, list)) or isinstance(value, str) and _encoded_container(value):
@@ -151,7 +200,7 @@ def _source_value_at(value: Scalar, path: tuple[PathStep, ...] | None) -> object
             raise EvidenceFailure("JSON fact paths require a reported JSON string column")
         current = parse_json(current)
         for step in path:
-            if isinstance(current, str):
+            while isinstance(current, str):
                 current = parse_json(current)
             if isinstance(current, dict) and isinstance(step, str) and step in current:
                 current = current[step]
@@ -179,11 +228,20 @@ def _encoded_container(value: str) -> bool:
 def source_leaf(
     value: Scalar, path: tuple[PathStep, ...] | None, *, kind: FactKind = "property_value",
 ) -> str:
+    if kind == "json_array_length_v1":
+        if path is None:
+            raise EvidenceFailure("array-length facts require an explicit JSON path")
+        observed = _source_value_at(value, path)
+        while isinstance(observed, str):
+            observed = parse_json(observed)
+        if not isinstance(observed, list) or not observed:
+            raise EvidenceFailure("array-length facts require an existing nonempty source array")
+        return str(len(observed))
     if kind == "json_array_empty_v1":
         if path is None:
             raise EvidenceFailure("empty-array facts require an explicit JSON path")
         observed = _source_value_at(value, path)
-        if isinstance(observed, str):
+        while isinstance(observed, str):
             observed = parse_json(observed)
         if not isinstance(observed, list) or observed:
             raise EvidenceFailure("empty-array facts require an existing source array with no elements")
@@ -192,7 +250,7 @@ def source_leaf(
         if not path or not isinstance(path[-1], str):
             raise EvidenceFailure("JSON member presence requires a nonempty path ending in an object key")
         parent = _source_value_at(value, path[:-1])
-        if isinstance(parent, str):
+        while isinstance(parent, str):
             parent = parse_json(parent)
         if not isinstance(parent, dict):
             raise EvidenceFailure("JSON member presence requires an existing source object parent")
@@ -236,7 +294,7 @@ class SourceFactResolver:
                 for group in claim.evidence_sets for eid in group.evidence_ids
             }
             selected = []
-            for binding in selection.references:
+            for binding in selection.expanded_references:
                 reference = permitted.get(binding.citation)
                 if reference is None:
                     raise EvidenceFailure("fact reference is outside this claim's validated evidence")
